@@ -34,7 +34,7 @@ function Segmented<T extends string | number>({ label, options, value, onChange 
   return (
     <span className="flex items-center gap-2">
       <span className="text-[13px] text-muted">{label}</span>
-      <span role="group" aria-label={label} className="inline-flex rounded-md border border-line bg-surface p-0.5">
+      <span role="group" aria-label={label} className="inline-flex box p-0.5">
         {options.map((option) => (
           <button
             key={option.value}
@@ -98,7 +98,7 @@ export function Stage() {
         </div>
       </header>
 
-      <section aria-label={th.stage.scriptTitle} className="flex flex-wrap items-center gap-3 rounded-md border border-line bg-surface px-4 py-2">
+      <section aria-label={th.stage.scriptTitle} className="flex flex-wrap items-center gap-3 box px-4 py-2">
         <span className="text-[13px] font-medium text-muted">{th.stage.scriptTitle}</span>
         <p className="min-w-0 flex-1 font-semibold" aria-live="polite">
           <span className="tabular-nums text-care-ink">
@@ -124,7 +124,7 @@ export function Stage() {
             role="tab"
             aria-selected={tab === name}
             onClick={() => setTab(name)}
-            className={`min-h-11 flex-1 rounded-md px-3 text-[15px] font-medium ${tab === name ? 'bg-ink text-white' : 'border border-line bg-surface text-ink'}`}
+            className={`min-h-11 flex-1 rounded-md px-3 text-[15px] font-medium ${tab === name ? 'bg-ink text-white' : 'border-2 border-ink bg-surface text-ink'}`}
           >
             {th.stage.panes[name]}
           </button>
@@ -152,7 +152,7 @@ export function Stage() {
 
         <section className={paneClass('clinic')} aria-label={th.stage.panes.clinic} aria-current={acting === 'clinic' ? 'step' : undefined}>
           <PaneTitle title={th.stage.panes.clinic} to="/clinic" acting={acting === 'clinic'} />
-          <div className={`h-(--pane-h) overflow-hidden rounded-lg border bg-bg shadow-float ${acting === 'clinic' ? 'border-care outline-2 outline-care' : 'border-line'} ${frameClass('clinic')}`}>
+          <div className={`h-(--pane-h) overflow-hidden rounded-lg border-2 border-ink bg-bg shadow-pop-lg ${acting === 'clinic' ? 'outline-4 outline-offset-4 outline-care' : ''} ${frameClass('clinic')}`}>
             <iframe key={clinicFrame.key} src={`${clinicFrame.path}?embed=1`} title={th.stage.panes.clinic} className="h-full w-full border-0" />
           </div>
         </section>
@@ -160,7 +160,7 @@ export function Stage() {
         <section className={paneClass('data')} aria-label={th.stage.panes.data} aria-current={acting === 'data' ? 'step' : undefined}>
           <PaneTitle title={th.stage.panes.data} to="/data" acting={acting === 'data'} />
           <div className="flex h-(--pane-h) flex-col gap-3">
-            <div className={`shrink-0 rounded-md border bg-surface p-3 ${acting === 'data' ? 'border-care outline-2 outline-care' : 'border-line'}`}>
+            <div className={`shrink-0 box p-3 ${acting === 'data' ? 'outline-4 outline-offset-4 outline-care' : ''}`}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-semibold">{th.stage.operator}</span>
                 <a href="/operator" target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center text-[13px] font-medium text-care-ink">
@@ -195,7 +195,7 @@ function PaneTitle({ title, to, acting, children }: { title: string; to: string;
     <div className="mb-2 flex min-h-9 flex-wrap items-center justify-between gap-x-2">
       <span className="flex items-center gap-2">
         <h2 className="font-semibold">{title}</h2>
-        {acting && <span className="rounded-full bg-care px-2.5 py-0.5 text-[12px] font-medium text-white">{th.stage.acting}</span>}
+        {acting && <span className="rounded-full border-[1.5px] border-ink bg-yellow px-2.5 py-0.5 text-[12px] font-semibold text-ink">{th.stage.acting}</span>}
       </span>
       <span className="flex items-center gap-2">
         {children}

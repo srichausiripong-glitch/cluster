@@ -71,7 +71,7 @@ export function NotifyFlow() {
       {group && view === 'later' && (
         <section className="step-in space-y-3">
           <p className="rounded-md bg-surface p-4">{th.notify.laterDone}</p>
-          <Link to={to('/app')} className="flex min-h-13 items-center justify-center rounded-md bg-care px-5 text-[17px] font-medium text-white">
+          <Link to={to('/app')} className="flex min-h-13 items-center justify-center rounded-md border-2 border-ink bg-care px-5 text-[17px] font-semibold text-ink shadow-pop">
             {th.report.backToMap}
           </Link>
         </section>
@@ -97,7 +97,7 @@ export function NotifyFlow() {
               {BANDS.map((b) => (
                 <label
                   key={b}
-                  className={`flex min-h-11 cursor-pointer items-center justify-center rounded-md border px-2 text-center text-[13px] font-medium has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-care ${b === 'older' ? 'col-span-2' : ''} ${band === b ? 'border-care bg-care-soft' : 'border-line bg-surface'}`}
+                  className={`flex min-h-11 cursor-pointer items-center justify-center rounded-md border-2 border-ink px-2 text-center text-[13px] font-medium has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink ${b === 'older' ? 'col-span-2' : ''} ${band === b ? 'bg-care-soft' : 'bg-surface'}`}
                 >
                   <input
                     type="radio"
@@ -125,7 +125,7 @@ export function NotifyFlow() {
               setLink(null)
             }}
           />
-          <div className="rounded-md border border-line bg-surface p-3 text-[13px]">
+          <div className="box p-3 text-[13px]">
             <p className="font-medium">{th.notify.see}</p>
             <p className="text-muted">
               {named ? th.notify.seeNamed : th.notify.seeUnnamed}
@@ -141,11 +141,11 @@ export function NotifyFlow() {
             </p>
           )}
           {link && (
-            <div className="space-y-2 rounded-md border border-line bg-surface p-4">
+            <div className="space-y-2 box p-4">
               <label htmlFor="notice-link" className="block text-[13px] font-medium text-muted">
                 {th.notify.linkLabel}
               </label>
-              <input id="notice-link" readOnly value={link} onFocus={(e) => e.target.select()} className="min-h-11 w-full rounded-md border border-line bg-bg px-3 text-[13px]" />
+              <input id="notice-link" readOnly value={link} onFocus={(e) => e.target.select()} className="min-h-11 w-full rounded-md border-2 border-ink bg-bg px-3 text-[13px]" />
               <p className="text-[13px] text-muted">{th.notify.linkNote}</p>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -176,7 +176,7 @@ export function NotifyFlow() {
               {th.notify.makeSlip}
             </Button>
           ) : (
-            <div className="rounded-md border border-line bg-surface p-5 text-center">
+            <div className="box p-5 text-center">
               <h2 className="font-semibold">{th.notify.slipTitle}</h2>
               <div className="mx-auto my-4 w-fit rounded-md bg-white p-3">
                 <QRCodeSVG value={slip} size={148} fgColor="#14282e" />

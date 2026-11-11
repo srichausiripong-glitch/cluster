@@ -26,7 +26,7 @@ export function CareList() {
         type="button"
         aria-label={th.map.openSignal}
         onClick={() => setSignalOpen(true)}
-        className="mb-3 flex min-h-13 w-full items-center gap-3 rounded-md border border-line bg-surface px-3 text-left"
+        className="mb-3 flex min-h-13 w-full items-center gap-3 box px-3 text-left"
       >
         <Waves size={20} strokeWidth={1.75} className="shrink-0 text-signal-edge" aria-hidden="true" />
         <span className="min-w-0 flex-1">
@@ -46,7 +46,7 @@ export function CareList() {
       <div className="pointer-events-none sticky bottom-3 mt-3 flex justify-end">
         <Link
           to={to('/app/report')}
-          className="pointer-events-auto inline-flex min-h-14 items-center gap-2 rounded-full bg-care px-5 text-[17px] font-semibold text-white shadow-float transition active:scale-[0.98]"
+          className="pointer-events-auto inline-flex min-h-14 items-center gap-2 rounded-full border-[2.5px] border-ink bg-care px-5 text-[17px] font-bold text-ink shadow-pop-lg"
         >
           <Radio size={22} strokeWidth={1.75} aria-hidden="true" />
           {th.report.cta}

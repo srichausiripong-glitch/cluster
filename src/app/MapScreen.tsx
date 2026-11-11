@@ -26,7 +26,7 @@ export function MapScreen() {
   const selected = areaId === null ? null : areaId === 'bkk' ? city : (PHASE2_AREAS.find((a) => a.areaId === areaId) ?? city)
   const selectedTitle = areaId && areaId !== 'bkk' ? (ZONES.find((z) => z.id === areaId)?.name ?? th.map.signalTitle) : th.map.signalTitle
   const first = orderedCarePoints()[0]
-  const toggle = 'min-h-9 rounded-full border px-3 text-[13px] font-medium shadow-sm'
+  const toggle = 'min-h-9 rounded-full border-2 border-ink px-3 text-[13px] font-bold shadow-pop'
 
   return (
     <div className="relative h-full overflow-hidden">
@@ -43,20 +43,20 @@ export function MapScreen() {
       />
 
       <div className="absolute inset-x-3 top-3 flex flex-wrap items-center gap-2">
-        <button type="button" aria-pressed={showCare} onClick={() => setShowCare((v) => !v)} className={`${toggle} ${showCare ? 'border-care bg-care text-white' : 'border-line bg-surface text-muted'}`}>
+        <button type="button" aria-pressed={showCare} onClick={() => setShowCare((v) => !v)} className={`${toggle} ${showCare ? 'bg-care text-ink' : 'bg-surface text-muted'}`}>
           {th.map.layers.care}
         </button>
-        <button type="button" aria-pressed={showSignal} onClick={() => setShowSignal((v) => !v)} className={`${toggle} ${showSignal ? 'border-signal-edge bg-signal-edge text-white' : 'border-line bg-surface text-muted'}`}>
+        <button type="button" aria-pressed={showSignal} onClick={() => setShowSignal((v) => !v)} className={`${toggle} ${showSignal ? 'bg-signal text-white' : 'bg-surface text-muted'}`}>
           {th.map.layers.signal}
         </button>
-        {phase === 2 && <span className="rounded-full border border-signal-edge bg-surface px-3 py-1 text-[12px] font-medium text-signal-edge">{th.map.phase2}</span>}
+        {phase === 2 && <span className="rounded-full border-2 border-ink bg-surface px-3 py-1 text-[12px] font-bold text-ink">{th.map.phase2}</span>}
       </div>
 
       <button
         type="button"
         aria-label={th.map.openSignal}
         onClick={() => setAreaId('bkk')}
-        className="absolute left-3 top-14 flex min-h-11 max-w-[calc(100%-1.5rem)] items-center gap-2 rounded-md border border-line bg-surface/95 px-3 text-left text-[13px] shadow-sm"
+        className="absolute left-3 top-14 flex min-h-11 max-w-[calc(100%-1.5rem)] items-center gap-2 box px-3 text-left text-[13px] shadow-pop"
       >
         <Waves size={18} strokeWidth={1.75} className="shrink-0 text-signal-edge" aria-hidden="true" />
         <span>
@@ -67,7 +67,7 @@ export function MapScreen() {
 
       <Link
         to={to('/app/report')}
-        className="absolute bottom-[5.25rem] right-3 inline-flex min-h-14 items-center gap-2 rounded-full bg-care px-5 text-[17px] font-semibold text-white shadow-float transition active:scale-[0.98]"
+        className="absolute bottom-[5.25rem] right-3 inline-flex min-h-14 items-center gap-2 rounded-full border-[2.5px] border-ink bg-care px-5 text-[17px] font-bold text-ink shadow-pop-lg"
       >
         <Radio size={22} strokeWidth={1.75} aria-hidden="true" />
         {th.report.cta}
@@ -76,7 +76,7 @@ export function MapScreen() {
       <button
         type="button"
         onClick={() => setPointId(first.id)}
-        className="absolute inset-x-3 bottom-3 flex min-h-16 items-center gap-3 rounded-md border border-line bg-surface px-3 text-left shadow-float"
+        className="absolute inset-x-3 bottom-3 flex min-h-16 items-center gap-3 box px-3 text-left shadow-pop"
       >
         <PinGlyph kind={first.kind} />
         <span className="min-w-0 flex-1">

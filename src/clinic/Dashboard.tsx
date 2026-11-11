@@ -43,7 +43,7 @@ export function Dashboard() {
             <Link
               key={item.to}
               to={to(item.to)}
-              className={`flex min-h-14 items-center justify-between gap-3 rounded-md px-4 py-2 ${item.primary ? 'bg-care text-white' : 'border border-line bg-surface'}`}
+              className={`flex min-h-14 items-center justify-between gap-3 rounded-md px-4 py-2 border-2 border-ink ${item.primary ? 'bg-care text-ink shadow-pop' : 'bg-surface'}`}
             >
               <span>
                 <span className="block font-semibold">{item.title}</span>
@@ -58,9 +58,9 @@ export function Dashboard() {
       <section>
         <h2 className="mb-2 text-[17px] font-semibold">{th.clinic.codes}</h2>
         {mine.length === 0 ? (
-          <p className="rounded-md border border-line bg-surface p-4 text-muted">{th.clinic.codesEmpty}</p>
+          <p className="box p-4 text-muted">{th.clinic.codesEmpty}</p>
         ) : (
-          <div className="overflow-x-auto rounded-md border border-line bg-surface">
+          <div className="overflow-x-auto box">
             <table className="w-full text-left text-[15px]">
               <thead>
                 <tr className="border-b border-line text-[13px] text-muted">

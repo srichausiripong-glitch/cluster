@@ -35,19 +35,19 @@ export function Sheet({ open, onClose, title, children }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="sheet-in relative z-10 max-h-[84dvh] w-full overflow-y-auto rounded-t-lg bg-surface px-4 pb-6 pt-2 shadow-float"
+        className="sheet-in relative z-10 max-h-[84dvh] w-full overflow-y-auto rounded-t-lg border-t-[2.5px] border-ink bg-surface px-4 pb-6 pt-2"
       >
-        <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-line" aria-hidden="true" />
+        <div className="mx-auto mb-2 h-1.5 w-11 rounded-full bg-ink" aria-hidden="true" />
         <div className="mb-2 flex items-start justify-between gap-3">
-          <h2 className="pt-1 text-[17px] font-semibold">{title}</h2>
+          <h2 className="pt-1 text-[20px] font-bold leading-snug">{title}</h2>
           <button
             ref={closeButton}
             type="button"
             onClick={onClose}
             aria-label="ปิดแผ่นนี้"
-            className="-mr-2 grid size-11 shrink-0 place-items-center rounded-full text-muted hover:bg-bg"
+            className="-mr-2 grid size-11 shrink-0 place-items-center rounded-full text-ink hover:bg-care-soft"
           >
-            <X size={20} strokeWidth={1.75} aria-hidden="true" />
+            <X size={22} strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
         {children}
