@@ -78,7 +78,7 @@ export function Stage() {
   const frameClass = (name: Pane) => (receded(name) ? 'saturate-[0.25] transition-[filter] focus-within:saturate-100 hover:saturate-100' : 'transition-[filter]')
 
   return (
-    <main className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 p-4 [--pane-h:clamp(520px,calc(100dvh_-_226px),780px)]">
+    <main className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 p-4 [--pane-h:clamp(520px,calc(100dvh_-_240px),780px)]">
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-baseline gap-3">
           <Wordmark size={22} />
