@@ -166,11 +166,16 @@ it('changes one level for one two-finger gesture, however far the fingers move',
   fireEvent.pointerMove(map(), { pointerId: 2, clientX: 600, clientY: 300 })
   expect(map()).toHaveAttribute('data-level', 'district')
 })
-it('brings a selected care point into the clear space under the chips', async () => {
+it('brings a selected care point, with its name, into the space left clear between the state box and the sheet', async () => {
   const user = userEvent.setup()
   openApp('/app')
   await user.click(screen.getByRole('button', { name: CARE_POINTS[2].name }))
-  expect(spot(screen.getByRole('button', { name: CARE_POINTS[2].name, hidden: true })).y).toBeCloseTo(160, 0)
+  const pin = spot(screen.getByRole('button', { name: CARE_POINTS[2].name, hidden: true }))
+  const name = spot(document.querySelector('[data-bubble]')!)
+  // The state box ends 103 px down the map (top 56, height 44, shadow 3). The name is 26 px tall round its middle.
+  expect(name.y - 13).toBeGreaterThanOrEqual(106)
+  // On the shortest phone (640 px) the sheet starts 202 px down the map: the pin's point stays above it.
+  expect(pin.y).toBeLessThanOrEqual(190)
 })
 it('tells the screen which level and which zone it is showing', async () => {
   const seen = vi.fn()

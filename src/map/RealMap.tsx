@@ -32,8 +32,11 @@ const CITY_PATH = pathOf(ZONES.flatMap((zone) => zone.rings))
 const CITY_EDGE_PATH = pathOf(CITY_EDGES, false)
 const ZONE_PATH = new Map(ZONES.map((zone) => [zone.id, pathOf(zone.rings)]))
 const ZONE_EDGE_PATH = new Map(ZONES.map((zone) => [zone.id, pathOf(zone.edges, false)]))
-/** Where a selected pin or zone is brought to, so it stays in view above the sheet. */
-const FOCUS_Y = 160
+/**
+ * Where a selected pin or zone is brought to, in pixels down the map: low enough for the pin's name,
+ * which sits above it, to clear the state box, and high enough to stay above the sheet on a short phone.
+ */
+const FOCUS_Y = 184
 /** A finger must travel this far before a touch counts as a drag and not a tap. */
 const DRAG_PX = 6
 /** Drawing that takes longer than this cannot keep up with a finger: the last picture is carried along instead. */
@@ -425,7 +428,8 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
           {th.map.loadFailed}
         </p>
       )}
-      <p className="absolute bottom-[5.25rem] left-2 rounded-md bg-bg/85 px-1.5 text-[9.5px] leading-4 text-muted">{th.map.credit}</p>
+      {/* The credit must stay readable beside the send button: on a narrow screen it wraps instead of running under it. */}
+      <p className="absolute bottom-[5.25rem] left-2 max-w-[calc(100%-11.75rem)] rounded-md bg-bg/85 px-1.5 text-[9.5px] leading-4 text-muted">{th.map.credit}</p>
     </div>
   )
 }
