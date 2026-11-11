@@ -20,3 +20,12 @@ it('carries the weekly code even when the page names no disease, so a clinic can
   expect(n.group).toBeNull()
   expect(n.code).toBe(weeklyCode('syphilis', true, '2026-W46'))
 })
+it('gives a named notice a different code from an unnamed one of the same week', () => {
+  const named = composeNotice({ ...base, group: 'syphilis', nameDisease: true, band: 'w4' })
+  const unnamed = composeNotice({ ...base, group: 'syphilis', nameDisease: false, band: 'w4' })
+  expect(named.code).toBe(weeklyCode('syphilis', true, '2026-W46', true))
+  expect(named.code).not.toBe(unnamed.code)
+})
+it('does not name HIV for a contact older than three months', () => {
+  expect(composeNotice({ ...base, group: 'hiv', nameDisease: true, band: 'older' }).group).toBeNull()
+})

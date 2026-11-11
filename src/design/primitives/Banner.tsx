@@ -10,7 +10,7 @@ export function Banner({ tone, children }: { tone: 'demo' | 'draft'; children: R
     )
   }
   return (
-    <span role="note" className="inline-flex items-center rounded-sm border border-dashed border-muted px-2 py-0.5 text-[12px] text-muted">
+    <span role="note" className="inline-flex items-center rounded-sm border border-muted px-2 py-0.5 text-[12px] text-muted">
       {children}
     </span>
   )

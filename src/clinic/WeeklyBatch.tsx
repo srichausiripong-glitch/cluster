@@ -1,21 +1,19 @@
-import { useState } from 'react'
 import { th } from '../copy/th'
 import type { DiseaseGroup } from '../domain/types'
-import { isoWeek } from '../domain/weeks'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
-import { sendWeeklyBatch, weeklyCounts } from '../store/actions'
+import { currentWeek, sendWeeklyBatch, weeklyCounts } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
-import { clinic } from '../store/stores'
+import { clinic, demo } from '../store/stores'
 
 /** Shows exactly what will leave the clinic: counts per disease group, and nothing else. */
 export function WeeklyBatch() {
-  const { codes } = usePartyStore(clinic)
-  const [sent, setSent] = useState(false)
-  const week = isoWeek(new Date())
+  const { codes, lastBatchWeek } = usePartyStore(clinic)
+  usePartyStore(demo)
+  const week = currentWeek()
   const counts = Object.entries(weeklyCounts(codes, week)) as [DiseaseGroup, number][]
   return (
-    <div className="max-w-2xl space-y-4">
+    <div className="space-y-4">
       <h1 className="text-[24px] font-semibold">{th.clinic.nav.batch}</h1>
       <div className="grid gap-3 sm:grid-cols-2">
         <Card>
@@ -40,16 +38,10 @@ export function WeeklyBatch() {
         </Card>
       </div>
       <p className="text-[13px] text-muted">{th.data.limit}</p>
-      <Button
-        size="lg"
-        onClick={() => {
-          sendWeeklyBatch(week)
-          setSent(true)
-        }}
-      >
+      <Button size="lg" onClick={() => sendWeeklyBatch(week)}>
         {th.clinic.sendBatch}
       </Button>
-      {sent && (
+      {lastBatchWeek === week && (
         <p role="status" className="rounded-md bg-care-soft px-4 py-3">
           {th.clinic.batchSent}
         </p>

@@ -1,4 +1,4 @@
-import { LifeBuoy, List, LogOut, Map as MapIcon, UserRound } from 'lucide-react'
+import { LifeBuoy, List, Map as MapIcon, UserRound } from 'lucide-react'
 import { useEffect } from 'react'
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { th } from '../copy/th'
@@ -10,6 +10,7 @@ import { HarmReport } from './HarmReport'
 import { HelpNow } from './HelpNow'
 import { MapScreen } from './MapScreen'
 import { NotifyFlow } from './NotifyFlow'
+import { QuickExit } from './QuickExit'
 import { ReportFlow } from './ReportFlow'
 import { SelfCare } from './SelfCare'
 
@@ -19,11 +20,6 @@ const NAV = [
   { path: '/app/me', label: th.nav.me, icon: UserRound, end: false },
   { path: '/app/help', label: th.nav.help, icon: LifeBuoy, end: false },
 ]
-
-/** Leaves the app at once for a blank page, for when someone looks over a shoulder (spec 9.4). */
-function quickExit() {
-  window.location.replace('about:blank')
-}
 
 export function AppShell() {
   const location = useLocation()
@@ -37,10 +33,7 @@ export function AppShell() {
     <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col bg-bg">
       <header className="flex h-12 shrink-0 items-center justify-between px-3">
         <Wordmark size={18} />
-        <button type="button" onClick={quickExit} className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-[13px] font-medium text-muted hover:bg-surface">
-          <LogOut size={16} strokeWidth={1.75} aria-hidden="true" />
-          {th.common.quickExit}
-        </button>
+        <QuickExit />
       </header>
       <div className="relative min-h-0 flex-1 overflow-y-auto">
         <Routes>

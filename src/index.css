@@ -44,3 +44,10 @@
   to { transform: translateX(0); opacity: 1; }
 }
 .step-in { animation: step-in 160ms ease-out; }
+
+/* Map targets draw their own focus and selection marks: a ring round a pin, a box round an area. */
+.map-pin { outline: none; }
+.map-pin .map-pin-ring { opacity: 0; transition: opacity 120ms ease-out; }
+.map-pin:focus-visible .map-pin-ring,
+.map-pin[data-selected='true'] .map-pin-ring { opacity: 1; }
+.map-area:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }

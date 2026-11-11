@@ -1,29 +1,33 @@
 import { Clock, Phone } from 'lucide-react'
+import { useState } from 'react'
 import { th } from '../copy/th'
 import { Banner } from '../design/primitives/Banner'
 import { Card } from '../design/primitives/Card'
 import { CARE_POINTS } from '../store/seed'
+import { CarePointRow } from './CarePointRow'
+import { CarePointSheet } from './CarePointSheet'
 
 export function HelpNow() {
+  const [pointId, setPointId] = useState<string | null>(null)
   const pepPoints = CARE_POINTS.filter((p) => p.pep)
   return (
     <main className="space-y-4 p-4">
       <h1 className="text-[20px] font-semibold">{th.help.title}</h1>
 
       <section className="rounded-md bg-urgent p-4 text-white">
-        <h2 className="flex items-center gap-2 text-[17px] font-semibold">
-          <Clock size={20} strokeWidth={1.75} aria-hidden="true" />
-          {th.help.pepTitle}
-        </h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="flex items-center gap-2 text-[17px] font-semibold">
+            <Clock size={20} strokeWidth={1.75} aria-hidden="true" />
+            {th.help.pepTitle}
+          </h2>
+          <span role="note" className="rounded-sm border border-white/70 px-2 py-0.5 text-[12px]">
+            {th.draftClinical}
+          </span>
+        </div>
         <p className="mt-1 text-white/85">{th.help.pepBody}</p>
         <div className="mt-3 space-y-2">
           {pepPoints.map((p) => (
-            <div key={p.id} className="rounded-sm bg-white/10 px-3 py-2">
-              <p className="font-semibold">{p.name}</p>
-              <p className="text-[13px] text-white/85">
-                {p.hours} · {th.care.verified} {p.verified}
-              </p>
-            </div>
+            <CarePointRow key={p.id} point={p} tone="dark" onOpen={() => setPointId(p.id)} />
           ))}
         </div>
       </section>
@@ -52,6 +56,7 @@ export function HelpNow() {
           ))}
         </div>
       </section>
+      <CarePointSheet point={CARE_POINTS.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
     </main>
   )
 }

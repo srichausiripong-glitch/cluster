@@ -16,7 +16,7 @@ export function Button({ variant = 'primary', size = 'md', className = '', type 
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-2 rounded-md text-center font-medium leading-snug transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT[variant]} ${sizing} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-md text-center font-medium leading-snug transition active:scale-[0.98] disabled:cursor-not-allowed disabled:border disabled:border-line disabled:bg-veil disabled:text-muted disabled:hover:brightness-100 ${VARIANT[variant]} ${sizing} ${className}`}
       {...rest}
     />
   )

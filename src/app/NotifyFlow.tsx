@@ -1,43 +1,50 @@
 import { QRCodeSVG } from 'qrcode.react'
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { th } from '../copy/th'
 import { buildLink } from '../domain/link'
 import { composeNotice } from '../domain/notify'
 import type { DiseaseGroup, ExposureBand } from '../domain/types'
-import { isoWeek } from '../domain/weeks'
 import { Button } from '../design/primitives/Button'
-import { createSlip } from '../store/actions'
+import { createSlip, currentWeek } from '../store/actions'
 import { useEmbedTo } from './embed'
 import { Check, Choice, FlowHeader } from './FlowHeader'
 
 const GROUPS: DiseaseGroup[] = ['gono_chlam', 'syphilis', 'mpox', 'hiv']
-const BANDS: ExposureBand[] = ['h72', 'w2', 'w4', 'm3']
+const BANDS: ExposureBand[] = ['h72', 'w2', 'w4', 'm3', 'older']
 type View = 'safety' | 'channel' | 'link' | 'slip' | 'later'
+
+/** The report step hands over the group in router state, so no disease name reaches the address bar or a server log. */
+function fromReport(state: unknown): { group: DiseaseGroup | null; hasClinicCode: boolean } {
+  const s = (state ?? {}) as { group?: unknown; hasClinicCode?: unknown }
+  const group = GROUPS.find((g) => g === s.group) ?? null
+  return { group, hasClinicCode: group !== null && s.hasClinicCode === true }
+}
 
 export function NotifyFlow() {
   const to = useEmbedTo()
-  const [params] = useSearchParams()
-  const fromReport = GROUPS.find((g) => g === params.get('g')) ?? null
-  const hasClinicCode = params.get('c') === '1'
-  const [group, setGroup] = useState<DiseaseGroup | null>(fromReport)
+  const handed = fromReport(useLocation().state)
+  const [group, setGroup] = useState<DiseaseGroup | null>(handed.group)
   const [view, setView] = useState<View>('safety')
-  const [band, setBand] = useState<ExposureBand>('w4')
+  // No time is preselected: the answer changes what the recipient is told to do.
+  const [band, setBand] = useState<ExposureBand | null>(null)
   const [nameDisease, setNameDisease] = useState(false)
   const [link, setLink] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [slip, setSlip] = useState<string | null>(null)
 
   const mayName = group !== 'hiv' || band === 'h72'
+  const named = nameDisease && mayName
   const back = view === 'safety' ? undefined : () => setView(view === 'channel' || view === 'later' ? 'safety' : 'channel')
 
   const makeLink = () => {
-    if (!group) return
-    const notice = composeNotice({ group, hasClinicCode, nameDisease: nameDisease && mayName, band, week: isoWeek(new Date()) })
+    if (!group || !band) return
+    const notice = composeNotice({ group, hasClinicCode: handed.hasClinicCode, nameDisease: named, band, week: currentWeek() })
     setLink(buildLink(window.location.origin, notice))
     setCopied(false)
   }
   const recipientPath = link ? to('/r') + link.slice(link.indexOf('#')) : ''
+  const note = 'rounded-md bg-surface p-3 text-[13px] text-muted'
 
   return (
     <main className="p-4">
@@ -58,11 +65,17 @@ export function NotifyFlow() {
           <Choice label={th.notify.safeYes} onClick={() => setView('channel')} />
           <Choice label={th.notify.safeClinic} hint={th.notify.clinicWho} onClick={() => setView('slip')} />
           <Choice label={th.notify.safeLater} onClick={() => setView('later')} />
-          <p className="text-[13px] text-muted">{th.notify.misuse}</p>
         </section>
       )}
 
-      {group && view === 'later' && <p className="step-in rounded-md bg-surface p-4">{th.notify.laterDone}</p>}
+      {group && view === 'later' && (
+        <section className="step-in space-y-3">
+          <p className="rounded-md bg-surface p-4">{th.notify.laterDone}</p>
+          <Link to={to('/app')} className="flex min-h-13 items-center justify-center rounded-md bg-care px-5 text-[17px] font-medium text-white">
+            {th.report.backToMap}
+          </Link>
+        </section>
+      )}
 
       {group && view === 'channel' && (
         <section className="step-in space-y-3">
@@ -74,13 +87,28 @@ export function NotifyFlow() {
 
       {group && view === 'link' && (
         <section className="step-in space-y-4">
-          <p className="rounded-md bg-surface p-3 text-[13px] text-muted">{th.notify.linkWho}</p>
+          <div className={note}>
+            <p>{th.notify.linkWho}</p>
+            <p className="mt-1">{th.notify.truthLink}</p>
+          </div>
           <fieldset>
             <legend className="mb-2 font-semibold">{th.notify.band}</legend>
             <div className="grid grid-cols-2 gap-2">
               {BANDS.map((b) => (
-                <label key={b} className={`flex min-h-11 cursor-pointer items-center justify-center rounded-md border px-2 text-center text-[13px] font-medium ${band === b ? 'border-care bg-care-soft' : 'border-line bg-surface'}`}>
-                  <input type="radio" name="band" className="sr-only" checked={band === b} onChange={() => { setBand(b); setLink(null) }} />
+                <label
+                  key={b}
+                  className={`flex min-h-11 cursor-pointer items-center justify-center rounded-md border px-2 text-center text-[13px] font-medium has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-care ${b === 'older' ? 'col-span-2' : ''} ${band === b ? 'border-care bg-care-soft' : 'border-line bg-surface'}`}
+                >
+                  <input
+                    type="radio"
+                    name="band"
+                    className="sr-only"
+                    checked={band === b}
+                    onChange={() => {
+                      setBand(b)
+                      setLink(null)
+                    }}
+                  />
                   {th.notify.bands[b]}
                 </label>
               ))}
@@ -90,13 +118,28 @@ export function NotifyFlow() {
             id="name-disease"
             label={th.notify.nameDisease}
             hint={group === 'hiv' ? th.notify.hivNameRule : th.notify.nameDiseaseHint}
-            checked={nameDisease && mayName}
+            checked={named}
             disabled={!mayName}
-            onChange={(v) => { setNameDisease(v); setLink(null) }}
+            onChange={(v) => {
+              setNameDisease(v)
+              setLink(null)
+            }}
           />
-          <Button size="lg" className="w-full" onClick={makeLink}>
+          <div className="rounded-md border border-line bg-surface p-3 text-[13px]">
+            <p className="font-medium">{th.notify.see}</p>
+            <p className="text-muted">
+              {named ? th.notify.seeNamed : th.notify.seeUnnamed}
+              {band === 'h72' ? ` ${th.notify.seeUrgent}` : ''}
+            </p>
+          </div>
+          <Button size="lg" className="w-full" onClick={makeLink} disabled={band === null} aria-describedby={band === null ? 'band-first' : undefined}>
             {th.notify.makeLink}
           </Button>
+          {band === null && (
+            <p id="band-first" className="text-center text-[13px] text-muted">
+              {th.notify.bandFirst}
+            </p>
+          )}
           {link && (
             <div className="space-y-2 rounded-md border border-line bg-surface p-4">
               <label htmlFor="notice-link" className="block text-[13px] font-medium text-muted">
@@ -113,7 +156,7 @@ export function NotifyFlow() {
                 >
                   {copied ? th.common.copied : th.notify.copyLink}
                 </Button>
-                <Link to={recipientPath} className="inline-flex min-h-11 items-center rounded-md px-4 font-medium text-care hover:bg-care-soft">
+                <Link to={recipientPath} className="inline-flex min-h-11 items-center rounded-md px-4 font-medium text-care-ink hover:bg-care-soft">
                   {th.notify.openRecipient}
                 </Link>
               </div>
@@ -124,7 +167,10 @@ export function NotifyFlow() {
 
       {group && view === 'slip' && (
         <section className="step-in space-y-4">
-          <p className="rounded-md bg-surface p-3 text-[13px] text-muted">{th.notify.clinicWho}</p>
+          <div className={note}>
+            <p>{th.notify.clinicWho}</p>
+            <p className="mt-1">{th.notify.truthClinic}</p>
+          </div>
           {!slip ? (
             <Button size="lg" className="w-full" onClick={() => setSlip(createSlip())}>
               {th.notify.makeSlip}

@@ -22,7 +22,7 @@ export function StoreInspector({ party }: { party: Party }) {
     const s = stores.clinic
     for (const code of s.codes.slice(-6)) {
       const result = code.positiveGroup ? th.group[code.positiveGroup] : th.clinic.noResult
-      lines.push(`${fill(L.code, { id: code.id })} · ${result} · ${code.cityConsent ? th.clinic.consent : th.clinic.noConsent}`)
+      lines.push(`${fill(L.code, { id: code.id })} · ${result} · ${code.cityConsent ? th.clinic.consent : th.clinic.noConsent}${code.appChecked ? ` · ${L.checked}` : ''}`)
     }
     const tallies = Object.values(s.fastTrackTally).reduce((a, b) => a + b, 0)
     if (tallies) lines.push(fill(L.tally, { n: tallies }))

@@ -35,15 +35,16 @@ it('walks the pitch script: one confirmed person tells a contact, and one report
   await user.type(screen.getByLabelText(th.report.codeInput), id)
   await user.click(screen.getByRole('button', { name: th.report.useCode }))
   await user.click(screen.getByLabelText(th.report.addToArea))
-  await user.click(screen.getByRole('button', { name: th.report.finish }))
+  await user.click(screen.getByRole('button', { name: th.report.finish.area }))
+  expect(screen.getByRole('heading', { name: th.report.outcome.counted })).toBeInTheDocument()
   expect(screen.getByText(th.report.receiptClinicCarries)).toBeInTheDocument()
   expect(phone.get().card).toBeNull()
-  view.unmount()
 
-  // 5: tell a contact with a self-sent link
-  view = at('/app/notify?g=syphilis&c=1')
+  // 5: tell a contact with a self-sent link, straight from the summary
+  await user.click(screen.getByRole('link', { name: th.report.goNotify }))
   await user.click(screen.getByRole('button', { name: th.notify.safeYes }))
   await user.click(screen.getByRole('button', { name: th.notify.linkTitle }))
+  await user.click(screen.getByRole('radio', { name: th.notify.bands.w4 }))
   await user.click(screen.getByRole('button', { name: th.notify.makeLink }))
   const link = (screen.getByLabelText(th.notify.linkLabel) as HTMLInputElement).value
   expect(link).toContain('/r#')
@@ -69,5 +70,5 @@ it('walks the pitch script: one confirmed person tells a contact, and one report
   view.unmount()
   at('/app')
   await user.click(screen.getByRole('button', { name: th.map.openSignal }))
-  expect(within(screen.getByRole('dialog')).getByText(th.map.state.below_threshold)).toBeInTheDocument()
+  expect(within(screen.getByRole('dialog')).getByRole('heading', { name: th.map.state.below_threshold })).toBeInTheDocument()
 })
