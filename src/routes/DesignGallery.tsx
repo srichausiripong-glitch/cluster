@@ -5,7 +5,7 @@ import { Card } from '../design/primitives/Card'
 import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
 import { Stepper } from '../design/primitives/Stepper'
-import { Wordmark } from '../design/Wordmark'
+import { Logo } from '../design/Logo'
 
 const SWATCHES = [
   ['bg', 'พื้นกระดาษ'], ['surface', 'พื้นการ์ด'], ['ink', 'ตัวอักษร'], ['muted', 'ตัวอักษรรอง'], ['line', 'เส้น'],
@@ -17,7 +17,7 @@ export function DesignGallery() {
   const [open, setOpen] = useState(false)
   return (
     <main className="mx-auto max-w-3xl space-y-8 p-6">
-      <Wordmark size={28} />
+      <Logo size={28} />
       <section>
         <h2 className="mb-3 text-[20px] font-semibold">สี</h2>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">

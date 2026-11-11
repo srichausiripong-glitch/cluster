@@ -2,7 +2,7 @@ import { LifeBuoy, List, Map as MapIcon, UserRound } from 'lucide-react'
 import { useEffect } from 'react'
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { th } from '../copy/th'
-import { Wordmark } from '../design/Wordmark'
+import { Logo } from '../design/Logo'
 import { logConnection } from '../store/actions'
 import { CareList } from './CareList'
 import { useEmbedTo } from './embed'
@@ -32,7 +32,7 @@ export function AppShell() {
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col bg-bg">
       <header className="flex h-12 shrink-0 items-center justify-between px-3">
-        <Wordmark size={18} />
+        <Logo size={18} />
         <QuickExit />
       </header>
       <div className="relative min-h-0 flex-1 overflow-y-auto">
