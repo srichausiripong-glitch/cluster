@@ -2,7 +2,7 @@ import { th } from '../copy/th'
 import { publishArea } from '../domain/publication'
 import type { DiseaseGroup, Party, SignalReport } from '../domain/types'
 import { isoWeek } from '../domain/weeks'
-import type { ClinicCode, SignalCard } from './stores'
+import type { ClinicCode, SignalCard, WeeklyBatch } from './stores'
 import { clinic, demo, ledger, operator, phone, pub } from './stores'
 
 const CLINIC_ID = 'clinic-demo'
@@ -66,11 +66,15 @@ export function sendWeeklyBatch(week: string): void {
   log('operator', 'receiveBatch', 'รับยอดรวมจากคลินิก')
 }
 
-export function publishWeek(week: string): void {
-  const reports: SignalReport[] = operator.get().batches.flatMap((batch) =>
+/** Turns the counts the operator holds into one report per counted person, for the threshold rule. */
+export function batchReports(batches: WeeklyBatch[]): SignalReport[] {
+  return batches.flatMap((batch) =>
     (Object.entries(batch.counts) as [DiseaseGroup, number][]).flatMap(([group, n]) => Array.from({ length: n }, () => ({ group, week: batch.week }))),
   )
-  const area = publishArea('bkk', reports, week, true)
+}
+
+export function publishWeek(week: string): void {
+  const area = publishArea('bkk', batchReports(operator.get().batches), week, true)
   pub.update((s) => ({ files: [...s.files, { week, areas: [area] }].slice(-12) }))
   log('operator', 'publishWeek', 'คำนวณไฟล์ประจำสัปดาห์ตามเกณฑ์ 10')
   log('public', 'fileUpdated', `ไฟล์ที่เผยแพร่: กรุงเทพฯ ${th.map.state[area.state]}`)

@@ -2,10 +2,12 @@ import { Route, Routes, useLocation, useSearchParams } from 'react-router-dom'
 import { AppShell } from './app/AppShell'
 import { RecipientPage } from './app/RecipientPage'
 import { ClinicShell } from './clinic/ClinicShell'
+import { DataPage } from './data/DataPage'
+import { OperatorPage } from './operator/OperatorPage'
+import { Stage } from './stage/Stage'
 import { th } from './copy/th'
 import { Banner } from './design/primitives/Banner'
 import { DesignGallery } from './routes/DesignGallery'
-import { Placeholder } from './routes/Placeholder'
 
 export default function App() {
   const [params] = useSearchParams()
@@ -17,12 +19,12 @@ export default function App() {
     <div className={`flex flex-col bg-bg text-ink ${fixed ? 'h-dvh overflow-hidden' : 'min-h-dvh'}`}>
       {!embedded && <Banner tone="demo">{th.demoBanner}</Banner>}
       <Routes>
-        <Route path="/" element={<Placeholder title="เวทีสาธิต" />} />
+        <Route path="/" element={<Stage />} />
         <Route path="/app/*" element={<AppShell />} />
         <Route path="/r" element={<RecipientPage />} />
         <Route path="/clinic/*" element={<ClinicShell />} />
-        <Route path="/operator" element={<Placeholder title="หลังบ้านผู้เผยแพร่" />} />
-        <Route path="/data" element={<Placeholder title="ข้อมูลอยู่ที่ไหน" />} />
+        <Route path="/operator" element={<OperatorPage />} />
+        <Route path="/data" element={<DataPage />} />
         <Route path="/design" element={<DesignGallery />} />
       </Routes>
     </div>
