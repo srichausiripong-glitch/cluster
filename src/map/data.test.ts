@@ -54,3 +54,9 @@ it('keeps every example care point inside its zone and at least 60 m from a real
     expect(manifest.clearance[p.id], p.id).toBeGreaterThanOrEqual(60)
   }
 })
+it('writes no name of a hospital, clinic, hotel or venue on the base map', () => {
+  const tiles = [...manifest.district, ...manifest.street].map((ref) => read<TileData>(ref.file))
+  const names = [...city.labels, ...tiles.flatMap((t) => t.labels)].map((l) => l.t)
+  expect(names.length).toBeGreaterThan(100)
+  expect(names.filter((name) => /โรงพยาบาล|รพ\.|คลินิก|โรงแรม|พยาธิ|hospital|clinic|hotel|สโลว์คอมโบ/i.test(name))).toEqual([])
+})

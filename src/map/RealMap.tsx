@@ -4,13 +4,13 @@ import { th } from '../copy/th'
 import type { AreaState, PublishedArea } from '../domain/types'
 import type { CarePoint } from '../store/seed'
 import { CITY_EDGES, pathOf, zoneAt, ZONES } from './areas'
-import { PPM, toXY, type Level, type XY } from './geo'
+import { LEVELS, PPM, toXY, type Level, type XY } from './geo'
 import { ManyBody, PinBody } from './legend'
 import { paintDots, paintGround, paintLines, type Scene } from './paint'
 import { mapSource } from './source'
 import { PALETTE } from './style'
 import type { CityData, Manifest, TileData } from './types'
-import { advances, cityView, clampCity, fromScreen, inView, MAP_INSET, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Box, type Size, type View } from './view'
+import { advances, cityView, clampCity, deepestAt, fromScreen, MAP_INSET, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Box, type Size, type View } from './view'
 
 export interface RealMapProps {
   areas: PublishedArea[]
@@ -73,7 +73,9 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
   const [box, setBox] = useState({ w: 390, h: 714 })
   const [manifest, setManifest] = useState<Manifest | null>(null)
   const [city, setCity] = useState<CityData | null>(null)
-  const [failed, setFailed] = useState<{ manifest?: true; city?: true }>({})
+  const [failed, setFailed] = useState<{ manifest?: true; city?: true; tiles?: boolean }>({})
+  /** A double click or a grouped marker asked for a place the prototype has no deeper map for. */
+  const [refused, setRefused] = useState(false)
   const [tiles, setTiles] = useState<Record<string, TileData>>({})
   /** Where the person has taken the map. Null is the city level as fitted to the screen. */
   const [stored, setStored] = useState<View | null>(null)
@@ -82,6 +84,10 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
   const [fresh, setFresh] = useState(!still)
   const [, setFontsReady] = useState(false)
   const asked = useRef(new Set<string>())
+  const bad = useRef(new Set<string>())
+  const refusal = useRef<ReturnType<typeof setTimeout>>(undefined)
+  /** When the level last changed, so the double click that follows a click on a grouped marker is not read as a second step. */
+  const steppedAt = useRef(-Infinity)
   const alive = useRef(true)
   const pointers = useRef(new Map<number, XY>())
   const gesture = useRef<Gesture | null>(null)
@@ -146,25 +152,31 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
       clearTimeout(settle)
       clearTimeout(rest.current)
       clearTimeout(picking.current)
+      clearTimeout(refusal.current)
     }
   }, [])
 
-  // Below city level, read the map files that touch the screen.
+  // On first leaving the city level, every deeper map file is read together, so the host's log
+  // cannot tell which part of the city a person looked at (plan amendment 7). A file that failed
+  // is asked for again only when the level next changes, never at every move.
+  const level = shown.level
   useEffect(() => {
-    if (!manifest || shown.level === 'city') return
-    const [x0, y0] = fromScreen(shown, size, [0, 0])
-    const [x1, y1] = fromScreen(shown, size, [size.w, size.h])
-    for (const ref of manifest[shown.level]) {
-      if (asked.current.has(ref.file) || ref.box[2] < x0 || ref.box[0] > x1 || ref.box[3] < y0 || ref.box[1] > y1) continue
+    if (!manifest || level === 'city') return
+    for (const ref of [...manifest.district, ...manifest.street]) {
+      if (asked.current.has(ref.file) && !bad.current.has(ref.file)) continue
       asked.current.add(ref.file)
+      bad.current.delete(ref.file)
       mapSource()
         .tile(ref)
         .then(
           (tile) => alive.current && setTiles((old) => ({ ...old, [ref.file]: tile })),
-          () => asked.current.delete(ref.file),
+          () => {
+            bad.current.add(ref.file)
+          },
         )
+        .finally(() => alive.current && setFailed((f) => (Boolean(f.tiles) === bad.current.size > 0 ? f : { ...f, tiles: bad.current.size > 0 })))
     }
-  }, [manifest, shown, size])
+  }, [manifest, level])
 
   const marks = useMemo(() => markers(carePoints, shown, size), [carePoints, shown, size])
   const names = useMemo(() => (phase === 2 && shown.level === 'city' ? nameBoxes(ZONES, shown, size, marks) : []), [phase, shown, size, marks])
@@ -250,19 +262,36 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
     tell.current?.({ level: shown.level, zoneId })
   }, [shown.level, zoneId])
 
-  /** Below city level, going in is offered only where the next level has map on the screen. */
-  const canGoIn = shown.level !== 'street' && !failed.manifest && (shown.level === 'city' || !manifest || inView(manifest, step(shown.level, 1), shown, size))
-  const noDetail = shown.level === 'district' && !!manifest && !canGoIn
+  /** Whether the prototype has map one level in at a place. Without the list of files nothing is known, and nothing is refused. */
+  const deeperAt = (p: XY) => !manifest || LEVELS.indexOf(deepestAt(manifest, p)) > LEVELS.indexOf(shown.level)
+  /**
+   * The button goes in at the middle of the screen, so below city level it is offered only when
+   * that place has map one level in. The whole-city view is not a place: from it the button goes
+   * to the nearest part of the city the prototype has map for.
+   */
+  const canGoIn = shown.level !== 'street' && (shown.level === 'city' || deeperAt([shown.cx, shown.cy]))
+  const noDetail = shown.level !== 'street' && (!canGoIn || refused)
 
-  /** One level in or out. Going in lands as near `at` as the prototype has map for. */
+  /**
+   * One level in or out. Going in happens only where the place asked for has map one level in:
+   * otherwise the map stays and says why, and never carries the person somewhere else.
+   */
   const go = (by: 1 | -1, at?: XY) => {
     const to = step(shown.level, by)
-    if (to === shown.level || (by === 1 && !canGoIn)) return
+    if (to === shown.level) return
+    const target = at ?? [shown.cx, shown.cy]
+    if (by === 1 && (at || shown.level !== 'city') && !deeperAt(target)) {
+      setRefused(true)
+      clearTimeout(refusal.current)
+      refusal.current = setTimeout(() => setRefused(false), 4000)
+      return
+    }
+    setRefused(false)
+    steppedAt.current = performance.now()
     if (to === 'city') {
       setStored(null)
       return
     }
-    const target = at ?? [shown.cx, shown.cy]
     setStored(manifest ? viewAt(manifest, size, to, target) : { level: to, ppm: PPM[to], cx: target[0], cy: target[1] })
   }
 
@@ -350,7 +379,12 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
         const g = gesture.current
         if (g?.kind === 'drag' && g.moved) e.stopPropagation()
       }}
-      onDoubleClick={(e) => go(1, fromScreen(shown, size, local(e)))}
+      onDoubleClick={(e) => {
+        // A double click never also opens an area's sheet, and one that follows a level change is the tail of the click that made it.
+        clearTimeout(picking.current)
+        if (performance.now() - steppedAt.current < 400) return
+        go(1, fromScreen(shown, size, local(e)))
+      }}
     >
       <div ref={stack} className="absolute inset-0">
         <div ref={picture} data-picture className="absolute inset-0" aria-hidden="true">
@@ -439,7 +473,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
           </p>
         )}
       </div>
-      {(failed.manifest || failed.city) && (
+      {(failed.manifest || failed.city || failed.tiles) && (
         <p role="status" className="absolute inset-x-3 top-[7.5rem] mr-14 rounded-md border-[1.5px] border-ink bg-surface px-3 py-1.5 text-[12px] leading-snug">
           {th.map.loadFailed}
         </p>
