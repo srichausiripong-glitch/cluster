@@ -65,3 +65,6 @@ export const operator = createPartyStore<OperatorState>(
 )
 export const pub = createPartyStore<PublicState>('cluster.public', { files: [] }, (v) => arr(v, 'files'))
 export const ledger = createPartyStore<LedgerState>('cluster.ledger', { entries: [] }, (v) => arr(v, 'entries'))
+
+/** Demo-only switch, shared across the stage's panes: phase 2 previews zone-level signals. */
+export const demo = createPartyStore<{ phase: 1 | 2 }>('cluster.demo', { phase: 1 }, (v) => has(v, 'phase'))

@@ -1,4 +1,5 @@
-import { Route, Routes, useSearchParams } from 'react-router-dom'
+import { Route, Routes, useLocation, useSearchParams } from 'react-router-dom'
+import { AppShell } from './app/AppShell'
 import { th } from './copy/th'
 import { Banner } from './design/primitives/Banner'
 import { DesignGallery } from './routes/DesignGallery'
@@ -8,12 +9,14 @@ export default function App() {
   const [params] = useSearchParams()
   // Panes inside the pitch stage are embedded; the stage itself carries the banner once.
   const embedded = params.get('embed') === '1'
+  // The user app is a fixed-height shell (map, sheets, bottom nav); other pages scroll normally.
+  const fixed = useLocation().pathname.startsWith('/app')
   return (
-    <div className="min-h-dvh bg-bg text-ink">
+    <div className={`flex flex-col bg-bg text-ink ${fixed ? 'h-dvh overflow-hidden' : 'min-h-dvh'}`}>
       {!embedded && <Banner tone="demo">{th.demoBanner}</Banner>}
       <Routes>
         <Route path="/" element={<Placeholder title="เวทีสาธิต" />} />
-        <Route path="/app/*" element={<Placeholder title="แอปฝั่งผู้ใช้" />} />
+        <Route path="/app/*" element={<AppShell />} />
         <Route path="/r" element={<Placeholder title="หน้าของผู้รับ" />} />
         <Route path="/clinic/*" element={<Placeholder title="คอนโซลคลินิก" />} />
         <Route path="/operator" element={<Placeholder title="หลังบ้านผู้เผยแพร่" />} />

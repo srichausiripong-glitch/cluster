@@ -3,7 +3,7 @@ import { publishArea } from '../domain/publication'
 import type { DiseaseGroup, Party, SignalReport } from '../domain/types'
 import { isoWeek } from '../domain/weeks'
 import type { SignalCard } from './stores'
-import { clinic, ledger, operator, phone, pub } from './stores'
+import { clinic, demo, ledger, operator, phone, pub } from './stores'
 
 const CLINIC_ID = 'clinic-demo'
 const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
@@ -119,7 +119,7 @@ export function logConnection(path: string): void {
 }
 
 export function resetDemo(): void {
-  for (const store of [phone, clinic, operator, pub, ledger]) store.reset()
+  for (const store of [phone, clinic, operator, pub, ledger, demo]) store.reset()
 }
 
 /** `pilot` stays under the threshold; `threshold` is exactly 12 reports this week (thin band). */
