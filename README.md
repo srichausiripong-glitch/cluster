@@ -16,6 +16,28 @@ npm run dev
 
 แล้วเปิด http://localhost:5173
 
+## นำขึ้น Vercel
+
+ต้นแบบเป็นหน้าเว็บนิ่งทั้งหมด จึงนำขึ้น Vercel ได้โดยไม่ต้องมีเซิร์ฟเวอร์ ไฟล์ `vercel.json` ส่งทุกเส้นทางของหน้า (เช่น `/app/list`) ไปที่ `index.html` และใส่หัว `X-Robots-Tag: noindex` เพื่อไม่ให้เครื่องมือค้นหาเก็บหน้า เพราะเป็นต้นแบบที่ใช้ข้อมูลจำลอง
+
+```bash
+npx vercel link
+```
+
+```bash
+npx vercel pull --yes --environment=production
+```
+
+```bash
+npx vercel build --prod
+```
+
+```bash
+npx vercel deploy --prebuilt --prod
+```
+
+คำสั่งชุดนี้ build ในเครื่องแล้วส่งขึ้นเฉพาะผลที่ build แล้ว โฟลเดอร์ `.vercel` และไฟล์ `.env*` ที่เครื่องมือสร้างไม่ถูกเก็บเข้า git ลิงก์ที่ได้เปิดได้ทุกคนที่มีลิงก์
+
 ## หน้าที่มี
 
 | ที่อยู่ | คืออะไร |
