@@ -2,7 +2,7 @@ import { th } from '../copy/th'
 import { publishArea } from '../domain/publication'
 import type { DiseaseGroup, Party, SignalReport } from '../domain/types'
 import { isoWeek } from '../domain/weeks'
-import type { SignalCard } from './stores'
+import type { ClinicCode, SignalCard } from './stores'
 import { clinic, demo, ledger, operator, phone, pub } from './stores'
 
 const CLINIC_ID = 'clinic-demo'
@@ -48,11 +48,16 @@ export function consentCityCount(codeId: string): void {
 }
 
 /** Only counts leave the clinic: positives who consented, per disease group, for one week. */
-export function sendWeeklyBatch(week: string): void {
+export function weeklyCounts(codes: ClinicCode[], week: string): Partial<Record<DiseaseGroup, number>> {
   const counts: Partial<Record<DiseaseGroup, number>> = {}
-  for (const code of clinic.get().codes) {
+  for (const code of codes) {
     if (code.week === week && code.positiveGroup && code.cityConsent) counts[code.positiveGroup] = (counts[code.positiveGroup] ?? 0) + 1
   }
+  return counts
+}
+
+export function sendWeeklyBatch(week: string): void {
+  const counts = weeklyCounts(clinic.get().codes, week)
   operator.update((s) => ({
     ...s,
     batches: [...s.batches.filter((b) => !(b.clinicId === CLINIC_ID && b.week === week)), { clinicId: CLINIC_ID, week, counts }],
