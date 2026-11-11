@@ -82,20 +82,8 @@ export function simplifyRing(points: [number, number][], tolerance: number): [nu
   return simplify(points.slice(0, far + 1), tolerance).concat(simplify(points.slice(far), tolerance).slice(1))
 }
 
-/** Even-odd test of a point against rings given as flat x, y lists. */
-export function pointInRings(p: [number, number], rings: number[][]): boolean {
-  let inside = false
-  for (const ring of rings) {
-    for (let i = 0, j = ring.length - 2; i < ring.length; j = i, i += 2) {
-      const xi = ring[i]
-      const yi = ring[i + 1]
-      const xj = ring[j]
-      const yj = ring[j + 1]
-      if (yi > p[1] !== yj > p[1] && p[0] < ((xj - xi) * (p[1] - yi)) / (yj - yi) + xi) inside = !inside
-    }
-  }
-  return inside
-}
+/** Even-odd test of a point against rings given as flat x, y lists. The app's own, so both agree. */
+export { inRings as pointInRings } from '../../src/map/geo.ts'
 
 export function lengthOf(line: number[]): number {
   let sum = 0
