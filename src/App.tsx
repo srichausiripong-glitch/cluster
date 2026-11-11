@@ -21,6 +21,7 @@ export default function App() {
   // The user app is a fixed-height shell (map, sheets, bottom nav); other pages scroll normally.
   const location = useLocation()
   const fixed = location.pathname.startsWith('/app')
+  const userApp = fixed || location.pathname === '/r'
 
   // Deep links for the presenter and for screenshots: ?seed=pilot|threshold and ?phase=2.
   // They are used once and then dropped from the address, so a reload does not wipe the demo.
@@ -41,7 +42,8 @@ export default function App() {
   }, [params, setParams])
   return (
     <div className={`flex flex-col bg-bg text-ink ${fixed ? 'h-dvh overflow-hidden' : 'min-h-dvh'}`}>
-      {!embedded && <Banner tone="demo">{th.demoBanner}</Banner>}
+      {/* The owner asked for the app itself to carry no prototype strip; the stage and the back office keep it. */}
+      {!embedded && !userApp && <Banner tone="demo">{th.demoBanner}</Banner>}
       <ErrorBoundary>
         <Routes>
           {/* The address itself opens the app, as an app does. The pitch stage lives at /stage. */}
