@@ -219,7 +219,7 @@ const GROUPS: Record<string, string[]> = {
 }
 const NAMES: Record<string, string> = { north: 'กรุงเทพเหนือ', central: 'กรุงเทพกลาง', east: 'กรุงเทพตะวันออก', south: 'กรุงเทพใต้', thon_north: 'กรุงธนเหนือ', thon_south: 'กรุงธนใต้' }
 /** Where each zone's name is written at city level, chosen so the names clear the care points. */
-const ANCHORS: Record<string, [number, number]> = { north: [13.94, 100.62], central: [13.793, 100.58], east: [13.835, 100.72], south: [13.688, 100.615], thon_north: [13.795, 100.415], thon_south: [13.63, 100.43] }
+const ANCHORS: Record<string, [number, number]> = { north: [13.94, 100.62], central: [13.797, 100.565], east: [13.845, 100.72], south: [13.688, 100.615], thon_north: [13.81, 100.415], thon_south: [13.63, 100.43] }
 
 interface Member {
   type: string
