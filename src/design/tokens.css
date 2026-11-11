@@ -1,7 +1,9 @@
 /* Cluster design tokens: the Pop-art look (plan amendment, section 15). Pink for care points and
    primary actions, yellow and green from the logo, black outlines, violet for signals only.
-   No red, and no colour series for levels: a level is the size of a dot. */
-@theme {
+   No red, and no colour series for levels: a level is the size of a dot.
+   `static` keeps every token as a CSS variable, also one no class uses (the map's park green is
+   only painted on the canvas, and the design gallery shows it by its variable). */
+@theme static {
   --font-sans: "Anuphan Variable", "Noto Sans Thai", ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: 10px;

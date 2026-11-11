@@ -13,8 +13,8 @@ const STYLE = {
 export function PartyTag({ party }: { party: Party }) {
   const { icon: Icon, cls } = STYLE[party]
   return (
-    <span className={`inline-flex min-h-7 items-center gap-1.5 rounded-full border-[1.5px] border-ink px-2.5 text-[13px] font-medium ${cls}`}>
-      <Icon size={14} strokeWidth={1.75} aria-hidden="true" />
+    <span className={`inline-flex min-h-7 items-center gap-1.5 rounded-full border-[1.5px] border-ink px-2.5 text-[13px] font-semibold ${cls}`}>
+      <Icon size={14} strokeWidth={2} aria-hidden="true" />
       {th.data.party[party]}
     </span>
   )

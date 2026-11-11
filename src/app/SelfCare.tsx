@@ -2,6 +2,7 @@ import { CalendarPlus, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
 import { buildIcs } from '../domain/ics'
+import { QUIET_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
 import { wipePhone } from '../store/actions'
@@ -30,12 +31,12 @@ export function SelfCare() {
 
   return (
     <main className="space-y-4 p-4">
-      <h1 className="text-[20px] font-semibold">{th.me.title}</h1>
+      <h1 className="text-[20px] font-bold">{th.me.title}</h1>
 
       {card ? (
         <Card>
           <p className="text-[13px] text-muted">{th.me.cardTitle}</p>
-          <p className="text-[20px] font-semibold">{th.group[card.group]}</p>
+          <p className="text-[20px] font-bold">{th.group[card.group]}</p>
           <p>{days === 0 ? th.me.sentToday : th.me.sent.replace('{n}', String(days))}</p>
           <p className="text-muted">{th.me.expires.replace('{n}', String(left))}</p>
         </Card>
@@ -46,23 +47,23 @@ export function SelfCare() {
       )}
 
       <Card>
-        <h2 className="font-semibold">{th.me.reminder}</h2>
+        <h2 className="font-bold">{th.me.reminder}</h2>
         <Button variant="secondary" className="mt-2" onClick={downloadReminder}>
-          <CalendarPlus size={18} strokeWidth={1.75} aria-hidden="true" />
+          <CalendarPlus size={18} strokeWidth={2} aria-hidden="true" />
           {th.me.reminderAdd}
         </Button>
       </Card>
 
       <Card>
         <Button variant="secondary" onClick={wipePhone}>
-          <Trash2 size={18} strokeWidth={1.75} aria-hidden="true" />
+          <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
           {th.me.wipe}
         </Button>
         <p className="mt-2 text-[13px] text-muted">{th.me.wipeNote}</p>
         <p className="mt-1 text-[13px] text-muted">{th.me.iosNote}</p>
       </Card>
 
-      <Link to={to('/app/harm')} className="flex min-h-11 items-center justify-center box px-4 font-medium">
+      <Link to={to('/app/harm')} className={QUIET_LINK}>
         {th.me.harm}
       </Link>
     </main>

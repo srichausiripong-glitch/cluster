@@ -1,3 +1,4 @@
+import { Check as Tick } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
@@ -5,6 +6,7 @@ import { th } from '../copy/th'
 import { buildLink } from '../domain/link'
 import { composeNotice } from '../domain/notify'
 import type { DiseaseGroup, ExposureBand } from '../domain/types'
+import { NOTE, PRESS, PRIMARY_LINK, TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { createSlip, currentWeek } from '../store/actions'
 import { useEmbedTo } from './embed'
@@ -44,7 +46,7 @@ export function NotifyFlow() {
     setCopied(false)
   }
   const recipientPath = link ? to('/r') + link.slice(link.indexOf('#')) : ''
-  const note = 'rounded-md bg-surface p-3 text-[13px] text-muted'
+  const note = `${NOTE} p-3 text-[13px] text-muted`
 
   return (
     <main className="p-4">
@@ -52,7 +54,7 @@ export function NotifyFlow() {
 
       {!group && (
         <section className="space-y-2">
-          <h2 className="text-[17px] font-semibold">{th.report.askGroup}</h2>
+          <h2 className="text-[17px] font-bold">{th.report.askGroup}</h2>
           {GROUPS.map((g) => (
             <Choice key={g} label={th.group[g]} hint={th.groupHint[g]} onClick={() => setGroup(g)} />
           ))}
@@ -61,7 +63,7 @@ export function NotifyFlow() {
 
       {group && view === 'safety' && (
         <section className="step-in space-y-3">
-          <h2 className="text-[20px] font-semibold">{th.notify.safetyQ}</h2>
+          <h2 className="text-[20px] font-bold">{th.notify.safetyQ}</h2>
           <Choice label={th.notify.safeYes} onClick={() => setView('channel')} />
           <Choice label={th.notify.safeClinic} hint={th.notify.clinicWho} onClick={() => setView('slip')} />
           <Choice label={th.notify.safeLater} onClick={() => setView('later')} />
@@ -70,8 +72,8 @@ export function NotifyFlow() {
 
       {group && view === 'later' && (
         <section className="step-in space-y-3">
-          <p className="rounded-md bg-surface p-4">{th.notify.laterDone}</p>
-          <Link to={to('/app')} className="flex min-h-13 items-center justify-center rounded-md border-2 border-ink bg-care px-5 text-[17px] font-semibold text-ink shadow-pop">
+          <p className="box p-4">{th.notify.laterDone}</p>
+          <Link to={to('/app')} className={PRIMARY_LINK}>
             {th.report.backToMap}
           </Link>
         </section>
@@ -79,7 +81,7 @@ export function NotifyFlow() {
 
       {group && view === 'channel' && (
         <section className="step-in space-y-3">
-          <h2 className="text-[17px] font-semibold">{th.notify.chooseChannel}</h2>
+          <h2 className="text-[17px] font-bold">{th.notify.chooseChannel}</h2>
           <Choice label={th.notify.linkTitle} hint={th.notify.linkWho} onClick={() => setView('link')} />
           <Choice label={th.notify.clinicTitle} hint={th.notify.clinicWho} onClick={() => setView('slip')} />
         </section>
@@ -92,12 +94,12 @@ export function NotifyFlow() {
             <p className="mt-1">{th.notify.truthLink}</p>
           </div>
           <fieldset>
-            <legend className="mb-2 font-semibold">{th.notify.band}</legend>
+            <legend className="mb-2 font-bold">{th.notify.band}</legend>
             <div className="grid grid-cols-2 gap-2">
               {BANDS.map((b) => (
                 <label
                   key={b}
-                  className={`flex min-h-11 cursor-pointer items-center justify-center rounded-md border-2 border-ink px-2 text-center text-[13px] font-medium has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink ${b === 'older' ? 'col-span-2' : ''} ${band === b ? 'bg-care-soft' : 'bg-surface'}`}
+                  className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-md border-2 border-ink px-2 text-center text-[13px] font-semibold has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink ${PRESS} ${b === 'older' ? 'col-span-2' : ''} ${band === b ? 'bg-care-soft' : 'bg-surface'}`}
                 >
                   <input
                     type="radio"
@@ -109,6 +111,7 @@ export function NotifyFlow() {
                       setLink(null)
                     }}
                   />
+                  {band === b && <Tick size={16} strokeWidth={3} className="shrink-0" aria-hidden="true" />}
                   {th.notify.bands[b]}
                 </label>
               ))}
@@ -126,7 +129,7 @@ export function NotifyFlow() {
             }}
           />
           <div className="box p-3 text-[13px]">
-            <p className="font-medium">{th.notify.see}</p>
+            <p className="font-bold">{th.notify.see}</p>
             <p className="text-muted">
               {named ? th.notify.seeNamed : th.notify.seeUnnamed}
               {band === 'h72' ? ` ${th.notify.seeUrgent}` : ''}
@@ -141,8 +144,8 @@ export function NotifyFlow() {
             </p>
           )}
           {link && (
-            <div className="space-y-2 box p-4">
-              <label htmlFor="notice-link" className="block text-[13px] font-medium text-muted">
+            <div className="box space-y-2 p-4">
+              <label htmlFor="notice-link" className="block text-[13px] font-semibold">
                 {th.notify.linkLabel}
               </label>
               <input id="notice-link" readOnly value={link} onFocus={(e) => e.target.select()} className="min-h-11 w-full rounded-md border-2 border-ink bg-bg px-3 text-[13px]" />
@@ -156,7 +159,7 @@ export function NotifyFlow() {
                 >
                   {copied ? th.common.copied : th.notify.copyLink}
                 </Button>
-                <Link to={recipientPath} className="inline-flex min-h-11 items-center rounded-md px-4 font-medium text-care-ink hover:bg-care-soft">
+                <Link to={recipientPath} className={`inline-flex min-h-11 items-center px-2 ${TEXT_LINK}`}>
                   {th.notify.openRecipient}
                 </Link>
               </div>
@@ -177,11 +180,11 @@ export function NotifyFlow() {
             </Button>
           ) : (
             <div className="box p-5 text-center">
-              <h2 className="font-semibold">{th.notify.slipTitle}</h2>
-              <div className="mx-auto my-4 w-fit rounded-md bg-white p-3">
-                <QRCodeSVG value={slip} size={148} fgColor="#14282e" />
+              <h2 className="font-bold">{th.notify.slipTitle}</h2>
+              <div className="mx-auto my-4 w-fit rounded-md border-2 border-ink bg-white p-3">
+                <QRCodeSVG value={slip} size={148} fgColor="#1e1f1c" />
               </div>
-              <p className="text-[32px] font-semibold tracking-[0.2em]">{slip}</p>
+              <p className="text-[32px] font-bold tracking-[0.2em]">{slip}</p>
               <p className="mt-3 text-left text-[13px] text-muted">{th.notify.slipBody}</p>
             </div>
           )}

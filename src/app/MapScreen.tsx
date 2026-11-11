@@ -1,6 +1,7 @@
 import { ChevronRight, Waves } from 'lucide-react'
 import { useState } from 'react'
 import { th } from '../copy/th'
+import { PRESS } from '../design/look'
 import { ZONES } from '../map/areas'
 import type { Level } from '../map/geo'
 import { PinMark } from '../map/legend'
@@ -13,9 +14,6 @@ import { CarePointSheet } from './CarePointSheet'
 import { SendSignalLink } from './SendSignalLink'
 import { SignalSheet } from './SignalSheet'
 import { carePointFor, useCity } from './useCity'
-
-/** A box that can be pressed sinks onto its shadow. */
-const PRESS = 'shadow-pop transition-[transform,box-shadow] duration-75 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none'
 
 export function MapScreen() {
   const city = useCity()

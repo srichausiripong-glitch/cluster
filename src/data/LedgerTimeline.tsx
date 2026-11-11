@@ -8,7 +8,7 @@ export function LedgerTimeline({ limit = 40 }: { limit?: number }) {
   const entries = [...usePartyStore(ledger).entries].reverse().slice(0, limit)
   return (
     <section role="region" aria-label={th.data.timeline} className="box p-4">
-      <h2 className="mb-2 font-semibold">{th.data.timeline}</h2>
+      <h2 className="mb-2 font-bold">{th.data.timeline}</h2>
       {entries.length === 0 ? (
         <p className="text-muted">{th.data.timelineEmpty}</p>
       ) : (

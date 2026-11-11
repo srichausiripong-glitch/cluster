@@ -1,4 +1,4 @@
-import { CalendarPlus, Clock } from 'lucide-react'
+import { CalendarPlus, Check as Tick, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { formatThaiDate } from '../copy/format'
@@ -7,6 +7,7 @@ import { adviceFor } from '../domain/advice'
 import { buildIcs } from '../domain/ics'
 import { decodeNotice } from '../domain/link'
 import type { DiseaseGroup } from '../domain/types'
+import { PRESS, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
 import { Banner } from '../design/primitives/Banner'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
@@ -39,7 +40,7 @@ function downloadCalendar(days: number[]) {
 function Retest({ days, tone }: { days: number[]; tone: string }) {
   return (
     <p className={`mt-3 text-[13px] ${tone}`}>
-      <span className="font-medium">{th.recipient.retest}</span>{' '}
+      <span className="font-bold">{th.recipient.retest}</span>{' '}
       {days.map((n) => `${formatThaiDate(new Date(Date.now() + n * DAY))} (${th.recipient.inDays.replace('{n}', String(n))})`).join(' · ')}
     </p>
   )
@@ -81,7 +82,7 @@ function RecipientView({ hash }: { hash: string }) {
         <Logo size={18} />
         <QuickExit />
       </div>
-      <h1 className="text-[24px] font-semibold">{th.recipient.genericTitle}</h1>
+      <h1 className="text-[24px] font-bold">{th.recipient.genericTitle}</h1>
       <p className="text-muted">{th.recipient.intro}</p>
 
       {!showDetail && (
@@ -96,12 +97,12 @@ function RecipientView({ hash }: { hash: string }) {
             // A named HIV notice asks first, then shows only the branch that applies (spec 6).
             <section className="step-in box p-4">
               <div className="mb-1 flex flex-wrap items-center gap-2">
-                <h2 className="text-[20px] font-semibold">{th.group.hiv}</h2>
+                <h2 className="text-[20px] font-bold">{th.group.hiv}</h2>
                 <Banner tone="draft">{th.draftClinical}</Banner>
               </div>
               <p className="text-[13px] text-muted">{meta}</p>
               <p className="mt-2">{th.recipient.hivLead}</p>
-              <h3 className="mb-2 mt-3 font-semibold">{th.recipient.hivAsk}</h3>
+              <h3 className="mb-2 mt-3 font-bold">{th.recipient.hivAsk}</h3>
               <div className="space-y-2">
                 {HIV_BRANCHES.map((key) => (
                   <button
@@ -109,16 +110,17 @@ function RecipientView({ hash }: { hash: string }) {
                     type="button"
                     aria-pressed={branch === key}
                     onClick={() => setBranch(key)}
-                    className={`flex min-h-11 w-full items-center rounded-md border-2 border-ink px-3 py-2 text-left font-medium ${branch === key ? 'bg-care-soft' : 'bg-bg'}`}
+                    className={`flex min-h-11 w-full items-center justify-between gap-2 rounded-md border-2 border-ink px-3 py-2 text-left font-semibold ${PRESS} ${branch === key ? 'bg-care-soft' : 'bg-surface'}`}
                   >
                     {th.recipient.hiv[key].label}
+                    {branch === key && <Tick size={18} strokeWidth={3} className="shrink-0" aria-hidden="true" />}
                   </button>
                 ))}
               </div>
               {branch && (
-                <div className={`step-in mt-3 rounded-md p-3 ${branch === 'within72' ? URGENT : 'bg-care-soft'}`}>
+                <div className={`step-in mt-4 p-3 ${branch === 'within72' ? `rounded-md ${URGENT}` : SOFT}`}>
                   <p className="flex items-start gap-2">
-                    {branch === 'within72' && <Clock size={20} strokeWidth={1.75} className="mt-0.5 shrink-0" aria-hidden="true" />}
+                    {branch === 'within72' && <Clock size={20} strokeWidth={2} className="mt-0.5 shrink-0 text-yellow" aria-hidden="true" />}
                     {th.recipient.hiv[branch].advice}
                   </p>
                   {(branch === 'within72' || branch === 'later') && <Retest days={retestDays} tone={branch === 'within72' ? 'text-white/85' : 'text-muted'} />}
@@ -128,8 +130,9 @@ function RecipientView({ hash }: { hash: string }) {
           ) : (
             <section className={`step-in rounded-md p-4 ${advice.urgent ? URGENT : 'border-2 border-ink bg-surface'}`}>
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                {advice.urgent && <Clock size={20} strokeWidth={1.75} aria-hidden="true" />}
-                {(notice?.group || advice.urgent) && <h2 className="text-[20px] font-semibold">{advice.title}</h2>}
+                {/* The "go today" block stays black with white words; its title and clock are yellow. */}
+                {advice.urgent && <Clock size={20} strokeWidth={2} className="text-yellow" aria-hidden="true" />}
+                {(notice?.group || advice.urgent) && <h2 className={`text-[20px] font-bold ${advice.urgent ? 'text-yellow' : ''}`}>{advice.title}</h2>}
                 {advice.urgent ? (
                   <span role="note" className="rounded-sm border border-white/70 px-2 py-0.5 text-[12px]">
                     {th.draftClinical}
@@ -139,7 +142,7 @@ function RecipientView({ hash }: { hash: string }) {
                 )}
               </div>
               {meta && <p className={`text-[13px] ${advice.urgent ? 'text-white/85' : 'text-muted'}`}>{meta}</p>}
-              <h3 className="mb-1 mt-3 text-[13px] font-medium">{th.recipient.todo}</h3>
+              <h3 className="mb-1 mt-3 text-[13px] font-bold">{th.recipient.todo}</h3>
               <ol className="list-decimal space-y-1 pl-5">
                 {advice.steps.map((step) => (
                   <li key={step}>{step}</li>
@@ -154,18 +157,18 @@ function RecipientView({ hash }: { hash: string }) {
           {notice && (
             <Card className="text-center">
               <h2 className="text-[13px] font-medium text-muted">{th.recipient.fastTrack}</h2>
-              <p className="my-1 text-[32px] font-semibold tracking-[0.25em] text-care-ink">{notice.code}</p>
+              <p className="my-1 text-[32px] font-bold tracking-[0.25em] text-ink">{notice.code}</p>
               <p className="text-left text-[13px] text-muted">{th.recipient.fastTrackHint}</p>
             </Card>
           )}
 
           <Button variant="secondary" className="w-full" onClick={() => downloadCalendar(retestDays)}>
-            <CalendarPlus size={18} strokeWidth={1.75} aria-hidden="true" />
+            <CalendarPlus size={18} strokeWidth={2} aria-hidden="true" />
             {th.recipient.calendar}
           </Button>
 
           <section>
-            <h2 className="mb-2 font-semibold">{th.recipient.nearby}</h2>
+            <h2 className="mb-2 font-bold">{th.recipient.nearby}</h2>
             <ul aria-label={th.recipient.nearby} className="space-y-2">
               {points.map((point) => (
                 <li key={point.id}>
@@ -173,12 +176,12 @@ function RecipientView({ hash }: { hash: string }) {
                 </li>
               ))}
             </ul>
-            <Link to={to('/app/list')} className="mt-2 flex min-h-11 items-center justify-center box px-4 font-medium">
+            <Link to={to('/app/list')} className={`mt-3 ${QUIET_LINK}`}>
               {th.common.openList}
             </Link>
           </section>
 
-          <Link to={to('/app/harm')} className="flex min-h-11 items-center text-[13px] font-medium text-care-ink underline underline-offset-4">
+          <Link to={to('/app/harm')} className={`flex min-h-11 items-center text-[13px] ${TEXT_LINK}`}>
             {th.recipient.harm}
           </Link>
           <CarePointSheet point={CARE_POINTS.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />

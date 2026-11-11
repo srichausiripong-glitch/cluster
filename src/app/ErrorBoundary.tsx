@@ -18,7 +18,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
     if (!this.state.failed) return this.props.children
     return (
       <main className="mx-auto w-full max-w-md space-y-3 p-6">
-        <h1 className="text-[20px] font-semibold">{th.recover.title}</h1>
+        <h1 className="text-[20px] font-bold">{th.recover.title}</h1>
         <p className="text-muted">{th.recover.body}</p>
         <Button
           onClick={() => {

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useEmbedTo } from '../app/embed'
 import { th } from '../copy/th'
 import { K } from '../domain/publication'
+import { PRESS } from '../design/look'
 import { Chip } from '../design/primitives/Chip'
 import { currentWeek } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
@@ -31,41 +32,41 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-[24px] font-semibold">{th.clinic.nav.home}</h1>
+        <h1 className="text-[24px] font-bold">{th.clinic.nav.home}</h1>
         <p className="text-[13px] text-muted">{th.clinic.week}</p>
         <p className="mt-1">{summary}</p>
       </header>
 
       <section>
-        <h2 className="mb-2 text-[17px] font-semibold">{th.clinic.next}</h2>
-        <div className="space-y-2">
+        <h2 className="mb-2 text-[17px] font-bold">{th.clinic.next}</h2>
+        <div className="space-y-3">
           {next.map((item) => (
             <Link
               key={item.to}
               to={to(item.to)}
-              className={`flex min-h-14 items-center justify-between gap-3 rounded-md px-4 py-2 border-2 border-ink ${item.primary ? 'bg-care text-ink shadow-pop' : 'bg-surface'}`}
+              className={`flex min-h-14 items-center justify-between gap-3 rounded-md border-2 border-ink px-4 py-2 text-ink ${PRESS} ${item.primary ? 'bg-care' : 'bg-surface'}`}
             >
               <span>
-                <span className="block font-semibold">{item.title}</span>
+                <span className="block font-bold">{item.title}</span>
                 {item.status && <span className="block text-[13px] text-muted">{item.status}</span>}
               </span>
-              <ChevronRight size={20} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
+              <ChevronRight size={20} strokeWidth={2.25} className="shrink-0" aria-hidden="true" />
             </Link>
           ))}
         </div>
       </section>
 
       <section>
-        <h2 className="mb-2 text-[17px] font-semibold">{th.clinic.codes}</h2>
+        <h2 className="mb-2 text-[17px] font-bold">{th.clinic.codes}</h2>
         {mine.length === 0 ? (
           <p className="box p-4 text-muted">{th.clinic.codesEmpty}</p>
         ) : (
           <div className="overflow-x-auto box">
             <table className="w-full text-left text-[15px]">
               <thead>
-                <tr className="border-b border-line text-[13px] text-muted">
+                <tr className="border-b-2 border-ink text-[13px]">
                   {[th.clinic.colCode, th.clinic.colResult, th.clinic.colCount].map((col) => (
-                    <th key={col} scope="col" className="px-4 py-2 font-medium">
+                    <th key={col} scope="col" className="px-4 py-2 font-bold">
                       {col}
                     </th>
                   ))}
@@ -74,7 +75,7 @@ export function Dashboard() {
               <tbody>
                 {[...mine].reverse().slice(0, 8).map((code) => (
                   <tr key={code.id} className="border-b border-line align-top last:border-0">
-                    <td className="px-4 py-3 font-semibold tracking-widest">{code.id}</td>
+                    <td className="px-4 py-3 font-bold tracking-widest">{code.id}</td>
                     <td className="px-4 py-3">{code.positiveGroup ? th.group[code.positiveGroup] : <span className="text-muted">{th.clinic.noResult}</span>}</td>
                     <td className="px-4 py-3">
                       <span className="flex flex-wrap gap-1">

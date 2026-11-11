@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
 import { codeKind } from '../domain/codes'
 import type { DiseaseGroup, ReportSource } from '../domain/types'
+import { ALERT, PRIMARY_LINK, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Stepper } from '../design/primitives/Stepper'
 import { claimCodeOnPhone, consentCityCount, MAPPED_GROUPS, saveCard } from '../store/actions'
@@ -22,8 +23,8 @@ type Outcome = 'counted' | 'kept' | 'nothing'
 type CodeError = 'unknown' | 'slip' | 'fastTrack'
 const CODE_ERROR: Record<CodeError, string> = { unknown: th.report.codeBad, slip: th.report.codeIsSlip, fastTrack: th.report.codeIsFastTrack }
 const OUTCOME_ICON = { counted: CheckIcon, kept: Smartphone, nothing: Ban } as const
-const primaryLink = 'flex min-h-13 items-center justify-center gap-2 rounded-md border-2 border-ink bg-care px-5 text-center text-[17px] font-semibold text-ink shadow-pop'
-const quietLink = 'flex min-h-11 items-center justify-center gap-2 box px-4 text-center font-medium'
+const primaryLink = PRIMARY_LINK
+const quietLink = QUIET_LINK
 
 export function ReportFlow() {
   const to = useEmbedTo()
@@ -74,7 +75,7 @@ export function ReportFlow() {
 
       {step === 0 && (
         <section className="step-in mt-5 space-y-2">
-          <h2 className="text-[17px] font-semibold">{th.report.askGroup}</h2>
+          <h2 className="text-[17px] font-bold">{th.report.askGroup}</h2>
           <p className="pb-1 text-[13px] text-muted">{th.report.privacy}</p>
           {GROUPS.map((g) => (
             <Choice
@@ -98,7 +99,7 @@ export function ReportFlow() {
 
       {step === 1 && group && (
         <section className="step-in mt-5 space-y-2">
-          <h2 className="text-[17px] font-semibold">{th.report.askSource}</h2>
+          <h2 className="text-[17px] font-bold">{th.report.askSource}</h2>
           {SOURCES[group].map((s) => (
             <Choice
               key={s}
@@ -122,7 +123,7 @@ export function ReportFlow() {
                 submitCode()
               }}
             >
-              <label htmlFor="clinic-code" className="mb-1 block text-[13px] font-medium text-muted">
+              <label htmlFor="clinic-code" className="mb-1 block text-[13px] font-semibold">
                 {th.report.codeInput}
               </label>
               <div className="flex gap-2">
@@ -138,15 +139,15 @@ export function ReportFlow() {
                   inputMode="text"
                   aria-invalid={codeError !== null}
                   aria-describedby={`clinic-code-format${codeError ? ' clinic-code-error' : ''}`}
-                  className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-semibold uppercase tracking-widest"
+                  className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-bold uppercase tracking-widest"
                 />
                 <Button type="submit" disabled={codeText.trim() === ''}>
                   {th.report.useCode}
                 </Button>
               </div>
               {codeError && (
-                <p id="clinic-code-error" role="alert" className="mt-2 flex items-start gap-2 rounded-sm border border-ink px-3 py-2 text-[13px] font-medium text-ink">
-                  <CircleAlert size={18} strokeWidth={1.75} className="mt-0.5 shrink-0" aria-hidden="true" />
+                <p id="clinic-code-error" role="alert" className={`mt-2 flex items-start gap-2 px-3 py-2 text-[13px] font-semibold ${ALERT}`}>
+                  <CircleAlert size={18} strokeWidth={2} className="mt-0.5 shrink-0" aria-hidden="true" />
                   {CODE_ERROR[codeError]}
                 </p>
               )}
@@ -156,9 +157,9 @@ export function ReportFlow() {
               <p className="text-[13px] text-muted">{th.report.codeCheckNote}</p>
             </form>
           )}
-          <div className="flex flex-wrap items-center justify-between gap-x-3 rounded-md bg-surface px-4 py-3">
+          <div className="box flex flex-wrap items-center justify-between gap-x-3 px-4 py-3">
             <p className="min-w-0 flex-1 text-[13px]">{group === 'syphilis' ? th.report.noCodeSyphilis : th.report.noCodeOther}</p>
-            <Link to={to('/app/list')} className="inline-flex min-h-11 items-center font-medium text-care-ink underline underline-offset-4">
+            <Link to={to('/app/list')} className={`inline-flex min-h-11 items-center ${TEXT_LINK}`}>
               {th.report.findCare}
             </Link>
           </div>
@@ -167,10 +168,10 @@ export function ReportFlow() {
 
       {step === 2 && group && (
         <section className="step-in mt-5 space-y-3">
-          <h2 className="text-[17px] font-semibold">{th.report.askActions}</h2>
-          {group === 'hiv' && <p className="rounded-md bg-care-soft px-4 py-3 text-[15px]">{th.report.hivNoMap}</p>}
-          {group === 'mpox' && <p className="rounded-md bg-care-soft px-4 py-3 text-[15px]">{th.report.mpoxNoMap}</p>}
-          {code === null && <p className="rounded-md bg-surface px-4 py-3 text-[13px] text-muted">{th.report.noCodeLocal}</p>}
+          <h2 className="text-[17px] font-bold">{th.report.askActions}</h2>
+          {group === 'hiv' && <p className={`px-4 py-3 text-[15px] ${SOFT}`}>{th.report.hivNoMap}</p>}
+          {group === 'mpox' && <p className={`px-4 py-3 text-[15px] ${SOFT}`}>{th.report.mpoxNoMap}</p>}
+          {code === null && <p className="box px-4 py-3 text-[13px] text-muted">{th.report.noCodeLocal}</p>}
           {canAddToArea && <Check id="add-to-area" label={th.report.addToArea} hint={th.report.addToAreaHint} checked={addToArea} onChange={setAddToArea} />}
           <Check id="keep-card" label={th.report.keepCard} hint={th.report.keepCardHint} checked={keepCard} onChange={setKeepCard} />
           <Button size="lg" className="w-full" onClick={finish}>
@@ -184,8 +185,8 @@ export function ReportFlow() {
           <div className={`grid size-14 place-items-center rounded-full border-2 border-ink text-ink ${result.outcome === 'counted' ? 'bg-care' : 'bg-surface'}`}>
             <OutcomeIcon size={28} strokeWidth={2} aria-hidden="true" />
           </div>
-          <h2 className="text-[24px] font-semibold">{th.report.outcome[result.outcome]}</h2>
-          <ul className="space-y-2 box p-4">
+          <h2 className="text-[24px] font-bold">{th.report.outcome[result.outcome]}</h2>
+          <ul className="box space-y-2 p-4">
             {result.outcome === 'counted' && <li>{th.report.receiptClinicCarries}</li>}
             {result.outcome === 'counted' && <li className="text-muted">{th.report.receiptMapWeekly}</li>}
             {result.checked ? <li className="text-muted">{th.report.receiptCodeChecked}</li> : <li>{th.report.receiptNothingLeft}</li>}
@@ -204,7 +205,7 @@ export function ReportFlow() {
                 {th.report.nextConfirm}
               </Link>
               <a href="tel:1663" className={quietLink}>
-                <Phone size={18} strokeWidth={1.75} aria-hidden="true" />
+                <Phone size={18} strokeWidth={2} aria-hidden="true" />
                 {th.report.call1663}
               </a>
             </>

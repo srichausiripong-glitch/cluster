@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { th } from '../copy/th'
 import { weeklyCodes, type WeeklyCodeEntry } from '../domain/fastTrack'
 import type { DiseaseGroup } from '../domain/types'
+import { ALERT, SOFT } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
 import { currentWeek, tallyFastTrack, untallyFastTrack } from '../store/actions'
@@ -31,7 +32,7 @@ export function FastTrack() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-[24px] font-semibold">{th.clinic.nav.fastTrack}</h1>
+        <h1 className="text-[24px] font-bold">{th.clinic.nav.fastTrack}</h1>
         <p className="text-[13px] text-muted">{week}</p>
       </header>
 
@@ -43,7 +44,7 @@ export function FastTrack() {
             setCounted(false)
           }}
         >
-          <label htmlFor="fast-track-lookup" className="mb-1 block font-semibold">
+          <label htmlFor="fast-track-lookup" className="mb-1 block font-bold">
             {th.clinic.lookup}
           </label>
           <div className="flex flex-wrap gap-2">
@@ -53,7 +54,7 @@ export function FastTrack() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               autoComplete="off"
-              className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-semibold uppercase tracking-widest"
+              className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-bold uppercase tracking-widest"
             />
             <Button type="submit" disabled={text.trim() === ''}>
               {th.clinic.lookupCheck}
@@ -62,13 +63,13 @@ export function FastTrack() {
         </form>
         {looked !== null &&
           (entry ? (
-            <div role="status" className="mt-3 rounded-md bg-care-soft p-3">
-              <p className="font-semibold">
+            <div role="status" className={`mt-3 p-3 ${SOFT}`}>
+              <p className="font-bold">
                 {th.group[entry.group]} · {describe(entry)}
               </p>
               {counted ? (
-                <p className="mt-2 flex flex-wrap items-center gap-2 font-medium">
-                  <Check size={18} strokeWidth={2} aria-hidden="true" />
+                <p className="mt-2 flex flex-wrap items-center gap-2 font-semibold">
+                  <Check size={18} strokeWidth={3} aria-hidden="true" />
                   {th.clinic.tallied}
                   <Button
                     variant="secondary"
@@ -93,25 +94,25 @@ export function FastTrack() {
               )}
             </div>
           ) : (
-            <p role="alert" className="mt-3 rounded-md border border-ink px-3 py-2 font-medium">
+            <p role="alert" className={`mt-3 px-3 py-2 font-semibold ${ALERT}`}>
               {th.clinic.lookupNone}
             </p>
           ))}
       </Card>
 
       <section>
-        <h2 className="mb-2 text-[17px] font-semibold">{th.clinic.weekCodes}</h2>
+        <h2 className="mb-2 text-[17px] font-bold">{th.clinic.weekCodes}</h2>
         <div className="space-y-3">
           {GROUPS.map((group) => (
             <div key={group} className="box p-4">
-              <h3 className="mb-2 font-semibold">{th.group[group]}</h3>
+              <h3 className="mb-2 font-bold">{th.group[group]}</h3>
               <ul className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
                 {all
                   .filter((e) => e.group === group)
                   .map((e) => (
                     <li key={e.code}>
                       <p className="text-[13px] text-muted">{describe(e)}</p>
-                      <p className="text-[20px] font-semibold tracking-[0.2em] text-care-ink">{e.code}</p>
+                      <p className="text-[20px] font-bold tracking-[0.2em] text-ink">{e.code}</p>
                       <p className="text-[13px] text-muted">
                         {th.clinic.tallyCount}: {underK(fastTrackTally[e.code] ?? 0)}
                       </p>

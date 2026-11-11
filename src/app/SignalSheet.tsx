@@ -45,7 +45,7 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
       <div className="flex items-center gap-3">
         <Swatch area={area} />
         <div>
-          <h3 className="font-semibold">{th.map.state[area.state]}</h3>
+          <h3 className="font-bold">{th.map.state[area.state]}</h3>
           <p className="text-[13px] text-muted">{th.map.stateHint[area.state]}</p>
         </div>
       </div>
