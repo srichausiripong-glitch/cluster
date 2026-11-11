@@ -1,4 +1,5 @@
 import { Route, Routes, useSearchParams } from 'react-router-dom'
+import { th } from './copy/th'
 import { Banner } from './design/primitives/Banner'
 import { DesignGallery } from './routes/DesignGallery'
 import { Placeholder } from './routes/Placeholder'
@@ -9,7 +10,7 @@ export default function App() {
   const embedded = params.get('embed') === '1'
   return (
     <div className="min-h-dvh bg-bg text-ink">
-      {!embedded && <Banner tone="demo">ต้นแบบ ข้อมูลจำลอง</Banner>}
+      {!embedded && <Banner tone="demo">{th.demoBanner}</Banner>}
       <Routes>
         <Route path="/" element={<Placeholder title="เวทีสาธิต" />} />
         <Route path="/app/*" element={<Placeholder title="แอปฝั่งผู้ใช้" />} />
