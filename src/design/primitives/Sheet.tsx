@@ -4,8 +4,9 @@ import { useEffect, useRef, type ReactNode } from 'react'
 type Props = { open: boolean; onClose: () => void; title: string; children: ReactNode }
 
 /**
- * Bottom sheet. The page behind stays visible, as on a navigation map. Focus moves to the
- * close button when it opens, Escape closes it, and focus returns to whatever opened it.
+ * Bottom sheet. It takes a little over half the screen and scrolls inside, so the page behind stays
+ * visible, as on a navigation map: the map brings what was picked into the part left clear. Focus
+ * moves to the close button when it opens, Escape closes it, and focus returns to whatever opened it.
  */
 export function Sheet({ open, onClose, title, children }: Props) {
   const closeButton = useRef<HTMLButtonElement>(null)
@@ -30,12 +31,12 @@ export function Sheet({ open, onClose, title, children }: Props) {
   if (!open) return null
   return (
     <div className="fixed inset-0 z-40 flex items-end">
-      <div className="absolute inset-0 bg-ink/25" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-ink/10" onClick={onClose} aria-hidden="true" />
       <section
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="sheet-in relative z-10 max-h-[84dvh] w-full overflow-y-auto rounded-t-lg border-t-[2.5px] border-ink bg-surface px-4 pb-6 pt-2"
+        className="sheet-in relative z-10 max-h-[56dvh] w-full overflow-y-auto rounded-t-lg border-t-[2.5px] border-ink bg-surface px-4 pb-6 pt-2"
       >
         <div className="mx-auto mb-2 h-1.5 w-11 rounded-full bg-ink" aria-hidden="true" />
         <div className="mb-2 flex items-start justify-between gap-3">

@@ -22,14 +22,14 @@ function Swatch({ area }: { area: PublishedArea }) {
 function Value({ label, current }: { label: string; current: boolean }) {
   return (
     <span className="flex flex-wrap items-center gap-x-1.5">
-      <span aria-current={current ? 'true' : undefined} className={current ? 'font-semibold text-ink' : 'text-muted'}>
+      <span aria-current={current ? 'true' : undefined} className={current ? 'font-bold text-ink' : 'text-muted'}>
         {label}
       </span>
       {current && (
-        <span className="inline-flex items-center gap-0.5 rounded-full border border-ink px-1.5 text-[11px] font-medium text-ink">
-          <Check size={12} strokeWidth={2.5} aria-hidden="true" />
+        <Chip tone="now" small>
+          <Check size={12} strokeWidth={3} aria-hidden="true" />
           {th.map.current}
-        </span>
+        </Chip>
       )}
     </span>
   )
@@ -77,7 +77,7 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
         </div>
       )}
 
-      <div className="mt-4 rounded-md bg-bg p-3 text-[13px]">
+      <div className="mt-4 rounded-md border-2 border-ink bg-bg p-3 text-[13px]">
         <p className="font-semibold">{th.map.legendNotSafe}</p>
         <p className="text-muted">{th.map.legendWhat}</p>
         <p className="text-muted">

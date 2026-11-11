@@ -9,10 +9,7 @@ const TONE = {
   now: 'bg-yellow text-ink',
 } as const
 
-export function Chip({ tone = 'neutral', children }: { tone?: keyof typeof TONE; children: ReactNode }) {
-  return (
-    <span className={`inline-flex min-h-7 items-center gap-1 rounded-full border-[1.5px] border-ink px-3 text-[13px] font-medium ${TONE[tone]}`}>
-      {children}
-    </span>
-  )
+export function Chip({ tone = 'neutral', small = false, children }: { tone?: keyof typeof TONE; small?: boolean; children: ReactNode }) {
+  const sizing = small ? 'min-h-[22px] gap-0.5 px-2 text-[12px] font-bold' : 'min-h-7 gap-1 px-3 text-[13px] font-medium'
+  return <span className={`inline-flex items-center rounded-full border-[1.5px] border-ink ${sizing} ${TONE[tone]}`}>{children}</span>
 }

@@ -31,7 +31,7 @@ export function AppShell() {
 
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col bg-bg">
-      <header className="flex h-12 shrink-0 items-center justify-between px-3">
+      <header className="flex h-[3.25rem] shrink-0 items-center justify-between border-b-[2.5px] border-ink px-3">
         <Logo size={18} />
         <QuickExit />
       </header>
@@ -47,16 +47,18 @@ export function AppShell() {
           <Route path="*" element={<MapScreen />} />
         </Routes>
       </div>
-      <nav aria-label="เมนูหลัก" className="grid h-14 shrink-0 grid-cols-4 border-t border-line bg-surface">
+      <nav aria-label="เมนูหลัก" className="grid h-[3.75rem] shrink-0 grid-cols-4 border-t-[2.5px] border-ink bg-surface">
         {NAV.map(({ path, label, icon: Icon, end }) => (
-          <NavLink
-            key={path}
-            to={to(path)}
-            end={end}
-            className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 text-[12px] ${isActive ? 'font-bold text-ink' : 'text-muted'}`}
-          >
-            <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
-            {label}
+          <NavLink key={path} to={to(path)} end={end} className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 text-[12px] text-ink ${isActive ? 'font-bold' : 'font-medium'}`}>
+            {({ isActive }) => (
+              <>
+                {/* The current tab is told by a filled shape round its icon, not by colour alone. */}
+                <span data-active-pill={isActive ? '' : undefined} className={`grid h-7 w-12 place-items-center rounded-full border-2 ${isActive ? 'border-ink bg-care shadow-pop' : 'border-transparent'}`}>
+                  <Icon size={20} strokeWidth={isActive ? 2.25 : 1.75} aria-hidden="true" />
+                </span>
+                {label}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
