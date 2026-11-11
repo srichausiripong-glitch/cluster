@@ -9,7 +9,7 @@ import { demo, pub } from '../store/stores'
 
 const open = () =>
   render(
-    <MemoryRouter initialEntries={['/']}>
+    <MemoryRouter initialEntries={['/stage']}>
       <App />
     </MemoryRouter>,
   )

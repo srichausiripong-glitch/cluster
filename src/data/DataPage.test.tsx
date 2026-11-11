@@ -41,7 +41,7 @@ it('explains on the operator page why an area is not shown', () => {
 it('lets the presenter publish the weekly file and switch the phase from the stage', async () => {
   const user = userEvent.setup()
   seedDemo('threshold')
-  open('/')
+  open('/stage')
   await user.click(screen.getByRole('button', { name: th.operator.publish }))
   expect(pub.get().files).toHaveLength(1)
   await user.click(screen.getByRole('button', { name: `${th.stage.phase} 2` }))
