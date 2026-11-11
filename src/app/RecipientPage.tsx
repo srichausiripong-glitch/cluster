@@ -22,6 +22,8 @@ const RETEST_DAYS: Record<DiseaseGroup | 'none', number[]> = { syphilis: [84], g
 const HIV_BRANCHES = ['plhiv', 'prep', 'within72', 'later'] as const
 type Branch = (typeof HIV_BRANCHES)[number]
 const DAY = 86_400_000
+/** The one place white text is allowed besides violet: the black "go today" block. */
+const URGENT = 'bg-urgent text-white'
 
 function downloadCalendar(days: number[]) {
   const events = days.map((n) => ({ date: new Date(Date.now() + n * DAY).toISOString().slice(0, 10) }))
@@ -92,7 +94,7 @@ function RecipientView({ hash }: { hash: string }) {
         <>
           {namedHiv ? (
             // A named HIV notice asks first, then shows only the branch that applies (spec 6).
-            <section className="step-in rounded-md border border-line bg-surface p-4">
+            <section className="step-in box p-4">
               <div className="mb-1 flex flex-wrap items-center gap-2">
                 <h2 className="text-[20px] font-semibold">{th.group.hiv}</h2>
                 <Banner tone="draft">{th.draftClinical}</Banner>
@@ -107,14 +109,14 @@ function RecipientView({ hash }: { hash: string }) {
                     type="button"
                     aria-pressed={branch === key}
                     onClick={() => setBranch(key)}
-                    className={`flex min-h-11 w-full items-center rounded-md border px-3 py-2 text-left font-medium ${branch === key ? 'border-care bg-care-soft' : 'border-line bg-bg'}`}
+                    className={`flex min-h-11 w-full items-center rounded-md border-2 border-ink px-3 py-2 text-left font-medium ${branch === key ? 'bg-care-soft' : 'bg-bg'}`}
                   >
                     {th.recipient.hiv[key].label}
                   </button>
                 ))}
               </div>
               {branch && (
-                <div className={`step-in mt-3 rounded-md p-3 ${branch === 'within72' ? 'bg-urgent text-white' : 'bg-care-soft'}`}>
+                <div className={`step-in mt-3 rounded-md p-3 ${branch === 'within72' ? URGENT : 'bg-care-soft'}`}>
                   <p className="flex items-start gap-2">
                     {branch === 'within72' && <Clock size={20} strokeWidth={1.75} className="mt-0.5 shrink-0" aria-hidden="true" />}
                     {th.recipient.hiv[branch].advice}
@@ -124,7 +126,7 @@ function RecipientView({ hash }: { hash: string }) {
               )}
             </section>
           ) : (
-            <section className={`step-in rounded-md p-4 ${advice.urgent ? 'bg-urgent text-white' : 'border border-line bg-surface'}`}>
+            <section className={`step-in rounded-md p-4 ${advice.urgent ? URGENT : 'border-2 border-ink bg-surface'}`}>
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 {advice.urgent && <Clock size={20} strokeWidth={1.75} aria-hidden="true" />}
                 {(notice?.group || advice.urgent) && <h2 className="text-[20px] font-semibold">{advice.title}</h2>}
@@ -147,7 +149,7 @@ function RecipientView({ hash }: { hash: string }) {
             </section>
           )}
 
-          <p className="rounded-md border border-line bg-bg p-3 text-[13px]">{th.recipient.pregnancy}</p>
+          <p className="rounded-md border-2 border-ink bg-bg p-3 text-[13px]">{th.recipient.pregnancy}</p>
 
           {notice && (
             <Card className="text-center">
@@ -171,7 +173,7 @@ function RecipientView({ hash }: { hash: string }) {
                 </li>
               ))}
             </ul>
-            <Link to={to('/app/list')} className="mt-2 flex min-h-11 items-center justify-center rounded-md border border-line bg-surface px-4 font-medium">
+            <Link to={to('/app/list')} className="mt-2 flex min-h-11 items-center justify-center box px-4 font-medium">
               {th.common.openList}
             </Link>
           </section>

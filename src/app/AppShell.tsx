@@ -53,7 +53,7 @@ export function AppShell() {
             key={path}
             to={to(path)}
             end={end}
-            className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 text-[12px] ${isActive ? 'font-semibold text-care' : 'text-muted'}`}
+            className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 text-[12px] ${isActive ? 'font-bold text-ink' : 'text-muted'}`}
           >
             <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
             {label}

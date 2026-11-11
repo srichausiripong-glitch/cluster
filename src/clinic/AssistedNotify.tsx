@@ -24,7 +24,7 @@ export function AssistedNotify() {
               setState('idle')
             }}
             autoComplete="off"
-            className="min-h-11 min-w-0 flex-1 rounded-md border border-line bg-bg px-3 text-[17px] font-semibold uppercase tracking-widest"
+            className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-semibold uppercase tracking-widest"
           />
           <Button disabled={text.trim() === ''} onClick={() => setState(acceptSlip(text) ? 'ok' : 'bad')}>
             {th.clinic.slipCheck}
@@ -41,7 +41,7 @@ export function AssistedNotify() {
           </p>
         )}
       </Card>
-      <p className="rounded-md border border-line bg-bg p-3 text-[13px]">{th.clinic.assistNote}</p>
+      <p className="rounded-md border-2 border-ink bg-bg p-3 text-[13px]">{th.clinic.assistNote}</p>
     </div>
   )
 }

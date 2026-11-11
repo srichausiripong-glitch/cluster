@@ -22,15 +22,23 @@
     cursor: pointer;
   }
   :focus-visible {
-    outline: 2px solid var(--color-care);
+    outline: 3px solid var(--color-ink);
     outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/* A box: black outline, flat white ground. Add shadow-pop to what can be pressed. */
+@utility box {
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
 }
 
 @keyframes sheet-in {
@@ -51,3 +59,33 @@
 .map-pin:focus-visible .map-pin-ring,
 .map-pin[data-selected='true'] .map-pin-ring { opacity: 1; }
 .map-area:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+
+/* A marker pops up from its point, once, when the map opens. */
+@keyframes pop-in {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+.pop-in {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pop-in 550ms cubic-bezier(0.2, 1.7, 0.4, 1) both;
+}
+
+/* The send-signal button sends out two slow rings, like a signal. */
+@keyframes ring {
+  0% { transform: scale(1); opacity: 0.5; }
+  60%, 100% { transform: scale(1.22, 1.55); opacity: 0; }
+}
+.ripple { position: relative; }
+.ripple::before,
+.ripple::after {
+  content: "";
+  position: absolute;
+  inset: -2.5px;
+  border: 2.5px solid var(--color-ink);
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  animation: ring 3s ease-out infinite;
+}
+.ripple::after { animation-delay: 1.5s; }

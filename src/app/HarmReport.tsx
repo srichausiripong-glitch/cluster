@@ -21,7 +21,7 @@ export function HarmReport() {
         <fieldset className="space-y-2">
           <legend className="mb-2 font-semibold">{th.harm.ask}</legend>
           {KINDS.map((k) => (
-            <label key={k} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-md border px-4 ${kind === k ? 'border-care bg-care-soft' : 'border-line bg-surface'}`}>
+            <label key={k} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-md border-2 border-ink px-4 ${kind === k ? 'bg-care-soft' : 'bg-surface'}`}>
               <input type="radio" name="harm" className="size-5 accent-[var(--color-care)]" checked={kind === k} onChange={() => setKind(k)} />
               {th.harm.kinds[k]}
             </label>

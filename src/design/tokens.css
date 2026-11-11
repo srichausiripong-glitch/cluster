@@ -1,5 +1,6 @@
-/* Cluster design tokens. One teal for care, one violet family for signals, warm paper base.
-   No red, and nothing from the orange-yellow-green ladder (spec 18). */
+/* Cluster design tokens: the Pop-art look (plan amendment, section 15). Pink for care points and
+   primary actions, yellow and green from the logo, black outlines, violet for signals only.
+   No red, and no colour series for levels: a level is the size of a dot. */
 @theme {
   --font-sans: "Anuphan Variable", "Noto Sans Thai", ui-sans-serif, system-ui, sans-serif;
 
@@ -7,41 +8,35 @@
   --radius-md: 14px;
   --radius-lg: 22px;
 
-  --color-bg: #f6f4ef;
+  --color-bg: #fefbf0;
   --color-surface: #ffffff;
-  --color-ink: #14282e;
-  --color-muted: #51666c;
-  --color-line: #dcd8cf;
+  --color-ink: #1e1f1c;
+  --color-muted: #5f5d57;
+  /* Row dividers only. A box is outlined in ink. */
+  --color-line: #e6dfc9;
 
-  --color-care: #0b7a75;
-  --color-care-soft: #d8efec;
-  --color-care-ink: #06605b;
+  --color-care: #fd62ab;
+  --color-care-soft: #ffd9ea;
+  /* Text is never pink: links and marks on a light ground are ink. */
+  --color-care-ink: #1e1f1c;
+  --color-yellow: #fee23c;
+  --color-leaf: #70dc71;
 
-  --color-signal-1: #e4ddf6;
-  --color-signal-2: #c3b3ea;
-  --color-signal-3: #9a80d8;
-  --color-signal-edge: #5b3fa6;
+  --color-signal: #6c3bf4;
+  --color-signal-edge: #4a1fd0;
+  --color-signal-1: #efe6ff;
+  --color-signal-2: #dccbff;
+  --color-signal-3: #c4a6ff;
+  --color-signal-soft: #9a80f2;
 
-  --color-veil: #e9e6df;
-  --color-urgent: #14282e;
-  --color-land: #efece4;
-  --color-water: #cfe3ea;
+  --color-veil: #efe9d8;
+  --color-urgent: #1e1f1c;
+  --color-land: #fff0a6;
+  --color-land-out: #f6f0dc;
+  --color-water: #46d3e6;
+  --color-park: #c6f1ba;
 
-  --shadow-float: 0 10px 30px rgb(20 40 46 / 0.14), 0 1px 3px rgb(20 40 46 / 0.08);
-}
-
-:root {
-  --c-bg: var(--color-bg);
-  --c-surface: var(--color-surface);
-  --c-ink: var(--color-ink);
-  --c-ink-muted: var(--color-muted);
-  --c-line: var(--color-line);
-  --c-care: var(--color-care);
-  --c-care-soft: var(--color-care-soft);
-  --c-signal-1: var(--color-signal-1);
-  --c-signal-2: var(--color-signal-2);
-  --c-signal-3: var(--color-signal-3);
-  --c-signal-edge: var(--color-signal-edge);
-  --c-veil: var(--color-veil);
-  --c-urgent: var(--color-urgent);
+  /* Hard shadows only: a second shape, offset down and right. */
+  --shadow-pop: 3px 3px 0 #1e1f1c;
+  --shadow-pop-lg: 5px 5px 0 #1e1f1c;
 }

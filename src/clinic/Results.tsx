@@ -22,7 +22,7 @@ export function Results() {
       )}
       <ul className="space-y-2">
         {[...codes].reverse().map((code) => (
-          <li key={code.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-surface px-4 py-3">
+          <li key={code.id} className="flex flex-wrap items-center justify-between gap-3 box px-4 py-3">
             <span className="font-semibold tracking-widest">{code.id}</span>
             <span className="flex flex-wrap items-center gap-2">
               {code.cityConsent ? <Chip tone="care">{th.clinic.consent}</Chip> : <Chip>{th.clinic.noConsent}</Chip>}
@@ -31,7 +31,7 @@ export function Results() {
                   aria-label={`${th.clinic.setPositive} ${code.id}`}
                   value={code.positiveGroup ?? ''}
                   onChange={(e) => flagPositive(code.id, (e.target.value || null) as DiseaseGroup | null)}
-                  className="min-h-11 appearance-none rounded-md border border-line bg-bg py-2 pl-3 pr-9 font-medium"
+                  className="min-h-11 appearance-none rounded-md border-2 border-ink bg-bg py-2 pl-3 pr-9 font-medium"
                 >
                   <option value="">{th.clinic.noResult}</option>
                   {GROUPS.map((g) => (

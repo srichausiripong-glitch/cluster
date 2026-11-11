@@ -38,7 +38,7 @@ export function ClinicShell() {
             <p className="text-[13px] text-muted md:mt-1">{th.clinic.title}</p>
           </div>
           <p className="flex items-center gap-1.5 text-[12px] md:mt-3 md:text-[13px]">
-            <ShieldCheck size={16} strokeWidth={1.75} className="shrink-0 text-care" aria-hidden="true" />
+            <ShieldCheck size={16} strokeWidth={1.75} className="shrink-0 text-ink" aria-hidden="true" />
             <span>
               <span className="font-medium md:block">{staff}</span>
               <span className="md:hidden"> · </span>

@@ -22,8 +22,8 @@ type Outcome = 'counted' | 'kept' | 'nothing'
 type CodeError = 'unknown' | 'slip' | 'fastTrack'
 const CODE_ERROR: Record<CodeError, string> = { unknown: th.report.codeBad, slip: th.report.codeIsSlip, fastTrack: th.report.codeIsFastTrack }
 const OUTCOME_ICON = { counted: CheckIcon, kept: Smartphone, nothing: Ban } as const
-const primaryLink = 'flex min-h-13 items-center justify-center gap-2 rounded-md bg-care px-5 text-center text-[17px] font-medium text-white'
-const quietLink = 'flex min-h-11 items-center justify-center gap-2 rounded-md border border-line bg-surface px-4 text-center font-medium'
+const primaryLink = 'flex min-h-13 items-center justify-center gap-2 rounded-md border-2 border-ink bg-care px-5 text-center text-[17px] font-semibold text-ink shadow-pop'
+const quietLink = 'flex min-h-11 items-center justify-center gap-2 box px-4 text-center font-medium'
 
 export function ReportFlow() {
   const to = useEmbedTo()
@@ -116,7 +116,7 @@ export function ReportFlow() {
           ))}
           {source === 'clinic_code' && (
             <form
-              className="rounded-md border border-line bg-surface p-4"
+              className="box p-4"
               onSubmit={(e) => {
                 e.preventDefault()
                 submitCode()
@@ -138,7 +138,7 @@ export function ReportFlow() {
                   inputMode="text"
                   aria-invalid={codeError !== null}
                   aria-describedby={`clinic-code-format${codeError ? ' clinic-code-error' : ''}`}
-                  className="min-h-11 min-w-0 flex-1 rounded-md border border-line bg-bg px-3 text-[17px] font-semibold uppercase tracking-widest"
+                  className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-semibold uppercase tracking-widest"
                 />
                 <Button type="submit" disabled={codeText.trim() === ''}>
                   {th.report.useCode}
@@ -181,11 +181,11 @@ export function ReportFlow() {
 
       {step === 3 && result && (
         <section className="step-in mt-6 space-y-4">
-          <div className={`grid size-14 place-items-center rounded-full ${result.outcome === 'counted' ? 'bg-care text-white' : 'border-2 border-ink text-ink'}`}>
+          <div className={`grid size-14 place-items-center rounded-full border-2 border-ink text-ink ${result.outcome === 'counted' ? 'bg-care' : 'bg-surface'}`}>
             <OutcomeIcon size={28} strokeWidth={2} aria-hidden="true" />
           </div>
           <h2 className="text-[24px] font-semibold">{th.report.outcome[result.outcome]}</h2>
-          <ul className="space-y-2 rounded-md border border-line bg-surface p-4">
+          <ul className="space-y-2 box p-4">
             {result.outcome === 'counted' && <li>{th.report.receiptClinicCarries}</li>}
             {result.outcome === 'counted' && <li className="text-muted">{th.report.receiptMapWeekly}</li>}
             {result.checked ? <li className="text-muted">{th.report.receiptCodeChecked}</li> : <li>{th.report.receiptNothingLeft}</li>}

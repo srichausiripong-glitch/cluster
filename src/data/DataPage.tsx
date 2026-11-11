@@ -26,7 +26,7 @@ export function WhoKnowsTable() {
   return (
     <section>
       <h2 className="mb-2 text-[20px] font-semibold">{th.data.whoKnows}</h2>
-      <div className="overflow-x-auto rounded-md border border-line bg-surface">
+      <div className="overflow-x-auto box">
         <table aria-label={th.data.whoKnows} className="w-full min-w-[680px] text-left text-[15px]">
           <thead>
             <tr className="border-b border-line text-[13px] text-muted">

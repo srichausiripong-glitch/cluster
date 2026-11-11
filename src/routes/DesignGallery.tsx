@@ -22,8 +22,8 @@ export function DesignGallery() {
         <h2 className="mb-3 text-[20px] font-semibold">สี</h2>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {SWATCHES.map(([name, label]) => (
-            <li key={name} className="rounded-md border border-line bg-surface p-2">
-              <div className="h-12 rounded-sm border border-line" style={{ background: `var(--color-${name})` }} />
+            <li key={name} className="box p-2">
+              <div className="h-12 rounded-sm border-2 border-ink" style={{ background: `var(--color-${name})` }} />
               <div className="mt-1 text-[13px] font-medium">{label}</div>
               <div className="text-[12px] text-muted">--color-{name}</div>
             </li>

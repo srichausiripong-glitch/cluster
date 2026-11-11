@@ -83,7 +83,7 @@ export function OperatorPage() {
 
       <section>
         <h2 className="mb-2 font-semibold">{th.operator.retention}</h2>
-        <div className="overflow-x-auto rounded-md border border-line bg-surface">
+        <div className="overflow-x-auto box">
           <table aria-label={th.operator.retention} className="w-full min-w-[420px] text-left text-[15px]">
             <tbody>
               {th.operator.retentionRows.map((row) => (

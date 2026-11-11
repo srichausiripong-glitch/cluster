@@ -46,7 +46,7 @@ export function CarePointRow({ point, onOpen, tone = 'light' }: Props) {
       {onOpen && <ChevronRight size={18} strokeWidth={1.75} className={`shrink-0 ${sub}`} aria-hidden="true" />}
     </>
   )
-  const cls = `flex min-h-16 w-full items-center gap-3 rounded-md px-3 py-2 text-left ${tone === 'dark' ? 'bg-white/10 text-white' : 'border border-line bg-surface'}`
+  const cls = `flex min-h-16 w-full items-center gap-3 rounded-md px-3 py-2 text-left ${tone === 'dark' ? 'bg-white/10 text-white' : 'border-2 border-ink bg-surface'}`
   return onOpen ? (
     <button type="button" onClick={onOpen} className={cls}>
       {body}

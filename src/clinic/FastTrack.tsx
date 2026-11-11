@@ -53,7 +53,7 @@ export function FastTrack() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               autoComplete="off"
-              className="min-h-11 min-w-0 flex-1 rounded-md border border-line bg-bg px-3 text-[17px] font-semibold uppercase tracking-widest"
+              className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-semibold uppercase tracking-widest"
             />
             <Button type="submit" disabled={text.trim() === ''}>
               {th.clinic.lookupCheck}
@@ -103,7 +103,7 @@ export function FastTrack() {
         <h2 className="mb-2 text-[17px] font-semibold">{th.clinic.weekCodes}</h2>
         <div className="space-y-3">
           {GROUPS.map((group) => (
-            <div key={group} className="rounded-md border border-line bg-surface p-4">
+            <div key={group} className="box p-4">
               <h3 className="mb-2 font-semibold">{th.group[group]}</h3>
               <ul className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
                 {all

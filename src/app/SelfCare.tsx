@@ -62,7 +62,7 @@ export function SelfCare() {
         <p className="mt-1 text-[13px] text-muted">{th.me.iosNote}</p>
       </Card>
 
-      <Link to={to('/app/harm')} className="flex min-h-11 items-center justify-center rounded-md border border-line bg-surface px-4 font-medium">
+      <Link to={to('/app/harm')} className="flex min-h-11 items-center justify-center box px-4 font-medium">
         {th.me.harm}
       </Link>
     </main>

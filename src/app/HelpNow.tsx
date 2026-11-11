@@ -44,8 +44,8 @@ export function HelpNow() {
         <h2 className="mb-2 text-[17px] font-semibold">{th.help.hotlines}</h2>
         <div className="space-y-2">
           {th.help.lines.map((line) => (
-            <a key={line.number} href={`tel:${line.number}`} className="flex min-h-14 items-center gap-3 rounded-md border border-line bg-surface px-4">
-              <Phone size={18} strokeWidth={1.75} className="shrink-0 text-care" aria-hidden="true" />
+            <a key={line.number} href={`tel:${line.number}`} className="flex min-h-14 items-center gap-3 box px-4">
+              <Phone size={18} strokeWidth={1.75} className="shrink-0 text-ink" aria-hidden="true" />
               <span className="min-w-0">
                 <span className="block font-semibold">
                   {line.number} <span className="font-normal text-muted">{line.who}</span>
