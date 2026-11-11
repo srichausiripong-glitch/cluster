@@ -1,3 +1,4 @@
+import outline from './data/outline.json'
 import data from './data/zones.json'
 import { inRings, type XY } from './geo'
 
@@ -14,6 +15,8 @@ export interface Zone {
 }
 
 export const ZONES: Zone[] = data as Zone[]
+/** The outline of the whole city, for when the city is painted as one area. */
+export const CITY_EDGES: number[][] = outline
 
 export function zoneAt(p: XY): Zone | undefined {
   return ZONES.find((zone) => inRings(p, zone.rings))

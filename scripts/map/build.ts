@@ -14,6 +14,7 @@ import { boundsOf, idOf, SETS, tileAt, type TileId } from './sets.ts'
 const CACHE = new URL('./.cache/', import.meta.url)
 const PUBLIC = new URL('../../public/map/', import.meta.url)
 const ZONES_FILE = new URL('../../src/map/data/zones.json', import.meta.url)
+const OUTLINE_FILE = new URL('../../src/map/data/outline.json', import.meta.url)
 
 const ORIGIN = { lat: 13.75, lon: 100.55 }
 const KX = 111320 * Math.cos((ORIGIN.lat * Math.PI) / 180)
@@ -254,6 +255,9 @@ const zones: ZoneData[] = Object.keys(GROUPS).map((id) => ({
   edges: stitch([...owners.values()].filter((o) => o.zones.filter((z) => z === id).length === 1).map((o) => o.geometry)).map((c) => tidy(c, 10)),
 }))
 
+// The city's own outline: the edges that only one district touches. Drawn when the whole city is one area.
+const outline = stitch([...owners.values()].filter((o) => o.zones.length === 1).map((o) => o.geometry)).map((c) => tidy(c, 10))
+
 // ---- how far each example care point is from a real clinic or hospital --------------------------
 const clearance: Record<string, number> = {}
 for (const point of CARE_POINTS) {
@@ -307,6 +311,7 @@ const manifest: Manifest = {
 }
 total += await save('index.json', manifest)
 await writeFile(ZONES_FILE, `${JSON.stringify(zones)}\n`)
+await writeFile(OUTLINE_FILE, `${JSON.stringify(outline)}\n`)
 
 console.log(sizes.join('\n'))
 console.log(`districts ${city.districts.length} of 50 | zones ${zones.map((z) => `${z.id}: ${z.rings.length} districts, ${z.edges.length} edge runs`).join(' | ')}`)
