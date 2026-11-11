@@ -1,8 +1,9 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ButtonHTMLAttributes, Ref } from 'react'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'secondary' | 'ghost'
   size?: 'md' | 'lg'
+  ref?: Ref<HTMLButtonElement>
 }
 
 /** A pressable thing is a flat shape with a black outline and a hard shadow; pressing sinks it onto the shadow. */

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { expect, it } from 'vitest'
@@ -59,4 +59,9 @@ it('lets the presenter skip a week, so a signal can be seen ageing', async () =>
 it('opens the full pages in a new tab, so the stage is not lost', () => {
   open()
   for (const link of screen.getAllByRole('link', { name: th.stage.openFull })) expect(link).toHaveAttribute('target', '_blank')
+})
+it('shows every pane in its true colours, and marks the acting one by its frame and tag alone', () => {
+  open()
+  expect(document.querySelector('[class*="saturate"]')).toBeNull()
+  expect(within(pane(th.stage.panes.clinic)).getByText(th.stage.acting)).toBeInTheDocument()
 })

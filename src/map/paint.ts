@@ -4,7 +4,7 @@
 // Zones and care points are not drawn here: they are real buttons in the SVG layer above.
 import type { AreaState, PublishedArea } from '../domain/types'
 import { CITY_EDGES, ZONES } from './areas'
-import { breath, DOT_GAP, DOT_R, EDGE, ROADS, type Palette } from './style'
+import { breath, DOT_GAP, DOT_R, EDGE, HATCH, ROADS, type Palette } from './style'
 import type { CityData, Label, Line, RoadClass, Shape, TileData } from './types'
 import { fromScreen, toScreen, type Box, type Size, type View } from './view'
 
@@ -177,12 +177,13 @@ function quiet(ctx: Ctx, s: Scene, rings: number[][], state: AreaState) {
   ctx.beginPath()
   if (state === 'below_threshold') {
     const reach = box[3] - box[1]
-    for (let x = Math.floor((box[0] - reach) / 9) * 9; x < box[2]; x += 9) {
+    for (let x = Math.floor((box[0] - reach) / HATCH.gap) * HATCH.gap; x < box[2]; x += HATCH.gap) {
       ctx.moveTo(x, box[1])
       ctx.lineTo(x + reach, box[3])
     }
     ctx.strokeStyle = s.palette.signalSoft
-    ctx.lineWidth = 1.2
+    ctx.globalAlpha = HATCH.alpha
+    ctx.lineWidth = HATCH.width
   } else {
     for (let x = Math.floor(box[0] / 12) * 12; x < box[2]; x += 12) {
       ctx.moveTo(x, box[1])
@@ -471,7 +472,7 @@ function names(ctx: Ctx, s: Scene) {
   if (!street) {
     for (const l of of('station')) {
       const [x, y] = at(l)
-      write(ctx, s, taken, l.t, x, y - 11, { size: 9.5, alpha: 0.8, halo: p.surface, haloW: 3, pad: 4 })
+      write(ctx, s, taken, l.t, x, y - 12, { size: 10.5, halo: p.surface, haloW: 3.6, pad: 4 })
     }
     return
   }

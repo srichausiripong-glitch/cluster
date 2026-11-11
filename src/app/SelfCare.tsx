@@ -63,6 +63,10 @@ export function SelfCare() {
         <p className="mt-1 text-[13px] text-muted">{th.me.iosNote}</p>
       </Card>
 
+      {/* "Later" in the telling flow promises a way back; this is it. */}
+      <Link to={to('/app/notify')} className={QUIET_LINK}>
+        {th.report.goNotify}
+      </Link>
       <Link to={to('/app/harm')} className={QUIET_LINK}>
         {th.me.harm}
       </Link>

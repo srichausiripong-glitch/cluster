@@ -1,12 +1,12 @@
 import { Check as Tick } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { th } from '../copy/th'
 import { buildLink } from '../domain/link'
 import { composeNotice } from '../domain/notify'
 import type { DiseaseGroup, ExposureBand } from '../domain/types'
-import { NOTE, PRESS, PRIMARY_LINK, TEXT_LINK } from '../design/look'
+import { ALERT, NOTE, PRESS, PRIMARY_LINK, TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { createSlip, currentWeek } from '../store/actions'
 import { useEmbedTo } from './embed'
@@ -32,8 +32,19 @@ export function NotifyFlow() {
   const [band, setBand] = useState<ExposureBand | null>(null)
   const [nameDisease, setNameDisease] = useState(false)
   const [link, setLink] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState<'no' | 'done' | 'failed'>('no')
   const [slip, setSlip] = useState<string | null>(null)
+  const linkCard = useRef<HTMLDivElement>(null)
+  const linkField = useRef<HTMLInputElement>(null)
+  const copyButton = useRef<HTMLButtonElement>(null)
+
+  // A new link lands below the button that made it, so it is brought into view and the keyboard is put on what to do next.
+  useEffect(() => {
+    if (!link) return
+    const still = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    linkCard.current?.scrollIntoView?.({ block: 'nearest', behavior: still ? 'auto' : 'smooth' })
+    copyButton.current?.focus({ preventScroll: true })
+  }, [link])
 
   const mayName = group !== 'hiv' || band === 'h72'
   const named = nameDisease && mayName
@@ -43,7 +54,19 @@ export function NotifyFlow() {
     if (!group || !band) return
     const notice = composeNotice({ group, hasClinicCode: handed.hasClinicCode, nameDisease: named, band, week: currentWeek() })
     setLink(buildLink(window.location.origin, notice))
-    setCopied(false)
+    setCopied('no')
+  }
+  /** Copying can be refused, and on a page without https there is no way to copy at all: the person is told, and the link is selected for copying by hand. */
+  const copyLink = async () => {
+    if (!link) return
+    try {
+      if (!navigator.clipboard) throw new Error('no clipboard')
+      await navigator.clipboard.writeText(link)
+      setCopied('done')
+    } catch {
+      setCopied('failed')
+      linkField.current?.select()
+    }
   }
   const recipientPath = link ? to('/r') + link.slice(link.indexOf('#')) : ''
   const note = `${NOTE} p-3 text-[13px] text-muted`
@@ -144,20 +167,20 @@ export function NotifyFlow() {
             </p>
           )}
           {link && (
-            <div className="box space-y-2 p-4">
+            <div ref={linkCard} className="box scroll-mb-4 space-y-2 p-4">
               <label htmlFor="notice-link" className="block text-[13px] font-semibold">
                 {th.notify.linkLabel}
               </label>
-              <input id="notice-link" readOnly value={link} onFocus={(e) => e.target.select()} className="min-h-11 w-full rounded-md border-2 border-ink bg-bg px-3 text-[13px]" />
+              <input ref={linkField} id="notice-link" readOnly value={link} onFocus={(e) => e.target.select()} className="min-h-11 w-full rounded-md border-2 border-ink bg-bg px-3 text-[13px]" />
               <p className="text-[13px] text-muted">{th.notify.linkNote}</p>
+              {copied === 'failed' && (
+                <p role="status" className={`px-3 py-2 text-[13px] font-semibold ${ALERT}`}>
+                  {th.notify.copyFailed}
+                </p>
+              )}
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    void navigator.clipboard?.writeText(link).then(() => setCopied(true)).catch(() => setCopied(false))
-                  }}
-                >
-                  {copied ? th.common.copied : th.notify.copyLink}
+                <Button ref={copyButton} variant="secondary" onClick={() => void copyLink()}>
+                  {copied === 'done' ? th.common.copied : th.notify.copyLink}
                 </Button>
                 <Link to={recipientPath} className={`inline-flex min-h-11 items-center px-2 ${TEXT_LINK}`}>
                   {th.notify.openRecipient}
