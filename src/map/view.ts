@@ -140,7 +140,7 @@ export interface NameBox {
   h: number
 }
 /** Thai vowels and tone marks above or below a letter take no width. */
-const advances = (name: string) => [...name].filter((ch) => !/[ัิ-ฺ็-๎]/.test(ch)).length
+export const advances = (name: string) => [...name].filter((ch) => !/[ัิ-ฺ็-๎]/.test(ch)).length
 const touch = (a: Box, b: Box, pad: number) => a[0] < b[2] + pad && a[2] > b[0] - pad && a[1] < b[3] + pad && a[3] > b[1] - pad
 
 /** Zone name boxes, centred on each zone's label point. A box that would touch a marker, another box or the edge of the map is left out. */

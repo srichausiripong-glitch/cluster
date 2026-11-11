@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import { th } from '../copy/th'
-import { Glyph } from '../map/SchematicMap'
-import { ZONES } from '../map/zones'
+import { ZONES } from '../map/areas'
+import { PinMark } from '../map/legend'
 import type { CarePoint } from '../store/seed'
 
 export const zoneName = (zoneId: string): string => ZONES.find((zone) => zone.id === zoneId)?.name ?? ''
@@ -11,16 +11,6 @@ export function carePointType(point: CarePoint): string {
   if (point.kind === 'pharmacy') return th.care.type.pharmacy
   if (point.kind === 'lab') return th.care.type.lab
   return point.klass === 'A' ? th.care.klassA : th.care.klassB
-}
-
-/** The same mark the map uses for this kind of care point. */
-export function PinGlyph({ kind, size = 28 }: { kind: CarePoint['kind']; size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="-16 -16 32 32" aria-hidden="true" className="shrink-0">
-      <circle r="15" fill="var(--color-care)" />
-      <Glyph kind={kind} />
-    </svg>
-  )
 }
 
 type Props = { point: CarePoint; onOpen?: () => void; tone?: 'light' | 'dark' }
@@ -34,7 +24,7 @@ export function CarePointRow({ point, onOpen, tone = 'light' }: Props) {
   const detail = point.klass === 'A' ? [point.hours, point.cost].filter(Boolean).join(' · ') : ''
   const body = (
     <>
-      <PinGlyph kind={point.kind} />
+      <PinMark kind={point.kind} />
       <span className="min-w-0 flex-1">
         <span className="block font-semibold">{point.name}</span>
         <span className={`block text-[13px] ${sub}`}>

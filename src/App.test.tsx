@@ -6,7 +6,7 @@ import { demo, pub } from './store/stores'
 
 function Where() {
   const location = useLocation()
-  return <output>{location.pathname + location.search}</output>
+  return <output aria-label="address">{location.pathname + location.search}</output>
 }
 const open = (path: string) =>
   render(
@@ -31,5 +31,5 @@ it('seeds a demo scenario and the phase from the URL, then drops them from the a
   open('/app?embed=1&seed=threshold&phase=2')
   expect(pub.get().files).toHaveLength(1)
   expect(demo.get()).toMatchObject({ phase: 2, seed: 'threshold' })
-  expect(screen.getByRole('status')).toHaveTextContent('/app?embed=1')
+  expect(screen.getByRole('status', { name: 'address' })).toHaveTextContent('/app?embed=1')
 })

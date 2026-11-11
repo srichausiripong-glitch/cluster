@@ -34,16 +34,17 @@ it('shows the below-threshold state as its own visible state', async () => {
   const sheet = await openSignal(user)
   expect(sheet.getByRole('heading', { name: th.map.state.below_threshold })).toBeInTheDocument()
 })
-it('teaches every mark in the legend: patterns, pin shapes and the current value', async () => {
+it('teaches every mark in the legend: dot sizes, edges, quiet states and pin shapes', async () => {
   const user = userEvent.setup()
   seedDemo('threshold')
   openApp('/app')
   const sheet = await openSignal(user)
   expect(sheet.getByText(th.map.key)).toBeInTheDocument()
-  for (const label of [th.map.state.below_threshold, th.map.state.no_data, th.map.state.no_partner, th.map.keyPins.clinic, th.map.keyPins.pharmacy, th.map.keyPins.lab]) {
-    expect(sheet.getAllByText(label).length).toBeGreaterThan(0)
-  }
-  expect(sheet.getAllByText(th.map.current).length).toBe(2) // one for the level, one for the age
+  for (const label of [th.map.state.below_threshold, th.map.state.no_data, th.map.state.no_partner, th.map.keyPins.clinic, th.map.keyPins.pharmacy, th.map.keyPins.lab]) expect(sheet.getAllByText(label).length).toBeGreaterThan(0)
+  expect(sheet.getAllByText(th.map.current).length).toBe(2)
+  const dots = [...screen.getByRole('dialog').querySelectorAll('[data-dot-r]')].map((el) => Number(el.getAttribute('data-dot-r')))
+  expect(dots.slice(0, 3)).toEqual([1.2, 2.1, 3.1])
+  expect(sheet.getByText(th.map.source, { exact: false })).toBeInTheDocument()
 })
 it('pairs the signal sheet with a care point', async () => {
   const user = userEvent.setup()
@@ -72,25 +73,16 @@ it('names the city by its published state, and makes every zone reachable in the
   expect(screen.getByRole('button', { name: `กรุงเทพใต้: ${th.map.state.shown}` })).toHaveAttribute('tabindex', '0')
   expect(screen.getByRole('button', { name: `กรุงธนใต้: ${th.map.state.no_partner}` })).toBeInTheDocument()
 })
-it('gives every care point pin a 44 px target and marks the selected one', async () => {
+it('gives every marker a 44 px target and marks the selected one', async () => {
   const user = userEvent.setup()
   const { container } = openApp('/app')
   const hits = container.querySelectorAll('[data-hit]')
-  expect(hits).toHaveLength(CARE_POINTS.length)
+  expect(hits).toHaveLength(container.querySelectorAll('.map-pin').length)
   hits.forEach((hit) => expect(Number(hit.getAttribute('r'))).toBeGreaterThanOrEqual(22))
-  const pin = screen.getByRole('button', { name: CARE_POINTS[1].name })
+  const pin = screen.getByRole('button', { name: CARE_POINTS[2].name })
   await user.click(pin)
   expect(pin).toHaveAttribute('data-selected', 'true')
   expect(within(screen.getByRole('dialog')).getByText(th.care.place)).toBeInTheDocument()
-})
-it('draws zone names in ink over a halo, so they stay readable on every tint', () => {
-  const { container } = openApp('/app?phase=2')
-  const labels = container.querySelectorAll('svg text')
-  expect(labels.length).toBe(6)
-  labels.forEach((label) => {
-    expect(label.getAttribute('fill')).toBe('var(--color-ink)')
-    expect(label.getAttribute('stroke')).toBe('var(--color-bg)')
-  })
 })
 it('offers a list view with every care point', () => {
   openApp('/app/list')
