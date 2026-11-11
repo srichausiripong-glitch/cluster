@@ -1,5 +1,5 @@
 import { th } from '../copy/th'
-import { Wordmark } from '../design/Wordmark'
+import { Logo } from '../design/Logo'
 import { LedgerTimeline } from './LedgerTimeline'
 import { StoreInspector } from './StoreInspector'
 
@@ -70,7 +70,7 @@ export function DataPage() {
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 p-4 md:p-6">
       <header>
-        <Wordmark size={18} />
+        <Logo size={18} />
         <h1 className="mt-2 text-[24px] font-semibold">{th.data.title}</h1>
         <p className="max-w-2xl text-muted">{th.data.lead}</p>
       </header>

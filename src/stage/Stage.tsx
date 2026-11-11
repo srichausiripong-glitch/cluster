@@ -5,7 +5,7 @@ import { LedgerTimeline } from '../data/LedgerTimeline'
 import { StoreInspector } from '../data/StoreInspector'
 import { Button } from '../design/primitives/Button'
 import { PhoneFrame } from '../design/primitives/PhoneFrame'
-import { Wordmark } from '../design/Wordmark'
+import { Logo } from '../design/Logo'
 import { advanceWeek, currentWeek, publishWeek, seedDemo } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { demo, type DemoState } from '../store/stores'
@@ -81,7 +81,7 @@ export function Stage() {
     <main className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 p-4 [--pane-h:clamp(520px,calc(100dvh_-_240px),780px)]">
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-baseline gap-3">
-          <Wordmark size={22} />
+          <Logo size={22} />
           <h1 className="text-[20px] font-semibold">{th.stage.title}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

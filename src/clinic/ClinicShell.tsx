@@ -2,7 +2,7 @@ import { ShieldCheck } from 'lucide-react'
 import { NavLink, Route, Routes } from 'react-router-dom'
 import { useEmbedTo } from '../app/embed'
 import { th } from '../copy/th'
-import { Wordmark } from '../design/Wordmark'
+import { Logo } from '../design/Logo'
 import { usePartyStore } from '../store/partyStore'
 import { clinic } from '../store/stores'
 import { AssistedNotify } from './AssistedNotify'
@@ -34,7 +34,7 @@ export function ClinicShell() {
       <aside className="shrink-0 border-b border-line bg-surface md:w-60 md:border-b-0 md:border-r">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 pt-3 md:block md:pt-4">
           <div className="flex items-baseline gap-2 md:block">
-            <Wordmark size={18} />
+            <Logo size={18} />
             <p className="text-[13px] text-muted md:mt-1">{th.clinic.title}</p>
           </div>
           <p className="flex items-center gap-1.5 text-[12px] md:mt-3 md:text-[13px]">

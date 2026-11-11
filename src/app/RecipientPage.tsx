@@ -10,7 +10,7 @@ import type { DiseaseGroup } from '../domain/types'
 import { Banner } from '../design/primitives/Banner'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
-import { Wordmark } from '../design/Wordmark'
+import { Logo } from '../design/Logo'
 import { CARE_POINTS, orderedCarePoints } from '../store/seed'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
@@ -78,7 +78,7 @@ function RecipientView({ hash }: { hash: string }) {
   return (
     <main className="mx-auto w-full max-w-md space-y-4 p-4">
       <div className="flex items-center justify-between">
-        <Wordmark size={18} />
+        <Logo size={18} />
         <QuickExit />
       </div>
       <h1 className="text-[24px] font-semibold">{th.recipient.genericTitle}</h1>

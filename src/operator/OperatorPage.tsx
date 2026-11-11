@@ -4,7 +4,7 @@ import { K, publishArea } from '../domain/publication'
 import type { DiseaseGroup } from '../domain/types'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
-import { Wordmark } from '../design/Wordmark'
+import { Logo } from '../design/Logo'
 import { batchReports, currentWeek, publishWeek } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { demo, operator } from '../store/stores'
@@ -21,7 +21,7 @@ export function OperatorPage() {
   return (
     <main className="mx-auto w-full max-w-4xl space-y-5 p-4 md:p-6">
       <header>
-        <Wordmark size={18} />
+        <Logo size={18} />
         <h1 className="mt-2 text-[24px] font-semibold">{th.operator.title}</h1>
       </header>
 
