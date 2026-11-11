@@ -17,15 +17,15 @@ const open = (path: string) =>
     </MemoryRouter>,
   )
 
-it('shows the demo banner on every route', () => {
-  for (const path of ['/', '/app', '/r', '/clinic', '/operator', '/data']) {
+it('shows the demo banner on the stage and on every back-office route', () => {
+  for (const path of ['/stage', '/clinic', '/operator', '/data']) {
     const { unmount } = open(path)
     expect(screen.getAllByText('ต้นแบบ ข้อมูลจำลอง').length).toBeGreaterThan(0)
     unmount()
   }
 })
 it('keeps the demo banner when embed=1 is added outside a frame', () => {
-  open('/app?embed=1')
+  open('/clinic?embed=1')
   expect(screen.getByText('ต้นแบบ ข้อมูลจำลอง')).toBeInTheDocument()
 })
 it('seeds a demo scenario and the phase from the URL, then drops them from the address so a reload does not wipe the demo', () => {
@@ -43,4 +43,19 @@ it('opens the app itself at the bare address, and keeps the pitch stage at /stag
   )
   expect(screen.getByRole('navigation', { name: 'เมนูหลัก' })).toBeInTheDocument()
   expect(screen.queryByText(th.stage.title)).toBeNull()
+})
+it('shows no prototype strip in the app itself, and keeps it on the stage', () => {
+  const view = render(
+    <MemoryRouter initialEntries={['/app']}>
+      <App />
+    </MemoryRouter>,
+  )
+  expect(screen.queryByText(th.demoBanner)).toBeNull()
+  view.unmount()
+  render(
+    <MemoryRouter initialEntries={['/stage']}>
+      <App />
+    </MemoryRouter>,
+  )
+  expect(screen.getByText(th.demoBanner)).toBeInTheDocument()
 })
