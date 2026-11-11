@@ -6,7 +6,7 @@ import type { AreaState, PublishedArea } from '../domain/types'
 import { CITY_EDGES, ZONES } from './areas'
 import { breath, DOT_GAP, DOT_R, EDGE, ROADS, type Palette } from './style'
 import type { CityData, Label, Line, RoadClass, Shape, TileData } from './types'
-import { toScreen, type Box, type Size, type View } from './view'
+import { fromScreen, toScreen, type Box, type Size, type View } from './view'
 
 export interface Scene {
   view: View
@@ -44,10 +44,75 @@ function outline(ctx: Ctx, rings: number[][]) {
     ctx.closePath()
   }
 }
-function stroke(ctx: Ctx, s: Scene, list: number[][] | undefined, px: number, color: string, o: { alpha?: number; dash?: number[]; cap?: CanvasLineCap } = {}) {
-  if (!list || !list.length) return
+
+// A map file holds far more than one screen shows, so a paint leaves out what is off the screen.
+/** Room around the screen for the widest road and the longest building shadow, in screen pixels. */
+const SIGHT_MARGIN = 24
+/** A name is never wider than this on either side of its point, in screen pixels. */
+const NAME_REACH = 200
+/** The box of every line or ring of a list, worked out once: west, north, east, south, four numbers each. */
+const BOXES = new WeakMap<number[][], Float64Array>()
+function boxesOf(list: number[][]): Float64Array {
+  const known = BOXES.get(list)
+  if (known) return known
+  const boxes = new Float64Array(list.length * 4)
+  for (let n = 0; n < list.length; n++) {
+    const a = list[n]
+    let x0 = Infinity
+    let y0 = Infinity
+    let x1 = -Infinity
+    let y1 = -Infinity
+    for (let i = 0; i < a.length; i += 2) {
+      if (a[i] < x0) x0 = a[i]
+      if (a[i] > x1) x1 = a[i]
+      if (a[i + 1] < y0) y0 = a[i + 1]
+      if (a[i + 1] > y1) y1 = a[i + 1]
+    }
+    boxes[n * 4] = x0
+    boxes[n * 4 + 1] = y0
+    boxes[n * 4 + 2] = x1
+    boxes[n * 4 + 3] = y1
+  }
+  BOXES.set(list, boxes)
+  return boxes
+}
+/** The part of the map that is on the screen, in metres. */
+const SIGHT = new WeakMap<Scene, Box>()
+function sight(s: Scene): Box {
+  const known = SIGHT.get(s)
+  if (known) return known
+  const [x0, y0] = fromScreen(s.view, s.size, [-SIGHT_MARGIN, -SIGHT_MARGIN])
+  const [x1, y1] = fromScreen(s.view, s.size, [s.size.w + SIGHT_MARGIN, s.size.h + SIGHT_MARGIN])
+  const box: Box = [x0, y0, x1, y1]
+  SIGHT.set(s, box)
+  return box
+}
+/**
+ * Adds to the path every line or ring of the lists that touches the screen, and says whether there
+ * was any. A shape is kept by its box, so one that reaches across the screen stays, whatever its corners.
+ */
+function lay(ctx: Ctx, s: Scene, lists: (number[][] | undefined)[], close: boolean): boolean {
+  const [x0, y0, x1, y1] = sight(s)
+  let any = false
   ctx.beginPath()
-  for (const a of list) trace(ctx, a)
+  for (const list of lists) {
+    if (!list || !list.length) continue
+    const boxes = boxesOf(list)
+    for (let n = 0; n < list.length; n++) {
+      if (boxes[n * 4] > x1 || boxes[n * 4 + 2] < x0 || boxes[n * 4 + 1] > y1 || boxes[n * 4 + 3] < y0) continue
+      trace(ctx, list[n])
+      if (close) ctx.closePath()
+      any = true
+    }
+  }
+  return any
+}
+function stroke(ctx: Ctx, s: Scene, list: number[][] | undefined, px: number, color: string, o: { alpha?: number; dash?: number[]; cap?: CanvasLineCap } = {}) {
+  strokeAll(ctx, s, [list], px, color, o)
+}
+/** One stroke for several lists of lines: the same road class in every map file on the screen. */
+function strokeAll(ctx: Ctx, s: Scene, lists: (number[][] | undefined)[], px: number, color: string, o: { alpha?: number; dash?: number[]; cap?: CanvasLineCap } = {}) {
+  if (!lay(ctx, s, lists, false)) return
   ctx.lineWidth = px / s.view.ppm
   ctx.strokeStyle = color
   ctx.lineJoin = 'round'
@@ -59,15 +124,8 @@ function stroke(ctx: Ctx, s: Scene, list: number[][] | undefined, px: number, co
   ctx.globalAlpha = 1
 }
 /** Tile pieces overlap at their edges, so shapes are filled by winding: an overlap stays filled. */
-function fill(ctx: Ctx, ringLists: number[][][], color: string, alpha = 1) {
-  if (!ringLists.length) return
-  ctx.beginPath()
-  for (const rings of ringLists) {
-    for (const ring of rings) {
-      trace(ctx, ring)
-      ctx.closePath()
-    }
-  }
+function fill(ctx: Ctx, s: Scene, ringLists: number[][][], color: string, alpha = 1) {
+  if (!lay(ctx, s, ringLists, true)) return
   ctx.fillStyle = color
   ctx.globalAlpha = alpha
   ctx.fill('nonzero')
@@ -79,24 +137,26 @@ interface Painted {
   edges: number[][]
   area: PublishedArea | undefined
 }
+const CITY_RINGS = ZONES.flatMap((z) => z.rings)
+const ZONE_RINGS = ZONES.map((z) => z.rings)
+const ZONE_EDGES = ZONES.map((z) => z.edges)
 /** What carries a signal: each zone in the phase 2 preview; the whole city as one area in phase 1. */
 function painted(s: Scene): Painted[] {
-  if (s.phase === 1) return [{ rings: ZONES.flatMap((z) => z.rings), edges: CITY_EDGES, area: s.areas.get('bkk') }]
+  if (s.phase === 1) return [{ rings: CITY_RINGS, edges: CITY_EDGES, area: s.areas.get('bkk') }]
   return ZONES.map((z) => ({ rings: z.rings, edges: z.edges, area: s.areas.get(z.id) }))
 }
 /** The part of the screen an area covers, or null when it is out of view. */
 function onScreen(s: Scene, rings: number[][]): Box | null {
+  const boxes = boxesOf(rings)
   let x0 = Infinity
   let y0 = Infinity
   let x1 = -Infinity
   let y1 = -Infinity
-  for (const ring of rings) {
-    for (let i = 0; i < ring.length; i += 2) {
-      if (ring[i] < x0) x0 = ring[i]
-      if (ring[i] > x1) x1 = ring[i]
-      if (ring[i + 1] < y0) y0 = ring[i + 1]
-      if (ring[i + 1] > y1) y1 = ring[i + 1]
-    }
+  for (let n = 0; n < boxes.length; n += 4) {
+    if (boxes[n] < x0) x0 = boxes[n]
+    if (boxes[n + 1] < y0) y0 = boxes[n + 1]
+    if (boxes[n + 2] > x1) x1 = boxes[n + 2]
+    if (boxes[n + 3] > y1) y1 = boxes[n + 3]
   }
   const [a, b] = toScreen(s.view, s.size, [x0, y0])
   const [c, d] = toScreen(s.view, s.size, [x1, y1])
@@ -151,14 +211,14 @@ export function paintGround(ctx: Ctx, s: Scene): void {
   ctx.fillStyle = p.water
   ctx.fillRect(-200000, 55500, 400000, 60000)
   // The city's ground stays warm: a signal is dots on it, never a wash over it.
-  fill(ctx, ZONES.map((z) => z.rings), p.land)
+  fill(ctx, s, ZONE_RINGS, p.land)
   if (s.view.level === 'city') {
-    if (s.city) fill(ctx, s.city.green, p.park, 0.75)
+    if (s.city) fill(ctx, s, s.city.green, p.park, 0.75)
   } else {
-    for (const tile of s.tiles) fill(ctx, tile.green, p.park)
+    for (const tile of s.tiles) fill(ctx, s, tile.green, p.park)
   }
   if (s.showSignal) for (const { rings, area } of painted(s)) quiet(ctx, s, rings, area?.state ?? 'no_data')
-  if (s.view.level === 'district') for (const tile of s.tiles) if (tile.blocks) fill(ctx, tile.blocks, p.ink, 0.07)
+  if (s.view.level === 'district') for (const tile of s.tiles) if (tile.blocks) fill(ctx, s, tile.blocks, p.ink, 0.07)
 }
 
 // ---- dots -------------------------------------------------------------------------------------
@@ -203,26 +263,34 @@ export function paintDots(ctx: Ctx, s: Scene, timeMs: number | null): void {
 
 // ---- lines ------------------------------------------------------------------------------------
 function water(ctx: Ctx, s: Scene, shapes: Shape[], edgePx: number, alpha = 0.9) {
-  fill(ctx, shapes.map((shape) => shape.r), s.palette.water)
-  stroke(ctx, s, shapes.flatMap((shape) => shape.e), edgePx, s.palette.ink, { alpha })
+  fill(ctx, s, shapes.map((shape) => shape.r), s.palette.water)
+  strokeAll(ctx, s, shapes.map((shape) => shape.e), edgePx, s.palette.ink, { alpha })
 }
+/** The roads of one map file, by class. */
+type Roads = Partial<Record<RoadClass, Line[]>>
 /** Roads, low class to high: every casing first, then every fill, so junctions join cleanly. Bridges go on top. */
-function roadNet(ctx: Ctx, s: Scene, ground: Partial<Record<RoadClass, Line[]>>, bridges: Partial<Record<RoadClass, Line[]>>, spec: [RoadClass, number, number, number][]) {
-  for (const set of [ground, bridges]) {
-    for (const [k, casing, , alpha] of spec) stroke(ctx, s, set[k], casing, s.palette.ink, { alpha, cap: set === bridges ? 'butt' : 'round' })
-    for (const [k, , inner] of spec) stroke(ctx, s, set[k], inner, k === 'hw' ? s.palette.yellow : s.palette.surface)
+function roadNet(ctx: Ctx, s: Scene, ground: Roads[], bridges: Roads[], spec: [RoadClass, number, number, number][]) {
+  for (const [sets, cap] of [[ground, 'round'], [bridges, 'butt']] as const) {
+    for (const [k, casing, , alpha] of spec) strokeAll(ctx, s, sets.map((set) => set[k]), casing, s.palette.ink, { alpha, cap })
+    for (const [k, , inner] of spec) strokeAll(ctx, s, sets.map((set) => set[k]), inner, k === 'hw' ? s.palette.yellow : s.palette.surface)
   }
 }
-function rails(ctx: Ctx, s: Scene, list: { p: Line; u: 0 | 1 }[], px: number) {
-  stroke(ctx, s, list.filter((r) => r.u).map((r) => r.p), px * 0.8, s.palette.ink, { alpha: 0.5, dash: [5, 4], cap: 'butt' })
-  const open = list.filter((r) => !r.u).map((r) => r.p)
-  stroke(ctx, s, open, px, s.palette.ink)
-  stroke(ctx, s, open, px * 0.42, s.palette.surface, { dash: [px * 1.6, px * 1.6], cap: 'butt' })
+/** A map file's rail lines, apart: those in the open and those under the ground. Sorted once for each file. */
+const RAILS = new WeakMap<TileData['rail'], { open: Line[]; under: Line[] }>()
+function railsOf(list: TileData['rail']) {
+  let sorted = RAILS.get(list)
+  if (!sorted) {
+    sorted = { open: list.filter((r) => !r.u).map((r) => r.p), under: list.filter((r) => r.u).map((r) => r.p) }
+    RAILS.set(list, sorted)
+  }
+  return sorted
 }
-const gather = (tiles: TileData[], from: 'roads' | 'bridges') => {
-  const all: Partial<Record<RoadClass, Line[]>> = {}
-  for (const tile of tiles) for (const [k, list] of Object.entries(tile[from]) as [RoadClass, Line[]][]) (all[k] ??= []).push(...list)
-  return all
+function rails(ctx: Ctx, s: Scene, px: number) {
+  const all = s.tiles.map((tile) => railsOf(tile.rail))
+  const open = all.map((r) => r.open)
+  strokeAll(ctx, s, all.map((r) => r.under), px * 0.8, s.palette.ink, { alpha: 0.5, dash: [5, 4], cap: 'butt' })
+  strokeAll(ctx, s, open, px, s.palette.ink)
+  strokeAll(ctx, s, open, px * 0.42, s.palette.surface, { dash: [px * 1.6, px * 1.6], cap: 'butt' })
 }
 
 function cityLines(ctx: Ctx, s: Scene, city: CityData) {
@@ -243,16 +311,18 @@ function cityLines(ctx: Ctx, s: Scene, city: CityData) {
   }
   // Below city level this is what shows where the prototype has no deeper map: water and the main roads.
   water(ctx, s, city.water, 1)
-  roadNet(ctx, s, { ter: city.ter, sec: city.sec, pri: city.pri, hw: city.hw }, {}, ROADS[s.view.level].filter(([k]) => k !== 'res' && k !== 'srv'))
+  roadNet(ctx, s, [{ ter: city.ter, sec: city.sec, pri: city.pri, hw: city.hw }], [], ROADS[s.view.level].filter(([k]) => k !== 'res' && k !== 'srv'))
 }
 
 function tileLines(ctx: Ctx, s: Scene) {
   const p = s.palette
   const street = s.view.level === 'street'
   for (const tile of s.tiles) water(ctx, s, tile.water, street ? 1.2 : 1)
-  const canals = s.tiles.flatMap((tile) => tile.canal)
-  stroke(ctx, s, canals, street ? 6 : 2.6, p.ink, { alpha: street ? 1 : 0.8 })
-  stroke(ctx, s, canals, street ? 3.8 : 1.5, p.water)
+  const canals = s.tiles.map((tile) => tile.canal)
+  strokeAll(ctx, s, canals, street ? 6 : 2.6, p.ink, { alpha: street ? 1 : 0.8 })
+  strokeAll(ctx, s, canals, street ? 3.8 : 1.5, p.water)
+  const ground = s.tiles.map((tile) => tile.roads)
+  const bridges = s.tiles.map((tile) => tile.bridges)
   if (street) {
     // Buildings: a hard shadow, longer for a taller one, then the block itself.
     const buildings = s.tiles.flatMap((tile) => tile.buildings ?? []).sort((a, b) => a.h - b.h)
@@ -260,27 +330,25 @@ function tileLines(ctx: Ctx, s: Scene) {
       const lift = Math.max(2, Math.min(9, b.h / 9)) / s.view.ppm
       ctx.save()
       ctx.translate(lift, lift)
-      fill(ctx, [b.r], p.ink, 0.3)
+      fill(ctx, s, [b.r], p.ink, 0.3)
       ctx.restore()
     }
     for (const b of buildings) {
-      fill(ctx, [b.r], '#fffdf4')
+      fill(ctx, s, [b.r], '#fffdf4')
       stroke(ctx, s, b.e, 1.1, p.ink)
     }
-    const ground = gather(s.tiles, 'roads')
-    const bridges = gather(s.tiles, 'bridges')
-    stroke(ctx, s, [...(ground.foot ?? []), ...(bridges.foot ?? [])], 1.1, p.ink, { alpha: 0.45, dash: [3, 3], cap: 'butt' })
+    strokeAll(ctx, s, [...ground, ...bridges].map((set) => set.foot), 1.1, p.ink, { alpha: 0.45, dash: [3, 3], cap: 'butt' })
     roadNet(ctx, s, ground, bridges, ROADS.street)
   } else {
-    roadNet(ctx, s, gather(s.tiles, 'roads'), gather(s.tiles, 'bridges'), ROADS.district)
+    roadNet(ctx, s, ground, bridges, ROADS.district)
   }
-  rails(ctx, s, s.tiles.flatMap((tile) => tile.rail), street ? 4.6 : 2.2)
+  rails(ctx, s, street ? 4.6 : 2.2)
 }
 
 /** The edge of each area, in the line of its state. Only the inner half is kept, so two neighbours' edges sit side by side. */
 function areaEdges(ctx: Ctx, s: Scene) {
   const p = s.palette
-  if (s.phase === 1) stroke(ctx, s, ZONES.flatMap((z) => z.edges), 1, p.ink, { alpha: 0.3, dash: [2, 4], cap: 'butt' })
+  if (s.phase === 1) strokeAll(ctx, s, ZONE_EDGES, 1, p.ink, { alpha: 0.3, dash: [2, 4], cap: 'butt' })
   for (const { rings, edges, area } of painted(s)) {
     const state = area?.state ?? 'no_data'
     let line: { width: number; dash?: number[]; cap?: CanvasLineCap; color: string; alpha?: number }
@@ -310,6 +378,7 @@ interface Text {
 }
 /** Writes a name unless it would land on another name, a marker, or off the screen. */
 function write(ctx: Ctx, s: Scene, taken: Box[], str: string, x: number, y: number, t: Text): boolean {
+  if (x < -NAME_REACH || x > s.size.w + NAME_REACH || y < -NAME_REACH || y > s.size.h + NAME_REACH) return false
   ctx.font = `${t.weight ?? 600} ${t.size}px ${FONT}`
   ctx.letterSpacing = t.spacing ?? '0px'
   const w = ctx.measureText(str).width + (t.pad ?? 6)

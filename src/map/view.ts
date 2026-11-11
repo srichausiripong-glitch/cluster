@@ -62,38 +62,50 @@ export function deepestAt(manifest: Manifest, p: XY): Level {
   if (coverage(manifest, 'district').some((box) => inBox(p, box))) return 'district'
   return 'city'
 }
-/** The point of the level's data nearest to `p`. */
-function nearestCovered(manifest: Manifest, level: Level, p: XY): XY {
-  let best: XY = p
-  let least = Infinity
-  for (const [x0, y0, x1, y1] of coverage(manifest, level)) {
-    const q: XY = [Math.min(x1, Math.max(x0, p[0])), Math.min(y1, Math.max(y0, p[1]))]
-    const d = Math.hypot(q[0] - p[0], q[1] - p[1])
-    if (d < least) {
-      least = d
-      best = q
-    }
-  }
-  return best
+/** How far the screen reaches from the point drawn at the view's centre, in metres: left, top, right, bottom. */
+function reach(ppm: number, size: Size): Box {
+  const [ax, ay] = anchor(size)
+  return [ax / ppm, ay / ppm, (size.w - ax) / ppm, (size.h - ay) / ppm]
+}
+/** The data of a level as one box: its map files sit side by side. */
+function dataBox(manifest: Manifest, level: Level): Box | null {
+  const boxes = coverage(manifest, level)
+  if (!boxes.length) return null
+  return [Math.min(...boxes.map((b) => b[0])), Math.min(...boxes.map((b) => b[1])), Math.max(...boxes.map((b) => b[2])), Math.max(...boxes.map((b) => b[3]))]
+}
+/** The centre nearest to `p` that keeps the whole screen on the level's data. Where the data is narrower than the screen, the screen is centred on it. */
+function onData(manifest: Manifest, size: Size, level: 'district' | 'street', p: XY): XY {
+  const box = dataBox(manifest, level)
+  if (!box) return p
+  const [left, top, right, bottom] = reach(PPM[level], size)
+  const axis = (v: number, lo: number, hi: number, before: number, after: number) => (hi - lo <= before + after ? (lo + hi) / 2 + (before - after) / 2 : Math.min(hi - after, Math.max(lo + before, v)))
+  return [axis(p[0], box[0], box[2], left, right), axis(p[1], box[1], box[3], top, bottom)]
 }
 
-/** The view at `level` centred as near `focus` as the data allows. The city level is always the fitted view. */
+/** The view at `level` centred as near `focus` as the data allows, with the whole screen on the data. The city level is always the fitted view. */
 export function viewAt(manifest: Manifest, size: Size, level: Level, focus: XY): View {
   if (level === 'city') return cityView(size)
-  const [cx, cy] = nearestCovered(manifest, level, focus)
+  const [cx, cy] = onData(manifest, size, level, focus)
   return { level, ppm: PPM[level], cx, cy }
 }
 
-/** Dragging: the centre stays on the data of its level; at city level within 35% of the screen from the fitted view. */
-export function clampView(manifest: Manifest, size: Size, view: View): View {
-  if (view.level !== 'city') {
-    const [cx, cy] = nearestCovered(manifest, view.level, [view.cx, view.cy])
-    return { ...view, cx, cy }
-  }
+/** At city level the map can be dragged a little, to look behind a control, but never away: 35% of the screen from the fitted view. */
+export function clampCity(size: Size, view: View): View {
   const fit = cityView(size)
   const slackX = (size.w * 0.35) / fit.ppm
   const slackY = (size.h * 0.35) / fit.ppm
   return { ...fit, cx: Math.min(fit.cx + slackX, Math.max(fit.cx - slackX, view.cx)), cy: Math.min(fit.cy + slackY, Math.max(fit.cy - slackY, view.cy)) }
+}
+/** Dragging: below city level the whole screen stays on the data of the level. */
+export function clampView(manifest: Manifest, size: Size, view: View): View {
+  return view.level === 'city' ? clampCity(size, view) : viewAt(manifest, size, view.level, [view.cx, view.cy])
+}
+
+/** Whether a level has any map on the screen at this view. */
+export function inView(manifest: Manifest, level: Level, view: View, size: Size): boolean {
+  const [left, top, right, bottom] = reach(view.ppm, size)
+  const screen: Box = [view.cx - left, view.cy - top, view.cx + right, view.cy + bottom]
+  return coverage(manifest, level).some((b) => b[0] < screen[2] && b[2] > screen[0] && b[1] < screen[3] && b[3] > screen[1])
 }
 
 export type Marker = { kind: 'one'; point: CarePoint; x: number; y: number } | { kind: 'many'; points: CarePoint[]; x: number; y: number }
