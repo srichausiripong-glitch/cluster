@@ -5,7 +5,7 @@ import { expect, it } from 'vitest'
 import App from '../App'
 import { th } from '../copy/th'
 import type { DiseaseGroup } from '../domain/types'
-import { createSlip, flagPositive, issueClinicCode, resetDemo } from '../store/actions'
+import { createSlip, flagPositive, issueClinicCode, resetDemo, saveCard } from '../store/actions'
 import { clinic, operator, phone } from '../store/stores'
 
 const open = (path = '/app/report') =>
@@ -146,4 +146,17 @@ it('keeps embed=1 on links inside the stage pane', async () => {
   await user.click(screen.getByRole('button', { name: th.report.finish.none }))
   expect(screen.getByRole('link', { name: th.report.backToMap })).toHaveAttribute('href', '/app?embed=1')
   expect(screen.getByRole('link', { name: th.report.goNotify })).toHaveAttribute('href', '/app/notify?embed=1')
+})
+
+// ---- found by the use walk-through ---------------------------------------------------------------
+it('does not say the phone holds nothing while an earlier card is still on it', async () => {
+  const user = userEvent.setup()
+  resetDemo()
+  saveCard({ group: 'syphilis', source: 'clinic_code', sentAt: new Date().toISOString(), hasClinicCode: true })
+  open()
+  await user.click(screen.getByRole('button', { name: th.group.gono_chlam }))
+  await user.click(screen.getByRole('button', { name: th.source.symptoms }))
+  await user.click(screen.getByRole('button', { name: th.report.finish.none }))
+  expect(screen.queryByText(th.report.receiptNoCard)).toBeNull()
+  expect(screen.getByText(th.report.receiptOldCard)).toBeInTheDocument()
 })

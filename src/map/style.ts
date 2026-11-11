@@ -18,6 +18,11 @@ export const EDGE: Record<'new' | 'followup' | 'expiring' | 'mixed', { width: nu
 }
 /** How an area without a signal is marked. All three are quieter than any signal. */
 export const QUIET = { below_threshold: 'hatch', no_data: 'none', no_partner: 'grid' } as const
+/**
+ * The slanted lines of an area below the threshold: how far apart along the ground, how wide, and
+ * how opaque, in screen pixels. A test keeps them lighter on the ground than the smallest dots.
+ */
+export const HATCH = { gap: 12, width: 1, alpha: 0.5 } as const
 /** Per level, low class to high: class, casing width, fill width, casing opacity. Widths in screen pixels. */
 export const ROADS: Record<'district' | 'street', [RoadClass, number, number, number][]> = {
   district: [

@@ -2,7 +2,7 @@
 // in lists, and on the map itself.
 import type { DensityBand } from '../domain/types'
 import type { CarePoint } from '../store/seed'
-import { DOT_GAP, DOT_R, EDGE, SAMPLE_PX } from './style'
+import { DOT_GAP, DOT_R, EDGE, HATCH, SAMPLE_PX } from './style'
 
 /** A care point pin. Its point is at 0, 0 and its round head is centred 26 px above. */
 const PIN_SHAPE = 'M0 0C0 0 14 -15 14 -26A14 14 0 1 0 -14 -26C-14 -15 0 0 0 0Z'
@@ -100,7 +100,7 @@ export function QuietSwatch({ state, large = false }: { state: 'below_threshold'
   const [w, h] = large ? [58, 40] : [34, 26]
   const id = `quiet-${state}-${large ? 'l' : 's'}`
   const lines: string[] = []
-  if (state === 'below_threshold') for (let x = -h; x < w; x += 9) lines.push(`M${x} 0L${x + h} ${h}`)
+  if (state === 'below_threshold') for (let x = -h; x < w; x += HATCH.gap) lines.push(`M${x} 0L${x + h} ${h}`)
   if (state === 'no_partner') {
     for (let x = 6; x < w; x += 12) lines.push(`M${x} 0V${h}`)
     for (let y = 6; y < h; y += 12) lines.push(`M0 ${y}H${w}`)
@@ -111,7 +111,7 @@ export function QuietSwatch({ state, large = false }: { state: 'below_threshold'
         <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" />
       </clipPath>
       <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-land)" />
-      <path d={lines.join('')} clipPath={`url(#${id})`} fill="none" stroke={state === 'below_threshold' ? 'var(--color-signal-soft)' : 'var(--color-ink)'} strokeWidth={state === 'below_threshold' ? 1.2 : 1} opacity={state === 'below_threshold' ? 1 : 0.22} />
+      <path d={lines.join('')} clipPath={`url(#${id})`} fill="none" stroke={state === 'below_threshold' ? 'var(--color-signal-soft)' : 'var(--color-ink)'} strokeWidth={state === 'below_threshold' ? HATCH.width : 1} opacity={state === 'below_threshold' ? HATCH.alpha : 0.22} />
       <rect
         x="2"
         y="2"

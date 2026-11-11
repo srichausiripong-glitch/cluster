@@ -1,12 +1,16 @@
 import { render, screen } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { th } from '../copy/th'
 import { decodeNotice } from '../domain/link'
 import type { DiseaseGroup } from '../domain/types'
 
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
 const open = (state?: { group: DiseaseGroup; hasClinicCode: boolean }) =>
   render(
     <MemoryRouter initialEntries={[{ pathname: '/app/notify', state }]}>
@@ -77,4 +81,54 @@ it('builds a 72-hour HIV link that names no disease by default', async () => {
   const link = (screen.getByLabelText(th.notify.linkLabel) as HTMLInputElement).value
   expect(decodeNotice(link.slice(link.indexOf('#')))).toMatchObject({ group: null, band: 'h72', tier: 2 })
   expect(link).not.toContain('hiv')
+})
+
+// ---- found by the use walk-through ---------------------------------------------------------------
+const makeLink = async (user: UserEvent) => {
+  open({ group: 'syphilis', hasClinicCode: true })
+  await toLinkForm(user)
+  await user.click(screen.getByLabelText(th.notify.bands.w2))
+  await user.click(screen.getByRole('button', { name: th.notify.makeLink }))
+}
+
+it('brings the new link into view and puts the keyboard on the copy button', async () => {
+  const user = userEvent.setup()
+  const scrolled = vi.fn()
+  vi.stubGlobal('scrollTo', () => {})
+  Element.prototype.scrollIntoView = scrolled
+  await makeLink(user)
+  expect(scrolled).toHaveBeenCalled()
+  expect(screen.getByRole('button', { name: th.notify.copyLink })).toHaveFocus()
+})
+it('says so at the button when the link was copied', async () => {
+  const user = userEvent.setup()
+  Element.prototype.scrollIntoView = () => {}
+  await makeLink(user)
+  await user.click(screen.getByRole('button', { name: th.notify.copyLink }))
+  expect(await screen.findByRole('button', { name: th.common.copied })).toBeInTheDocument()
+  expect(screen.queryByText(th.notify.copyFailed)).toBeNull()
+})
+it('says how to copy by hand when the browser refuses to copy', async () => {
+  const user = userEvent.setup()
+  Element.prototype.scrollIntoView = () => {}
+  await makeLink(user)
+  vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('denied'))
+  await user.click(screen.getByRole('button', { name: th.notify.copyLink }))
+  expect(await screen.findByText(th.notify.copyFailed)).toBeInTheDocument()
+})
+it('says how to copy by hand where the browser has no way to copy at all', async () => {
+  const user = userEvent.setup()
+  Element.prototype.scrollIntoView = () => {}
+  await makeLink(user)
+  vi.stubGlobal('navigator', { ...navigator, clipboard: undefined })
+  await user.click(screen.getByRole('button', { name: th.notify.copyLink }))
+  expect(await screen.findByText(th.notify.copyFailed)).toBeInTheDocument()
+})
+it('can be opened again from the self-care screen, as the "later" answer promises', () => {
+  render(
+    <MemoryRouter initialEntries={['/app/me']}>
+      <App />
+    </MemoryRouter>,
+  )
+  expect(screen.getByRole('link', { name: th.report.goNotify })).toHaveAttribute('href', '/app/notify')
 })

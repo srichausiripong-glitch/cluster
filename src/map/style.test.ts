@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
-import { breath, DOT_GAP, DOT_R, EDGE, PALETTE, ROADS, SAMPLE_PX } from './style'
+import { breath, DOT_GAP, DOT_R, EDGE, HATCH, PALETTE, ROADS, SAMPLE_PX } from './style'
 
 it('shows a higher level as a bigger dot, and never lets dots touch', () => {
   expect(DOT_R.thin).toBeLessThan(DOT_R.medium)
@@ -28,4 +28,16 @@ it('paints with the same colours as the tokens', () => {
   const tokens = readFileSync('src/design/tokens.css', 'utf8')
   const token = (name: string) => tokens.match(new RegExp(`--color-${name}:\\s*(#[0-9a-f]{6})`))?.[1]
   expect(PALETTE).toEqual({ ink: token('ink'), surface: token('surface'), care: token('care'), yellow: token('yellow'), signal: token('signal'), signalEdge: token('signal-edge'), signalSoft: token('signal-soft'), land: token('land'), landOut: token('land-out'), water: token('water'), park: token('park') })
+})
+it('marks an area below the threshold more lightly than the lightest signal', () => {
+  const lum = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+  }
+  const land = lum(PALETTE.land)
+  // Ink on the ground: the share of the ground a mark covers, times how much darker than the ground it is.
+  // Slanted lines one `gap` apart along the ground are gap / √2 apart across; dots sit one to a DOT_GAP square, at 0.92 opacity.
+  const hatch = ((HATCH.width * Math.SQRT2) / HATCH.gap) * HATCH.alpha * (land - lum(PALETTE.signalSoft))
+  const thinDots = ((Math.PI * DOT_R.thin ** 2) / DOT_GAP ** 2) * 0.92 * (land - lum(PALETTE.signal))
+  expect(hatch).toBeLessThan(thinDots)
 })

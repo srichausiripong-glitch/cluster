@@ -8,6 +8,8 @@ import { ALERT, PRIMARY_LINK, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look
 import { Button } from '../design/primitives/Button'
 import { Stepper } from '../design/primitives/Stepper'
 import { claimCodeOnPhone, consentCityCount, MAPPED_GROUPS, saveCard } from '../store/actions'
+import { usePartyStore } from '../store/partyStore'
+import { phone } from '../store/stores'
 import { useEmbedTo } from './embed'
 import { Check, Choice, FlowHeader } from './FlowHeader'
 
@@ -38,7 +40,8 @@ export function ReportFlow() {
   const [code, setCode] = useState<string | null>(null)
   const [addToArea, setAddToArea] = useState(false)
   const [keepCard, setKeepCard] = useState(false)
-  const [result, setResult] = useState<{ outcome: Outcome; kept: boolean; checked: boolean } | null>(null)
+  const [result, setResult] = useState<{ outcome: Outcome; kept: boolean; checked: boolean; oldCard: boolean } | null>(null)
+  const { card } = usePartyStore(phone)
 
   // HIV never reaches the map; mpox area information comes from official figures only.
   const canAddToArea = code !== null && group !== null && MAPPED_GROUPS.includes(group)
@@ -57,7 +60,8 @@ export function ReportFlow() {
   const finish = () => {
     if (willCount && code && group) consentCityCount(code, group)
     if (keepCard && group && source) saveCard({ group, source, sentAt: new Date().toISOString(), hasClinicCode: code !== null })
-    setResult({ outcome: willCount ? 'counted' : keepCard ? 'kept' : 'nothing', kept: keepCard, checked: code !== null })
+    // The receipt speaks for the whole phone, not for this pass alone: a card kept earlier is still there.
+    setResult({ outcome: willCount ? 'counted' : keepCard ? 'kept' : 'nothing', kept: keepCard, checked: code !== null, oldCard: !keepCard && card !== null })
     setStep(3)
   }
 
@@ -190,7 +194,7 @@ export function ReportFlow() {
             {result.outcome === 'counted' && <li>{th.report.receiptClinicCarries}</li>}
             {result.outcome === 'counted' && <li className="text-muted">{th.report.receiptMapWeekly}</li>}
             {result.checked ? <li className="text-muted">{th.report.receiptCodeChecked}</li> : <li>{th.report.receiptNothingLeft}</li>}
-            <li className="text-muted">{result.kept ? th.report.receiptCard : th.report.receiptNoCard}</li>
+            <li className="text-muted">{result.kept ? th.report.receiptCard : result.oldCard ? th.report.receiptOldCard : th.report.receiptNoCard}</li>
           </ul>
 
           <h3 className="text-[13px] font-medium text-muted">{th.report.next}</h3>

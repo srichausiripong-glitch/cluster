@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import App from '../App'
+import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
 import { seedDemo } from '../store/actions'
 import { CARE_POINTS } from '../store/seed'
@@ -190,4 +191,20 @@ it('keeps a sheet open when a second tap lands on the veil in the instant after 
   await new Promise((done) => setTimeout(done, 350))
   await user.click(veil)
   expect(screen.queryByRole('dialog')).toBeNull()
+})
+it('writes the day a care point was last checked in Thai, not as a raw date', async () => {
+  const user = userEvent.setup()
+  openApp('/app/list')
+  await user.click(screen.getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
+  const sheet = within(screen.getByRole('dialog'))
+  expect(sheet.getByText(formatThaiDate(new Date('2026-11-03')))).toBeInTheDocument()
+  expect(sheet.queryByText('2026-11-03')).toBeNull()
+})
+it('does not dress a private clinic\'s own page as a link that goes nowhere', async () => {
+  const user = userEvent.setup()
+  openApp('/app/list')
+  await user.click(screen.getByRole('button', { name: /คลินิกชุมชนสีลมตัวอย่าง/ }))
+  const sheet = within(screen.getByRole('dialog'))
+  expect(sheet.getByText(th.care.linkOutSample)).toBeInTheDocument()
+  expect(sheet.queryByText('ดูรายละเอียดที่หน้าของคลินิก')).toBeNull()
 })

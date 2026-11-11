@@ -1,5 +1,5 @@
-import { ExternalLink } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
 import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
@@ -30,17 +30,15 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
             {point.services && <Row label={th.care.services} value={point.services.join(' · ')} />}
             {point.hours && <Row label={th.care.hours} value={point.hours} />}
             {point.cost && <Row label={th.care.cost} value={<Chip tone="free">{point.cost}</Chip>} />}
-            {point.verified && <Row label={th.care.verified} value={point.verified} />}
+            {point.verified && <Row label={th.care.verified} value={formatThaiDate(new Date(point.verified))} />}
           </>
         )}
       </dl>
       {point.klass === 'B' && (
         <div className="mt-3 space-y-2 rounded-md border-2 border-ink bg-bg p-3">
           <p className="text-muted">{th.care.klassBNote}</p>
-          <p className="inline-flex items-center gap-2 font-semibold text-ink">
-            <ExternalLink size={18} strokeWidth={1.75} aria-hidden="true" />
-            {th.care.linkOut}
-          </p>
+          {/* The real product links to the clinic's own page here. The prototype's clinics are made up, so it says so and offers nothing to press. */}
+          <p className="text-[13px] text-muted">{th.care.linkOutSample}</p>
         </div>
       )}
     </Sheet>

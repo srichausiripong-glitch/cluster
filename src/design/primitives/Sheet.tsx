@@ -9,8 +9,9 @@ const GUARD_MS = 300
  * Bottom sheet. It takes a little over half the screen and scrolls inside, so the page behind stays
  * visible, as on a navigation map: the map brings what was picked into the part left clear. Focus
  * moves to the close button when it opens, Escape closes it, and focus returns to whatever opened it.
- * A tap on the veil closes it, except in the instant after it opened: that tap is the second half of
- * a double tap on whatever opened the sheet, not a wish to close it.
+ * The veil over the page is clear, so the page keeps its colours; a tap on it closes the sheet,
+ * except in the instant after the sheet opened: that tap is the second half of a double tap on
+ * whatever opened the sheet, not a wish to close it.
  */
 export function Sheet({ open, onClose, title, children }: Props) {
   const closeButton = useRef<HTMLButtonElement>(null)
@@ -39,7 +40,7 @@ export function Sheet({ open, onClose, title, children }: Props) {
     <div className="fixed inset-0 z-40 flex items-end">
       <div
         data-veil
-        className="absolute inset-0 bg-ink/10"
+        className="absolute inset-0"
         onClick={() => {
           if (performance.now() - openedAt.current > GUARD_MS) onClose()
         }}

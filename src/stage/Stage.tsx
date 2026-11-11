@@ -72,12 +72,9 @@ export function Stage() {
     if (target.phone) setPhoneFrame((frame) => ({ path: target.phone!, key: frame.key + 1 }))
   }
 
-  // The acting pane is ringed; the other app pane recedes by losing its colour, not its
-  // contrast, so it stays readable. The data column never recedes, because every step shows
-  // its effect there, and the phone keeps its colour for the last step (the map changes).
-  const receded = (name: Pane) => name !== acting && name !== 'data' && !(name === 'phone' && acting === 'data')
+  // The acting pane is told by its pink frame and its yellow tag alone. Every pane keeps its true
+  // colours: the stage is what an audience sees first, and a greyed app is not the product.
   const paneClass = (name: Pane) => `${tab === name ? '' : 'hidden xl:block'}`
-  const frameClass = (name: Pane) => (receded(name) ? 'saturate-[0.25] transition-[filter] focus-within:saturate-100 hover:saturate-100' : 'transition-[filter]')
 
   return (
     <main className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 p-4 [--pane-h:clamp(520px,calc(100dvh_-_240px),780px)]">
@@ -145,16 +142,14 @@ export function Stage() {
               {th.stage.backToMapPane}
             </button>
           </PaneTitle>
-          <div className={frameClass('phone')}>
-            <PhoneFrame acting={acting === 'phone'}>
-              <iframe key={phoneFrame.key} src={`${phoneFrame.path}?embed=1`} title={th.stage.panes.phone} className="h-full w-full border-0" />
-            </PhoneFrame>
-          </div>
+          <PhoneFrame acting={acting === 'phone'}>
+            <iframe key={phoneFrame.key} src={`${phoneFrame.path}?embed=1`} title={th.stage.panes.phone} className="h-full w-full border-0" />
+          </PhoneFrame>
         </section>
 
         <section className={paneClass('clinic')} aria-label={th.stage.panes.clinic} aria-current={acting === 'clinic' ? 'step' : undefined}>
           <PaneTitle title={th.stage.panes.clinic} to="/clinic" acting={acting === 'clinic'} />
-          <div className={`h-(--pane-h) overflow-hidden rounded-lg border-2 border-ink bg-bg shadow-pop-lg ${acting === 'clinic' ? 'outline-4 outline-offset-4 outline-care' : ''} ${frameClass('clinic')}`}>
+          <div className={`h-(--pane-h) overflow-hidden rounded-lg border-2 border-ink bg-bg shadow-pop-lg ${acting === 'clinic' ? 'outline-4 outline-offset-4 outline-care' : ''}`}>
             <iframe key={clinicFrame.key} src={`${clinicFrame.path}?embed=1`} title={th.stage.panes.clinic} className="h-full w-full border-0" />
           </div>
         </section>
