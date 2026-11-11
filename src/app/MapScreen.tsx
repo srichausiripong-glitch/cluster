@@ -2,12 +2,13 @@ import { ChevronRight, Radio, Waves } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
-import { SchematicMap } from '../map/SchematicMap'
-import { ZONES } from '../map/zones'
+import { ZONES } from '../map/areas'
+import { PinMark } from '../map/legend'
+import { RealMap } from '../map/RealMap'
 import { usePartyStore } from '../store/partyStore'
 import { CARE_POINTS, orderedCarePoints, PHASE2_AREAS } from '../store/seed'
 import { demo } from '../store/stores'
-import { PinGlyph, zoneName } from './CarePointRow'
+import { zoneName } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
 import { useEmbedTo } from './embed'
 import { SignalSheet } from './SignalSheet'
@@ -30,7 +31,7 @@ export function MapScreen() {
 
   return (
     <div className="relative h-full overflow-hidden">
-      <SchematicMap
+      <RealMap
         areas={areas}
         cityState={city.state}
         carePoints={showCare ? CARE_POINTS : []}
@@ -56,7 +57,7 @@ export function MapScreen() {
         type="button"
         aria-label={th.map.openSignal}
         onClick={() => setAreaId('bkk')}
-        className="absolute left-3 top-14 flex min-h-11 max-w-[calc(100%-1.5rem)] items-center gap-2 box px-3 text-left text-[13px] shadow-pop"
+        className="absolute left-3 top-14 flex min-h-11 max-w-[calc(100%-5.5rem)] items-center gap-2 box px-3 text-left text-[13px] shadow-pop"
       >
         <Waves size={18} strokeWidth={1.75} className="shrink-0 text-signal-edge" aria-hidden="true" />
         <span>
@@ -78,7 +79,7 @@ export function MapScreen() {
         onClick={() => setPointId(first.id)}
         className="absolute inset-x-3 bottom-3 flex min-h-16 items-center gap-3 box px-3 text-left shadow-pop"
       >
-        <PinGlyph kind={first.kind} />
+        <PinMark kind={first.kind} />
         <span className="min-w-0 flex-1">
           <span className="block text-[12px] text-muted">{th.map.nearest}</span>
           <span className="block truncate font-semibold">{first.name}</span>

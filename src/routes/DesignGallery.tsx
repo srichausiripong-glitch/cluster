@@ -8,9 +8,10 @@ import { Stepper } from '../design/primitives/Stepper'
 import { Logo } from '../design/Logo'
 
 const SWATCHES = [
-  ['bg', 'พื้นกระดาษ'], ['surface', 'พื้นการ์ด'], ['ink', 'ตัวอักษร'], ['muted', 'ตัวอักษรรอง'], ['line', 'เส้น'],
-  ['care', 'จุดบริการ'], ['care-soft', 'จุดบริการ อ่อน'], ['signal-1', 'สัญญาณ บาง'], ['signal-2', 'สัญญาณ ปานกลาง'],
-  ['signal-3', 'สัญญาณ หนาแน่น'], ['signal-edge', 'ขอบสัญญาณ'], ['veil', 'ม่าน'], ['land', 'แผ่นดิน'], ['water', 'น้ำ'],
+  ['bg', 'พื้นหน้าจอ'], ['surface', 'พื้นกล่อง'], ['ink', 'เส้นขอบ ตัวอักษร'], ['muted', 'ตัวอักษรรอง'], ['line', 'เส้นคั่นแถว'],
+  ['care', 'จุดบริการ ปุ่มหลัก'], ['care-soft', 'รายการที่เลือก'], ['yellow', 'กล่องสถานะ'], ['leaf', 'ป้ายบริการฟรี'],
+  ['signal', 'สัญญาณ'], ['signal-edge', 'ขอบสัญญาณ'], ['signal-1', 'สัญญาณ อ่อน'], ['veil', 'ปิดใช้งาน'],
+  ['land', 'พื้นเมือง'], ['land-out', 'นอกเมือง'], ['water', 'น้ำ'], ['park', 'สวน'],
 ] as const
 
 export function DesignGallery() {

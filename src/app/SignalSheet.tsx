@@ -3,34 +3,19 @@ import { th } from '../copy/th'
 import type { PublishedArea } from '../domain/types'
 import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
-import { areaPaint, EDGE_STYLE, MapPatterns, SAMPLE_PX } from '../map/SchematicMap'
+import { DotSwatch, EdgeSample, PinMark, QuietSwatch } from '../map/legend'
 import { OFFICIAL_FIGURES, type CarePoint } from '../store/seed'
-import { CarePointRow, PinGlyph } from './CarePointRow'
+import { CarePointRow } from './CarePointRow'
 
 const DENSITIES = ['thin', 'medium', 'dense'] as const
 const STEPS = ['new', 'followup', 'expiring', 'mixed'] as const
 const QUIET_STATES = ['below_threshold', 'no_data', 'no_partner'] as const
 const PIN_KINDS = ['clinic', 'pharmacy', 'lab'] as const
 
-/** A patch drawn with the map's own fill and edge. */
-function Swatch({ area, large = false }: { area: PublishedArea; large?: boolean }) {
-  const [w, h] = large ? [56, 36] : [34, 22]
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" className="shrink-0">
-      <MapPatterns suffix="-key" />
-      <rect x="3" y="3" width={w - 6} height={h - 6} rx="7" {...areaPaint(area, '-key')} strokeLinecap="round" />
-    </svg>
-  )
-}
-
-/** The edge of a signal as a straight line: the same width and dash the map draws, with room for three repeats. */
-function EdgeSample({ step }: { step: (typeof STEPS)[number] }) {
-  const edge = EDGE_STYLE[step]
-  return (
-    <svg width={SAMPLE_PX + 4} height="12" viewBox={`0 0 ${SAMPLE_PX + 4} 12`} aria-hidden="true" className="shrink-0">
-      <line x1="2" y1="6" x2={SAMPLE_PX + 2} y2="6" stroke="var(--color-signal-edge)" strokeWidth={edge.width} strokeDasharray={edge.dash} strokeLinecap="round" />
-    </svg>
-  )
+/** The area's own patch: the map's dots and edge when it has a signal, the map's quiet mark when it has none. */
+function Swatch({ area }: { area: PublishedArea }) {
+  if (area.state === 'shown') return <DotSwatch density={area.density ?? 'thin'} edge={area.step ?? 'mixed'} large />
+  return <QuietSwatch state={area.state} large />
 }
 
 /** The value that applies now is marked with a tick and the word "ตอนนี้", never by weight or colour alone. */
@@ -58,7 +43,7 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
   return (
     <Sheet open={open} onClose={onClose} title={title}>
       <div className="flex items-center gap-3">
-        <Swatch area={area} large />
+        <Swatch area={area} />
         <div>
           <h3 className="font-semibold">{th.map.state[area.state]}</h3>
           <p className="text-[13px] text-muted">{th.map.stateHint[area.state]}</p>
@@ -72,9 +57,7 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
             <ul className="space-y-1.5">
               {DENSITIES.map((d) => (
                 <li key={d} className="flex items-center gap-2">
-                  <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" className="shrink-0">
-                    <rect x="1" y="1" width="20" height="20" rx="6" fill={`var(--color-signal-${DENSITIES.indexOf(d) + 1})`} stroke="var(--color-line)" />
-                  </svg>
+                  <DotSwatch density={d} />
                   <Value label={th.map.density[d]} current={area.density === d} />
                 </li>
               ))}
@@ -98,7 +81,7 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
         <p className="font-semibold">{th.map.legendNotSafe}</p>
         <p className="text-muted">{th.map.legendWhat}</p>
         <p className="text-muted">
-          {th.map.weekly} · {th.map.schematic}
+          {th.map.weekly} · {th.map.source}
         </p>
       </div>
 
@@ -109,14 +92,14 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
       <ul className="grid grid-cols-2 gap-x-3 gap-y-2 text-[13px]">
         {QUIET_STATES.map((state) => (
           <li key={state} className="flex items-center gap-2">
-            <Swatch area={{ areaId: 'key', state, density: null, step: null }} />
+            <QuietSwatch state={state} />
             <span>{th.map.state[state]}</span>
           </li>
         ))}
         {PIN_KINDS.map((kind) => (
           <li key={kind} className="flex items-center gap-2">
             <span className="grid w-[34px] shrink-0 place-items-center">
-              <PinGlyph kind={kind} size={22} />
+              <PinMark kind={kind} size={22} />
             </span>
             <span>{th.map.keyPins[kind]}</span>
           </li>
