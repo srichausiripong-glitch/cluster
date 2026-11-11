@@ -8,7 +8,7 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 const VARIANT = {
   primary: 'bg-care text-white hover:brightness-95',
   secondary: 'border border-line bg-surface text-ink hover:bg-bg',
-  ghost: 'text-care hover:bg-care-soft',
+  ghost: 'text-care-ink hover:bg-care-soft',
 } as const
 
 export function Button({ variant = 'primary', size = 'md', className = '', type = 'button', ...rest }: Props) {

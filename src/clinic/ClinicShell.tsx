@@ -37,7 +37,7 @@ export function ClinicShell() {
               key={item.path}
               to={to(item.path)}
               end={item.end}
-              className={({ isActive }) => `flex min-h-11 shrink-0 items-center rounded-md px-3 text-[15px] ${isActive ? 'bg-care-soft font-semibold text-care' : 'text-ink hover:bg-bg'}`}
+              className={({ isActive }) => `flex min-h-11 shrink-0 items-center rounded-md px-3 text-[15px] ${isActive ? 'bg-care-soft font-semibold text-care-ink' : 'text-ink hover:bg-bg'}`}
             >
               {item.label}
             </NavLink>

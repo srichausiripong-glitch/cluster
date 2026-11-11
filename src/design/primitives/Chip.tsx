@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 const TONE = {
-  care: 'bg-care-soft text-care',
+  care: 'bg-care-soft text-care-ink',
   signal: 'bg-signal-1 text-signal-edge',
   neutral: 'border border-line bg-surface text-muted',
 } as const

@@ -14,3 +14,14 @@ it('shows the demo banner on every route', () => {
     unmount()
   }
 })
+
+it('seeds a demo scenario and the phase from the URL, for deep links and screenshots', async () => {
+  const { pub, demo } = await import('./store/stores')
+  render(
+    <MemoryRouter initialEntries={['/app?seed=threshold&phase=2']}>
+      <App />
+    </MemoryRouter>,
+  )
+  expect(pub.get().files).toHaveLength(1)
+  expect(demo.get().phase).toBe(2)
+})
