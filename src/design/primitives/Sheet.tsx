@@ -1,10 +1,32 @@
 import { X } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 
 type Props = { open: boolean; onClose: () => void; title: string; children: ReactNode }
 
-/** Bottom sheet. The page behind stays visible, as on a navigation map. */
+/**
+ * Bottom sheet. The page behind stays visible, as on a navigation map. Focus moves to the
+ * close button when it opens, Escape closes it, and focus returns to whatever opened it.
+ */
 export function Sheet({ open, onClose, title, children }: Props) {
+  const closeButton = useRef<HTMLButtonElement>(null)
+  const close = useRef(onClose)
+  useEffect(() => {
+    close.current = onClose
+  })
+  useEffect(() => {
+    if (!open) return
+    const opener = document.activeElement
+    closeButton.current?.focus()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close.current()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      if (opener instanceof HTMLElement || opener instanceof SVGElement) opener.focus()
+    }
+  }, [open])
+
   if (!open) return null
   return (
     <div className="fixed inset-0 z-40 flex items-end">
@@ -19,6 +41,7 @@ export function Sheet({ open, onClose, title, children }: Props) {
         <div className="mb-2 flex items-start justify-between gap-3">
           <h2 className="pt-1 text-[17px] font-semibold">{title}</h2>
           <button
+            ref={closeButton}
             type="button"
             onClick={onClose}
             aria-label="ปิดแผ่นนี้"

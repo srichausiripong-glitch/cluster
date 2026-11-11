@@ -20,7 +20,7 @@ it('pins the copy the spec fixes', () => {
 })
 it('uses none of the banned words anywhere in the copy or the advice', () => {
   const groups: (DiseaseGroup | null)[] = [null, 'mpox', 'gono_chlam', 'syphilis', 'hiv']
-  const bands: ExposureBand[] = ['h72', 'w2', 'w4', 'm3']
+  const bands: ExposureBand[] = ['h72', 'w2', 'w4', 'm3', 'older']
   const all = strings(th)
   for (const g of groups) for (const t of [1, 2] as const) for (const b of bands) strings(adviceFor(g, t, b), all)
   expect(all.length).toBeGreaterThan(40)

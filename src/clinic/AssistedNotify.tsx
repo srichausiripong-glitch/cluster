@@ -9,7 +9,7 @@ export function AssistedNotify() {
   const [text, setText] = useState('')
   const [state, setState] = useState<'idle' | 'ok' | 'bad'>('idle')
   return (
-    <div className="max-w-xl space-y-4">
+    <div className="space-y-4">
       <h1 className="text-[24px] font-semibold">{th.clinic.nav.assist}</h1>
       <Card>
         <label htmlFor="slip" className="mb-1 block text-[13px] font-medium text-muted">
@@ -41,7 +41,7 @@ export function AssistedNotify() {
           </p>
         )}
       </Card>
-      <p className="rounded-md border border-dashed border-muted p-3 text-[13px]">{th.clinic.assistNote}</p>
+      <p className="rounded-md border border-line bg-bg p-3 text-[13px]">{th.clinic.assistNote}</p>
     </div>
   )
 }

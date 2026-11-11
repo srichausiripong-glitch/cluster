@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
+import { useId } from 'react'
 import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
 
@@ -22,27 +23,35 @@ export function FlowHeader({ title, onBack, backTo }: { title: string; onBack?: 
   )
 }
 
-/** A large choice row. The accessible name is the label alone; the hint is extra. */
+/** A large choice row. Its name is the label; the hint is read as its description. */
 export function Choice({ label, hint, onClick, selected }: { label: string; hint?: string; onClick: () => void; selected?: boolean }) {
+  const id = useId()
   return (
     <button
       type="button"
-      aria-label={label}
+      aria-labelledby={`${id}-label`}
+      aria-describedby={hint ? `${id}-hint` : undefined}
       aria-pressed={selected}
       onClick={onClick}
       className={`flex min-h-16 w-full flex-col items-start justify-center rounded-md border px-4 py-2 text-left transition active:scale-[0.99] ${selected ? 'border-care bg-care-soft' : 'border-line bg-surface hover:border-care'}`}
     >
-      <span className="font-semibold">{label}</span>
-      {hint && <span className="text-[13px] text-muted">{hint}</span>}
+      <span id={`${id}-label`} className="font-semibold">
+        {label}
+      </span>
+      {hint && (
+        <span id={`${id}-hint`} className="text-[13px] text-muted">
+          {hint}
+        </span>
+      )}
     </button>
   )
 }
 
-/** A checkbox whose label text is exactly `label`; the hint sits outside the label. */
+/** A checkbox whose label text is exactly `label`. The hint stays readable when the box is disabled. */
 export function Check({ id, label, hint, checked, onChange, disabled }: { id: string; label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
-    <div className={`rounded-md border border-line bg-surface px-4 py-3 ${disabled ? 'opacity-60' : ''}`}>
-      <label htmlFor={id} className="flex min-h-11 cursor-pointer items-center gap-3 font-medium">
+    <div className="rounded-md border border-line bg-surface px-4 py-3">
+      <label htmlFor={id} className={`flex min-h-11 items-center gap-3 font-medium ${disabled ? 'cursor-not-allowed text-muted' : 'cursor-pointer'}`}>
         <input id={id} type="checkbox" className="size-5 shrink-0 accent-[var(--color-care)]" checked={checked} disabled={disabled} aria-describedby={hint ? `${id}-hint` : undefined} onChange={(e) => onChange(e.target.checked)} />
         <span>{label}</span>
       </label>

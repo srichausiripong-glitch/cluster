@@ -15,12 +15,13 @@ export interface NoticeInput {
  */
 export function composeNotice(input: NoticeInput): Notice {
   const mayName = input.group !== 'hiv' || input.band === 'h72'
+  const named = input.nameDisease && mayName
   return {
     v: 1,
-    group: input.nameDisease && mayName ? input.group : null,
+    group: named ? input.group : null,
     tier: input.hasClinicCode ? 1 : 2,
     band: input.band,
     week: input.week,
-    code: weeklyCode(input.group, input.hasClinicCode, input.week),
+    code: weeklyCode(input.group, input.hasClinicCode, input.week, named),
   }
 }

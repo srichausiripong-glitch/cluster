@@ -1,7 +1,7 @@
 import type { DiseaseGroup, ExposureBand, Notice } from './types'
 
 const GROUPS: readonly DiseaseGroup[] = ['mpox', 'gono_chlam', 'syphilis', 'hiv']
-const BANDS: readonly ExposureBand[] = ['h72', 'w2', 'w4', 'm3']
+const BANDS: readonly ExposureBand[] = ['h72', 'w2', 'w4', 'm3', 'older']
 
 export function encodeNotice(n: Notice): string {
   return btoa(JSON.stringify(n)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')

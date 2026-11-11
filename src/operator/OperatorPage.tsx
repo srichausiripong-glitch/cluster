@@ -2,13 +2,12 @@ import { useState } from 'react'
 import { th } from '../copy/th'
 import { K, publishArea } from '../domain/publication'
 import type { DiseaseGroup } from '../domain/types'
-import { isoWeek } from '../domain/weeks'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
 import { Wordmark } from '../design/Wordmark'
-import { batchReports, publishWeek } from '../store/actions'
+import { batchReports, currentWeek, publishWeek } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
-import { operator } from '../store/stores'
+import { demo, operator } from '../store/stores'
 
 const underK = (n: number) => (n < K ? th.clinic.underK : String(n))
 
@@ -16,7 +15,8 @@ const underK = (n: number) => (n < K ? th.clinic.underK : String(n))
 export function OperatorPage() {
   const state = usePartyStore(operator)
   const [published, setPublished] = useState(false)
-  const week = isoWeek(new Date())
+  usePartyStore(demo) // the demo's week can be moved forward from the stage
+  const week = currentWeek()
   const preview = publishArea('bkk', batchReports(state.batches), week, true)
   return (
     <main className="mx-auto w-full max-w-4xl space-y-5 p-4 md:p-6">
@@ -84,7 +84,7 @@ export function OperatorPage() {
       <section>
         <h2 className="mb-2 font-semibold">{th.operator.retention}</h2>
         <div className="overflow-x-auto rounded-md border border-line bg-surface">
-          <table className="w-full min-w-[420px] text-left text-[15px]">
+          <table aria-label={th.operator.retention} className="w-full min-w-[420px] text-left text-[15px]">
             <tbody>
               {th.operator.retentionRows.map((row) => (
                 <tr key={row.what} className="border-b border-line last:border-0">

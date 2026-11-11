@@ -8,7 +8,7 @@ import { issueClinicCode } from '../store/actions'
 export function IssueCode() {
   const [code, setCode] = useState<string | null>(null)
   return (
-    <div className="max-w-xl space-y-4">
+    <div className="space-y-4">
       <h1 className="text-[24px] font-semibold">{th.clinic.nav.issue}</h1>
       <p className="text-muted">{th.clinic.issueNote}</p>
       <Button size="lg" onClick={() => setCode(issueClinicCode())}>

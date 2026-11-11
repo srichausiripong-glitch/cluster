@@ -14,3 +14,6 @@ it('returns null for an empty, truncated or garbage fragment', () => {
 it('keeps the notice out of the path and query', () => {
   expect(buildLink('https://example.test', n)).toBe('https://example.test/r#' + encodeNotice(n))
 })
+it('carries the "older or not sure" time band', () => {
+  expect(decodeNotice(encodeNotice({ ...n, band: 'older' }))?.band).toBe('older')
+})
