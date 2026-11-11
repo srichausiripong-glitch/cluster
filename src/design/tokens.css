@@ -1,0 +1,46 @@
+/* Cluster design tokens. One teal for care, one violet family for signals, warm paper base.
+   No red, and nothing from the orange-yellow-green ladder (spec 18). */
+@theme {
+  --font-sans: "Anuphan Variable", "Noto Sans Thai", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+
+  --color-bg: #f6f4ef;
+  --color-surface: #ffffff;
+  --color-ink: #14282e;
+  --color-muted: #51666c;
+  --color-line: #dcd8cf;
+
+  --color-care: #0b7a75;
+  --color-care-soft: #d8efec;
+
+  --color-signal-1: #e4ddf6;
+  --color-signal-2: #c3b3ea;
+  --color-signal-3: #9a80d8;
+  --color-signal-edge: #5b3fa6;
+
+  --color-veil: #e9e6df;
+  --color-urgent: #14282e;
+  --color-land: #efece4;
+  --color-water: #cfe3ea;
+
+  --shadow-float: 0 10px 30px rgb(20 40 46 / 0.14), 0 1px 3px rgb(20 40 46 / 0.08);
+}
+
+:root {
+  --c-bg: var(--color-bg);
+  --c-surface: var(--color-surface);
+  --c-ink: var(--color-ink);
+  --c-ink-muted: var(--color-muted);
+  --c-line: var(--color-line);
+  --c-care: var(--color-care);
+  --c-care-soft: var(--color-care-soft);
+  --c-signal-1: var(--color-signal-1);
+  --c-signal-2: var(--color-signal-2);
+  --c-signal-3: var(--color-signal-3);
+  --c-signal-edge: var(--color-signal-edge);
+  --c-veil: var(--color-veil);
+  --c-urgent: var(--color-urgent);
+}
