@@ -25,13 +25,13 @@ function LevelMark({ level }: { level: Level }) {
 export function WhoKnowsTable() {
   return (
     <section>
-      <h2 className="mb-2 text-[20px] font-semibold">{th.data.whoKnows}</h2>
+      <h2 className="mb-2 text-[20px] font-bold">{th.data.whoKnows}</h2>
       <div className="overflow-x-auto box">
         <table aria-label={th.data.whoKnows} className="w-full min-w-[680px] text-left text-[15px]">
           <thead>
-            <tr className="border-b border-line text-[13px] text-muted">
+            <tr className="border-b-2 border-ink text-[13px]">
               {th.data.whoKnowsCols.map((col) => (
-                <th key={col} scope="col" className="px-4 py-3 font-medium">
+                <th key={col} scope="col" className="px-4 py-3 font-bold">
                   {col}
                 </th>
               ))}
@@ -40,7 +40,7 @@ export function WhoKnowsTable() {
           <tbody>
             {th.data.whoKnowsRows.map((row) => (
               <tr key={row.who} className="border-b border-line align-top last:border-0">
-                <th scope="row" className="px-4 py-3 font-semibold">
+                <th scope="row" className="px-4 py-3 font-bold">
                   {row.who}
                 </th>
                 {row.cells.map(([level, why], i) => (
@@ -71,7 +71,7 @@ export function DataPage() {
     <main className="mx-auto w-full max-w-6xl space-y-6 p-4 md:p-6">
       <header>
         <Logo size={18} />
-        <h1 className="mt-2 text-[24px] font-semibold">{th.data.title}</h1>
+        <h1 className="mt-2 text-[24px] font-bold">{th.data.title}</h1>
         <p className="max-w-2xl text-muted">{th.data.lead}</p>
       </header>
       <WhoKnowsTable />

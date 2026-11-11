@@ -3,7 +3,9 @@ import { useState, type ReactNode } from 'react'
 import { th } from '../copy/th'
 import { LedgerTimeline } from '../data/LedgerTimeline'
 import { StoreInspector } from '../data/StoreInspector'
+import { TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
+import { Chip } from '../design/primitives/Chip'
 import { PhoneFrame } from '../design/primitives/PhoneFrame'
 import { Logo } from '../design/Logo'
 import { advanceWeek, currentWeek, publishWeek, seedDemo } from '../store/actions'
@@ -41,7 +43,7 @@ function Segmented<T extends string | number>({ label, options, value, onChange 
             type="button"
             aria-pressed={value === option.value}
             onClick={() => onChange(option.value)}
-            className={`min-h-10 rounded-[10px] px-3 text-[14px] font-medium ${value === option.value ? 'bg-ink text-white' : 'text-ink hover:bg-bg'}`}
+            className={`min-h-10 rounded-[10px] px-3 text-[14px] font-semibold ${value === option.value ? 'bg-ink text-white' : 'text-ink hover:bg-bg'}`}
           >
             {option.label}
           </button>
@@ -82,7 +84,7 @@ export function Stage() {
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-baseline gap-3">
           <Logo size={22} />
-          <h1 className="text-[20px] font-semibold">{th.stage.title}</h1>
+          <h1 className="text-[20px] font-bold">{th.stage.title}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Segmented label={th.stage.presets} options={PRESETS} value={seed} onChange={seedDemo} />
@@ -92,16 +94,16 @@ export function Stage() {
             value={phase}
             onChange={(p) => demo.update((s) => ({ ...s, phase: p }))}
           />
-          <button type="button" onClick={() => seedDemo(seed)} className="min-h-10 rounded-md px-2 text-[14px] font-medium text-care-ink underline underline-offset-4 hover:bg-care-soft">
+          <button type="button" onClick={() => seedDemo(seed)} className={`min-h-10 rounded-md px-2 text-[14px] hover:bg-care-soft ${TEXT_LINK}`}>
             {th.stage.reset}
           </button>
         </div>
       </header>
 
       <section aria-label={th.stage.scriptTitle} className="flex flex-wrap items-center gap-3 box px-4 py-2">
-        <span className="text-[13px] font-medium text-muted">{th.stage.scriptTitle}</span>
-        <p className="min-w-0 flex-1 font-semibold" aria-live="polite">
-          <span className="tabular-nums text-care-ink">
+        <span className="text-[13px] font-semibold text-muted">{th.stage.scriptTitle}</span>
+        <p className="min-w-0 flex-1 font-bold" aria-live="polite">
+          <span className="tabular-nums text-ink">
             {step + 1}/{STEPS.length}
           </span>{' '}
           {th.stage.script[step]} <span className="whitespace-nowrap font-normal text-muted">· {th.stage.panes[acting]}</span>
@@ -124,7 +126,7 @@ export function Stage() {
             role="tab"
             aria-selected={tab === name}
             onClick={() => setTab(name)}
-            className={`min-h-11 flex-1 rounded-md px-3 text-[15px] font-medium ${tab === name ? 'bg-ink text-white' : 'border-2 border-ink bg-surface text-ink'}`}
+            className={`min-h-11 flex-1 rounded-md border-2 border-ink px-3 text-[15px] font-semibold ${tab === name ? 'bg-ink text-white' : 'bg-surface text-ink'}`}
           >
             {th.stage.panes[name]}
           </button>
@@ -137,9 +139,9 @@ export function Stage() {
             <button
               type="button"
               onClick={() => setPhoneFrame((frame) => ({ path: '/app', key: frame.key + 1 }))}
-              className="inline-flex min-h-9 items-center gap-1 rounded-md px-1 text-[13px] font-medium text-care-ink hover:bg-care-soft"
+              className="inline-flex min-h-9 items-center gap-1 rounded-md px-1 text-[13px] font-semibold text-ink hover:bg-care-soft"
             >
-              <Undo2 size={14} strokeWidth={1.75} aria-hidden="true" />
+              <Undo2 size={14} strokeWidth={2} aria-hidden="true" />
               {th.stage.backToMapPane}
             </button>
           </PaneTitle>
@@ -162,8 +164,8 @@ export function Stage() {
           <div className="flex h-(--pane-h) flex-col gap-3">
             <div className={`shrink-0 box p-3 ${acting === 'data' ? 'outline-4 outline-offset-4 outline-care' : ''}`}>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-semibold">{th.stage.operator}</span>
-                <a href="/operator" target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center text-[13px] font-medium text-care-ink">
+                <span className="font-bold">{th.stage.operator}</span>
+                <a href="/operator" target="_blank" rel="noreferrer" className={`inline-flex min-h-9 items-center text-[13px] ${TEXT_LINK}`}>
                   {th.operator.fullPage}
                 </a>
               </div>
@@ -194,13 +196,17 @@ function PaneTitle({ title, to, acting, children }: { title: string; to: string;
   return (
     <div className="mb-2 flex min-h-9 flex-wrap items-center justify-between gap-x-2">
       <span className="flex items-center gap-2">
-        <h2 className="font-semibold">{title}</h2>
-        {acting && <span className="rounded-full border-[1.5px] border-ink bg-yellow px-2.5 py-0.5 text-[12px] font-semibold text-ink">{th.stage.acting}</span>}
+        <h2 className="font-bold">{title}</h2>
+        {acting && (
+          <Chip tone="now" small>
+            {th.stage.acting}
+          </Chip>
+        )}
       </span>
       <span className="flex items-center gap-2">
         {children}
-        <a href={to} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-1 text-[13px] font-medium text-care-ink">
-          <ExternalLink size={14} strokeWidth={1.75} aria-hidden="true" />
+        <a href={to} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-1 text-[13px] font-semibold text-ink">
+          <ExternalLink size={14} strokeWidth={2} aria-hidden="true" />
           {th.stage.openFull}
         </a>
       </span>

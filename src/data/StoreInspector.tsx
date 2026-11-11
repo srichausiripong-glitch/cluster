@@ -63,7 +63,7 @@ export function StoreInspector({ party }: { party: Party }) {
       <button type="button" aria-expanded={raw} onClick={() => setRaw((v) => !v)} className="mt-2 min-h-9 rounded-sm text-[13px] font-semibold text-ink underline underline-offset-4">
         {th.data.raw}
       </button>
-      {raw && <pre className="mt-1 max-h-56 overflow-auto rounded-sm bg-bg p-2 text-[12px] leading-snug">{JSON.stringify(stores[party], null, 2)}</pre>}
+      {raw && <pre className="mt-1 max-h-56 overflow-auto rounded-sm border-[1.5px] border-ink bg-bg p-2 text-[12px] leading-snug">{JSON.stringify(stores[party], null, 2)}</pre>}
     </section>
   )
 }

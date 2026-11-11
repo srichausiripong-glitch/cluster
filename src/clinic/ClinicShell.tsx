@@ -31,7 +31,7 @@ export function ClinicShell() {
   const { staff } = usePartyStore(clinic)
   return (
     <div className="flex w-full flex-1 flex-col md:flex-row">
-      <aside className="shrink-0 border-b border-line bg-surface md:w-60 md:border-b-0 md:border-r">
+      <aside className="shrink-0 border-b-[2.5px] border-ink bg-surface md:w-60 md:border-b-0 md:border-r-[2.5px]">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 pt-3 md:block md:pt-4">
           <div className="flex items-baseline gap-2 md:block">
             <Logo size={18} />
@@ -40,7 +40,7 @@ export function ClinicShell() {
           <p className="flex items-center gap-1.5 text-[12px] md:mt-3 md:text-[13px]">
             <ShieldCheck size={16} strokeWidth={1.75} className="shrink-0 text-ink" aria-hidden="true" />
             <span>
-              <span className="font-medium md:block">{staff}</span>
+              <span className="font-semibold md:block">{staff}</span>
               <span className="md:hidden"> · </span>
               <span className="text-muted md:block">{th.clinic.twoFactor}</span>
             </span>
@@ -52,7 +52,7 @@ export function ClinicShell() {
               key={item.path}
               to={to(item.path)}
               end={item.end}
-              className={({ isActive }) => `flex min-h-11 items-center rounded-md px-3 text-[15px] ${isActive ? 'bg-care-soft font-semibold text-care-ink' : 'text-ink hover:bg-bg'}`}
+              className={({ isActive }) => `flex min-h-11 items-center rounded-md border-2 px-3 text-[15px] text-ink ${isActive ? 'border-ink bg-care-soft font-bold' : 'border-transparent hover:bg-bg'}`}
             >
               {item.label}
             </NavLink>

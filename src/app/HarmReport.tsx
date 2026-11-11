@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { th } from '../copy/th'
+import { SOFT } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { submitHarmReport } from '../store/actions'
 import { useEmbedTo } from './embed'
@@ -16,13 +17,13 @@ export function HarmReport() {
     <main className="p-4">
       <FlowHeader title={th.harm.title} backTo={to('/app/me')} />
       {sent ? (
-        <p className="rounded-md bg-care-soft p-4">{th.harm.thanks}</p>
+        <p className={`p-4 ${SOFT}`}>{th.harm.thanks}</p>
       ) : (
         <fieldset className="space-y-2">
-          <legend className="mb-2 font-semibold">{th.harm.ask}</legend>
+          <legend className="mb-2 font-bold">{th.harm.ask}</legend>
           {KINDS.map((k) => (
-            <label key={k} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-md border-2 border-ink px-4 ${kind === k ? 'bg-care-soft' : 'bg-surface'}`}>
-              <input type="radio" name="harm" className="size-5 accent-[var(--color-care)]" checked={kind === k} onChange={() => setKind(k)} />
+            <label key={k} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-md border-2 border-ink px-4 font-medium ${kind === k ? 'bg-care-soft' : 'bg-surface'}`}>
+              <input type="radio" name="harm" className="size-5 shrink-0 accent-[var(--color-ink)]" checked={kind === k} onChange={() => setKind(k)} />
               {th.harm.kinds[k]}
             </label>
           ))}

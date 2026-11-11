@@ -22,13 +22,13 @@ export function OperatorPage() {
     <main className="mx-auto w-full max-w-4xl space-y-5 p-4 md:p-6">
       <header>
         <Logo size={18} />
-        <h1 className="mt-2 text-[24px] font-semibold">{th.operator.title}</h1>
+        <h1 className="mt-2 text-[24px] font-bold">{th.operator.title}</h1>
       </header>
 
       <Card>
-        <h2 className="font-semibold">{th.operator.preview}</h2>
+        <h2 className="font-bold">{th.operator.preview}</h2>
         <p className="text-[13px] text-muted">{week}</p>
-        <p className="mt-2 text-[17px] font-semibold">
+        <p className="mt-2 text-[17px] font-bold">
           กรุงเทพฯ: {th.map.state[preview.state]}
           {preview.state === 'shown' && ` · ${th.map.density[preview.density ?? 'thin']} · ${th.map.step[preview.step ?? 'mixed']}`}
         </p>
@@ -42,12 +42,16 @@ export function OperatorPage() {
           >
             {th.operator.publish}
           </Button>
-          {published && <span role="status">{th.operator.published}</span>}
+          {published && (
+            <span role="status" className="font-semibold">
+              {th.operator.published}
+            </span>
+          )}
         </div>
       </Card>
 
       <Card>
-        <h2 className="mb-2 font-semibold">{th.operator.received}</h2>
+        <h2 className="mb-2 font-bold">{th.operator.received}</h2>
         {state.batches.length === 0 ? (
           <p className="text-muted">{th.operator.receivedNone}</p>
         ) : (
@@ -63,12 +67,12 @@ export function OperatorPage() {
 
       <div className="grid gap-3 md:grid-cols-2">
         <Card>
-          <h2 className="mb-1 font-semibold">{th.operator.takedown}</h2>
+          <h2 className="mb-1 font-bold">{th.operator.takedown}</h2>
           <p className="text-muted">{th.operator.takedownNone}</p>
           <p className="mt-2 text-[13px] text-muted">{th.operator.takedownRule}</p>
         </Card>
         <Card>
-          <h2 className="mb-1 font-semibold">{th.operator.harmReports}</h2>
+          <h2 className="mb-1 font-bold">{th.operator.harmReports}</h2>
           {state.harmReports.length === 0 ? (
             <p className="text-muted">{th.operator.harmNone}</p>
           ) : (
@@ -82,13 +86,13 @@ export function OperatorPage() {
       </div>
 
       <section>
-        <h2 className="mb-2 font-semibold">{th.operator.retention}</h2>
+        <h2 className="mb-2 font-bold">{th.operator.retention}</h2>
         <div className="overflow-x-auto box">
           <table aria-label={th.operator.retention} className="w-full min-w-[420px] text-left text-[15px]">
             <tbody>
               {th.operator.retentionRows.map((row) => (
                 <tr key={row.what} className="border-b border-line last:border-0">
-                  <th scope="row" className="px-4 py-3 font-medium">
+                  <th scope="row" className="px-4 py-3 font-semibold">
                     {row.what}
                   </th>
                   <td className="px-4 py-3 text-muted">{row.how}</td>

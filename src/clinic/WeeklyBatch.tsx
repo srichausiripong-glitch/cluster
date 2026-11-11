@@ -1,5 +1,6 @@
 import { th } from '../copy/th'
 import type { DiseaseGroup } from '../domain/types'
+import { SOFT } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
 import { currentWeek, sendWeeklyBatch, weeklyCounts } from '../store/actions'
@@ -14,10 +15,10 @@ export function WeeklyBatch() {
   const counts = Object.entries(weeklyCounts(codes, week)) as [DiseaseGroup, number][]
   return (
     <div className="space-y-4">
-      <h1 className="text-[24px] font-semibold">{th.clinic.nav.batch}</h1>
+      <h1 className="text-[24px] font-bold">{th.clinic.nav.batch}</h1>
       <div className="grid gap-3 sm:grid-cols-2">
         <Card>
-          <h2 className="mb-2 font-semibold">{th.clinic.batchLeaves}</h2>
+          <h2 className="mb-2 font-bold">{th.clinic.batchLeaves}</h2>
           {counts.length === 0 ? (
             <p className="text-muted">{th.data.empty}</p>
           ) : (
@@ -25,7 +26,7 @@ export function WeeklyBatch() {
               {counts.map(([group, n]) => (
                 <div key={group} className="flex justify-between gap-3">
                   <dt>{th.group[group]}</dt>
-                  <dd className="font-semibold tabular-nums">{n}</dd>
+                  <dd className="font-bold tabular-nums">{n}</dd>
                 </div>
               ))}
             </dl>
@@ -33,7 +34,7 @@ export function WeeklyBatch() {
           <p className="mt-2 text-[13px] text-muted">{week}</p>
         </Card>
         <Card>
-          <h2 className="mb-2 font-semibold">{th.clinic.batchStays}</h2>
+          <h2 className="mb-2 font-bold">{th.clinic.batchStays}</h2>
           <p className="text-muted">{th.clinic.batchStaysBody}</p>
         </Card>
       </div>
@@ -42,7 +43,7 @@ export function WeeklyBatch() {
         {th.clinic.sendBatch}
       </Button>
       {lastBatchWeek === week && (
-        <p role="status" className="rounded-md bg-care-soft px-4 py-3">
+        <p role="status" className={`px-4 py-3 font-semibold ${SOFT}`}>
           {th.clinic.batchSent}
         </p>
       )}

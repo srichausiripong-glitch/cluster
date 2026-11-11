@@ -1,7 +1,8 @@
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Check as Tick } from 'lucide-react'
 import { useId } from 'react'
 import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
+import { PRESS } from '../design/look'
 
 /** Title row for a full-screen flow. `onBack` steps back inside the flow; otherwise it returns to `backTo`. */
 export function FlowHeader({ title, onBack, backTo }: { title: string; onBack?: () => void; backTo: string }) {
@@ -23,7 +24,7 @@ export function FlowHeader({ title, onBack, backTo }: { title: string; onBack?: 
   )
 }
 
-/** A large choice row. Its name is the label; the hint is read as its description. */
+/** A large choice row. Its name is the label; the hint is read as its description. A chosen row turns soft pink and carries a tick. */
 export function Choice({ label, hint, onClick, selected }: { label: string; hint?: string; onClick: () => void; selected?: boolean }) {
   const id = useId()
   return (
@@ -33,16 +34,19 @@ export function Choice({ label, hint, onClick, selected }: { label: string; hint
       aria-describedby={hint ? `${id}-hint` : undefined}
       aria-pressed={selected}
       onClick={onClick}
-      className={`box flex min-h-16 w-full flex-col items-start justify-center px-4 py-2 text-left shadow-pop transition-[transform,box-shadow] duration-75 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none ${selected ? 'bg-care-soft' : 'hover:bg-care-soft'}`}
+      className={`flex min-h-16 w-full items-center gap-3 rounded-md border-2 border-ink px-4 py-2 text-left ${PRESS} ${selected ? 'bg-care-soft' : 'bg-surface hover:bg-care-soft'}`}
     >
-      <span id={`${id}-label`} className="font-semibold">
-        {label}
-      </span>
-      {hint && (
-        <span id={`${id}-hint`} className="text-[13px] text-muted">
-          {hint}
+      <span className="flex min-w-0 flex-1 flex-col items-start justify-center">
+        <span id={`${id}-label`} className="font-bold">
+          {label}
         </span>
-      )}
+        {hint && (
+          <span id={`${id}-hint`} className="text-[13px] text-muted">
+            {hint}
+          </span>
+        )}
+      </span>
+      {selected && <Tick size={20} strokeWidth={3} className="shrink-0" aria-hidden="true" />}
     </button>
   )
 }
@@ -51,7 +55,7 @@ export function Choice({ label, hint, onClick, selected }: { label: string; hint
 export function Check({ id, label, hint, checked, onChange, disabled }: { id: string; label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <div className="box px-4 py-3">
-      <label htmlFor={id} className={`flex min-h-11 items-center gap-3 font-medium ${disabled ? 'cursor-not-allowed text-muted' : 'cursor-pointer'}`}>
+      <label htmlFor={id} className={`flex min-h-11 items-center gap-3 font-semibold ${disabled ? 'cursor-not-allowed text-muted' : 'cursor-pointer'}`}>
         <input id={id} type="checkbox" className="size-5 shrink-0 accent-[var(--color-ink)]" checked={checked} disabled={disabled} aria-describedby={hint ? `${id}-hint` : undefined} onChange={(e) => onChange(e.target.checked)} />
         <span>{label}</span>
       </label>

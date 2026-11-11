@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { th } from '../copy/th'
+import { ALERT, NOTE, SOFT } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
 import { acceptSlip } from '../store/actions'
@@ -10,9 +11,9 @@ export function AssistedNotify() {
   const [state, setState] = useState<'idle' | 'ok' | 'bad'>('idle')
   return (
     <div className="space-y-4">
-      <h1 className="text-[24px] font-semibold">{th.clinic.nav.assist}</h1>
+      <h1 className="text-[24px] font-bold">{th.clinic.nav.assist}</h1>
       <Card>
-        <label htmlFor="slip" className="mb-1 block text-[13px] font-medium text-muted">
+        <label htmlFor="slip" className="mb-1 block text-[13px] font-semibold">
           {th.clinic.slipInput}
         </label>
         <div className="flex flex-wrap gap-2">
@@ -24,24 +25,24 @@ export function AssistedNotify() {
               setState('idle')
             }}
             autoComplete="off"
-            className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-semibold uppercase tracking-widest"
+            className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-bold uppercase tracking-widest"
           />
           <Button disabled={text.trim() === ''} onClick={() => setState(acceptSlip(text) ? 'ok' : 'bad')}>
             {th.clinic.slipCheck}
           </Button>
         </div>
         {state === 'ok' && (
-          <p role="status" className="mt-3 rounded-md bg-care-soft px-3 py-2 font-medium">
+          <p role="status" className={`mt-3 px-3 py-2 font-semibold ${SOFT}`}>
             {th.clinic.slipOk}
           </p>
         )}
         {state === 'bad' && (
-          <p role="alert" className="mt-3 font-medium">
+          <p role="alert" className={`mt-3 px-3 py-2 font-semibold ${ALERT}`}>
             {th.clinic.slipBad}
           </p>
         )}
       </Card>
-      <p className="rounded-md border-2 border-ink bg-bg p-3 text-[13px]">{th.clinic.assistNote}</p>
+      <p className={`p-3 text-[13px] ${NOTE}`}>{th.clinic.assistNote}</p>
     </div>
   )
 }

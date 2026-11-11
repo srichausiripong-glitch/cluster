@@ -1,6 +1,7 @@
 import { ChevronRight, Waves } from 'lucide-react'
 import { useState } from 'react'
 import { th } from '../copy/th'
+import { PRESS } from '../design/look'
 import { CARE_POINTS, orderedCarePoints } from '../store/seed'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
@@ -18,22 +19,22 @@ export function CareList() {
   const [signalOpen, setSignalOpen] = useState(false)
   return (
     <main className="p-4">
-      <h1 className="mb-3 text-[20px] font-semibold">{th.care.listTitle}</h1>
+      <h1 className="mb-3 text-[20px] font-bold">{th.care.listTitle}</h1>
 
       <button
         type="button"
         aria-label={th.map.openSignal}
         onClick={() => setSignalOpen(true)}
-        className="mb-3 flex min-h-13 w-full items-center gap-3 box px-3 text-left"
+        className={`mb-4 flex min-h-13 w-full items-center gap-3 rounded-md border-2 border-ink bg-yellow px-3 text-left text-ink ${PRESS}`}
       >
-        <Waves size={20} strokeWidth={1.75} className="shrink-0 text-signal-edge" aria-hidden="true" />
+        <Waves size={20} strokeWidth={2} className="shrink-0" aria-hidden="true" />
         <span className="min-w-0 flex-1">
-          <span className="font-semibold">กรุงเทพฯ</span> <span className="text-muted">{th.map.state[city.state]}</span>
+          <span className="font-bold">กรุงเทพฯ</span> {th.map.state[city.state]}
         </span>
-        <ChevronRight size={18} strokeWidth={1.75} className="shrink-0 text-muted" aria-hidden="true" />
+        <ChevronRight size={18} strokeWidth={2.25} className="shrink-0" aria-hidden="true" />
       </button>
 
-      <ul className="space-y-2">
+      <ul className="space-y-3">
         {orderedCarePoints().map((point) => (
           <li key={point.id}>
             <CarePointRow point={point} onOpen={() => setPointId(point.id)} />
