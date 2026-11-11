@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Route, Routes, useLocation, useSearchParams } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router-dom'
 import { AppShell } from './app/AppShell'
 import { ErrorBoundary } from './app/ErrorBoundary'
 import { RecipientPage } from './app/RecipientPage'
@@ -19,7 +19,8 @@ export default function App() {
   // is dropped only inside a real frame, so adding ?embed=1 to a shared link cannot hide it.
   const embedded = params.get('embed') === '1' && window.self !== window.top
   // The user app is a fixed-height shell (map, sheets, bottom nav); other pages scroll normally.
-  const fixed = useLocation().pathname.startsWith('/app')
+  const location = useLocation()
+  const fixed = location.pathname.startsWith('/app')
 
   // Deep links for the presenter and for screenshots: ?seed=pilot|threshold and ?phase=2.
   // They are used once and then dropped from the address, so a reload does not wipe the demo.
@@ -43,7 +44,9 @@ export default function App() {
       {!embedded && <Banner tone="demo">{th.demoBanner}</Banner>}
       <ErrorBoundary>
         <Routes>
-          <Route path="/" element={<Stage />} />
+          {/* The address itself opens the app, as an app does. The pitch stage lives at /stage. */}
+          <Route path="/" element={<Navigate to={{ pathname: '/app', search: location.search }} replace />} />
+          <Route path="/stage" element={<Stage />} />
           <Route path="/app/*" element={<AppShell />} />
           <Route path="/r" element={<RecipientPage />} />
           <Route path="/clinic/*" element={<ClinicShell />} />

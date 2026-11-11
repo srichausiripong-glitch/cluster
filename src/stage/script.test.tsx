@@ -64,7 +64,7 @@ it('walks the pitch script: one confirmed person tells a contact, and one report
   view.unmount()
 
   // 8: the publisher publishes; one report stays under the threshold
-  view = at('/')
+  view = at('/stage')
   await user.click(screen.getByRole('button', { name: th.operator.publish }))
   expect(pub.get().files.at(-1)!.areas[0].state).toBe('below_threshold')
   view.unmount()

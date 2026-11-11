@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import App from './App'
+import { th } from './copy/th'
 import { demo, pub } from './store/stores'
 
 function Where() {
@@ -32,4 +33,14 @@ it('seeds a demo scenario and the phase from the URL, then drops them from the a
   expect(pub.get().files).toHaveLength(1)
   expect(demo.get()).toMatchObject({ phase: 2, seed: 'threshold' })
   expect(screen.getByRole('status', { name: 'address' })).toHaveTextContent('/app?embed=1')
+})
+
+it('opens the app itself at the bare address, and keeps the pitch stage at /stage', () => {
+  render(
+    <MemoryRouter initialEntries={['/']}>
+      <App />
+    </MemoryRouter>,
+  )
+  expect(screen.getByRole('navigation', { name: 'เมนูหลัก' })).toBeInTheDocument()
+  expect(screen.queryByText(th.stage.title)).toBeNull()
 })
