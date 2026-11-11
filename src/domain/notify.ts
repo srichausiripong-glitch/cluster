@@ -1,3 +1,4 @@
+import { weeklyCode } from './fastTrack'
 import type { DiseaseGroup, ExposureBand, Notice } from './types'
 
 export interface NoticeInput {
@@ -20,5 +21,6 @@ export function composeNotice(input: NoticeInput): Notice {
     tier: input.hasClinicCode ? 1 : 2,
     band: input.band,
     week: input.week,
+    code: weeklyCode(input.group, input.hasClinicCode, input.week),
   }
 }

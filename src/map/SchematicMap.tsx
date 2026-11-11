@@ -1,6 +1,8 @@
+import { useEffect, useRef, useState } from 'react'
 import { th } from '../copy/th'
 import type { PublishedArea } from '../domain/types'
 import type { CarePoint } from '../store/seed'
+import { clampPan, fitMap } from './pan'
 import { CANALS, CITY_PATH, RIVER_PATH, ROADS, ZONES } from './zones'
 
 const TINT = { thin: 'var(--color-signal-1)', medium: 'var(--color-signal-2)', dense: 'var(--color-signal-3)' } as const
@@ -56,6 +58,25 @@ function Glyph({ kind }: { kind: CarePoint['kind'] }) {
 }
 
 export function SchematicMap({ areas, carePoints, phase, showSignal, onSelectArea, onSelectCarePoint }: Props) {
+  const wrap = useRef<HTMLDivElement>(null)
+  const [box, setBox] = useState<{ w: number; h: number } | null>(null)
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
+  const drag = useRef<{ px: number; py: number; x: number; y: number; moved: boolean } | null>(null)
+
+  useEffect(() => {
+    const el = wrap.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => {
+      setBox({ w: el.clientWidth, h: el.clientHeight })
+      setPos(null)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const fit = box && box.w > 0 && box.h > 0 ? fitMap(box.w, box.h) : null
+  const at = fit ? (pos ?? { x: fit.x, y: fit.y }) : null
+
   const byId = new Map(areas.map((a) => [a.areaId, a]))
   const city = phase === 1 && showSignal ? byId.get('bkk') : undefined
   const press = (run: () => void) => (e: React.KeyboardEvent) => {
@@ -65,7 +86,34 @@ export function SchematicMap({ areas, carePoints, phase, showSignal, onSelectAre
     }
   }
   return (
-    <svg viewBox="0 0 1000 1100" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full select-none" aria-label={th.map.schematic}>
+    <div
+      ref={wrap}
+      className="absolute inset-0 touch-none overflow-hidden"
+      onPointerDown={(e) => {
+        if (at) drag.current = { px: e.clientX, py: e.clientY, x: at.x, y: at.y, moved: false }
+      }}
+      onPointerMove={(e) => {
+        const d = drag.current
+        if (!d || !fit || !box) return
+        const dx = e.clientX - d.px
+        const dy = e.clientY - d.py
+        if (Math.abs(dx) + Math.abs(dy) > 6) d.moved = true
+        if (d.moved) setPos(clampPan(fit, box.w, box.h, d.x + dx, d.y + dy))
+      }}
+      onPointerUp={() => setTimeout(() => (drag.current = null), 0)}
+      onPointerLeave={() => (drag.current = null)}
+      onClickCapture={(e) => {
+        // A drag that ends on a marker must not open it.
+        if (drag.current?.moved) e.stopPropagation()
+      }}
+    >
+    <svg
+      viewBox="0 0 1000 1100"
+      preserveAspectRatio="xMidYMid slice"
+      className={`select-none ${at ? 'absolute left-0 top-0 max-w-none' : 'absolute inset-0 h-full w-full'}`}
+      style={at && fit ? { width: fit.width, height: fit.height, transform: `translate(${at.x}px, ${at.y}px)` } : undefined}
+      aria-label={th.map.schematic}
+    >
       <MapPatterns />
       <rect width="1000" height="1100" fill="var(--color-land)" />
       <path
@@ -113,5 +161,6 @@ export function SchematicMap({ areas, carePoints, phase, showSignal, onSelectAre
         </g>
       ))}
     </svg>
+    </div>
   )
 }

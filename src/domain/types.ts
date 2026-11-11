@@ -13,6 +13,8 @@ export interface Notice {
   tier: 1 | 2
   band: ExposureBand
   week: string
+  /** Weekly fast-track code. It tells a clinic the disease group even when the page names none. */
+  code: string
 }
 
 export interface SignalReport {

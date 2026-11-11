@@ -19,9 +19,10 @@ export function decodeNotice(fragment: string): Notice | null {
     const groupOk = n.group === null || GROUPS.includes(n.group as DiseaseGroup)
     const ok =
       n.v === 1 && groupOk && (n.tier === 1 || n.tier === 2) &&
-      BANDS.includes(n.band as ExposureBand) && typeof n.week === 'string' && /^\d{4}-W\d{2}$/.test(n.week)
+      BANDS.includes(n.band as ExposureBand) && typeof n.week === 'string' && /^\d{4}-W\d{2}$/.test(n.week) &&
+      typeof n.code === 'string' && /^[A-Z]{2}\d{3}$/.test(n.code)
     if (!ok) return null
-    return { v: 1, group: n.group as Notice['group'], tier: n.tier as 1 | 2, band: n.band as ExposureBand, week: n.week as string }
+    return { v: 1, group: n.group as Notice['group'], tier: n.tier as 1 | 2, band: n.band as ExposureBand, week: n.week as string, code: n.code as string }
   } catch {
     return null
   }

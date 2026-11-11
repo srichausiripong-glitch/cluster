@@ -3,12 +3,15 @@ import { useEffect } from 'react'
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { th } from '../copy/th'
 import { Wordmark } from '../design/Wordmark'
-import { Placeholder } from '../routes/Placeholder'
 import { logConnection } from '../store/actions'
 import { CareList } from './CareList'
 import { useEmbedTo } from './embed'
+import { HarmReport } from './HarmReport'
 import { HelpNow } from './HelpNow'
 import { MapScreen } from './MapScreen'
+import { NotifyFlow } from './NotifyFlow'
+import { ReportFlow } from './ReportFlow'
+import { SelfCare } from './SelfCare'
 
 const NAV = [
   { path: '/app', label: th.nav.map, icon: MapIcon, end: true },
@@ -44,7 +47,11 @@ export function AppShell() {
           <Route index element={<MapScreen />} />
           <Route path="list" element={<CareList />} />
           <Route path="help" element={<HelpNow />} />
-          <Route path="*" element={<Placeholder title={th.nav.me} />} />
+          <Route path="report" element={<ReportFlow />} />
+          <Route path="notify" element={<NotifyFlow />} />
+          <Route path="me" element={<SelfCare />} />
+          <Route path="harm" element={<HarmReport />} />
+          <Route path="*" element={<MapScreen />} />
         </Routes>
       </div>
       <nav aria-label="เมนูหลัก" className="grid h-14 shrink-0 grid-cols-4 border-t border-line bg-surface">
