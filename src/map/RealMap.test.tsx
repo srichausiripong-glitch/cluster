@@ -10,7 +10,7 @@ import { STUB_MANIFEST, stubSource } from '../test/mapStub'
 import { zoneAt } from './areas'
 import { RealMap } from './RealMap'
 import { fetchSource, setMapSource } from './source'
-import { cityView, MAP_INSET, viewAt } from './view'
+import { cityView, MAP_INSET, toScreen, viewAt } from './view'
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -23,6 +23,14 @@ const openApp = (path: string) =>
     </MemoryRouter>,
   )
 const map = () => document.querySelector('[data-map]') as HTMLElement
+const PHONE = { w: 390, h: 714, inset: MAP_INSET }
+/** A double click as a browser sends it, at a place the stub has district-level map for. */
+const doubleClickInside = (el: Element) => {
+  const [clientX, clientY] = toScreen(cityView(PHONE), PHONE, [-1000, 1000])
+  fireEvent.click(el, { detail: 1, clientX, clientY })
+  fireEvent.click(el, { detail: 2, clientX, clientY })
+  fireEvent.doubleClick(el, { clientX, clientY })
+}
 const many = () => screen.getByRole('button', { name: th.map.many.replace('{n}', '4') })
 const zoomIn = () => screen.getByRole('button', { name: th.map.zoomIn })
 /** Where a marker or a name box sits: the first two numbers of its transform. */
@@ -106,12 +114,13 @@ it('draws a pin in pink with a black outline and a black mark, and names the sel
 })
 
 it('goes one level in on a double click, at the place that was clicked', async () => {
-  const user = userEvent.setup()
   openApp('/app')
-  await user.dblClick(map())
+  await waitFor(() => expect(zoomIn()).toBeEnabled())
+  doubleClickInside(map())
   expect(map()).toHaveAttribute('data-level', 'district')
 })
-it('goes down to street level where the prototype has street map in view, and stops there', async () => {
+it('goes down to street level where the prototype has street map at the middle of the screen, and stops there', async () => {
+  setMapSource(stubSource({ manifest: () => Promise.resolve({ ...STUB_MANIFEST, street: [{ file: 'street/stub.json', box: STUB_MANIFEST.district[0].box }] }) }))
   const user = userEvent.setup()
   openApp('/app')
   await user.click(zoomIn())
@@ -261,12 +270,19 @@ it('draws at once when the level changes, however slow drawing is', async () => 
 })
 
 // ---- one click or two --------------------------------------------------------------------------
+let moved = 0
+const dragOnce = () => {
+  moved += 9
+  fireEvent.pointerDown(map(), { pointerId: 1, clientX: 200, clientY: 300 })
+  fireEvent.pointerMove(map(), { pointerId: 1, clientX: 200 + moved, clientY: 300 })
+  fireEvent.pointerUp(map(), { pointerId: 1, clientX: 200 + moved, clientY: 300 })
+}
 const cityArea = () => screen.getByRole('button', { name: /^กรุงเทพฯ:/ })
 
 it('goes one level in on a double click inside the city, and opens no sheet on the way', async () => {
-  const user = userEvent.setup()
   openApp('/app')
-  await user.dblClick(cityArea())
+  await waitFor(() => expect(zoomIn()).toBeEnabled())
+  doubleClickInside(cityArea())
   expect(map()).toHaveAttribute('data-level', 'district')
   await new Promise((done) => setTimeout(done, 350))
   expect(screen.queryByRole('dialog')).toBeNull()
@@ -283,4 +299,58 @@ it('opens the sheet of an area from the keyboard at once', async () => {
   cityArea().focus()
   await user.keyboard('{Enter}')
   expect(screen.getByRole('dialog')).toBeInTheDocument()
+})
+
+// ---- found by the final code review --------------------------------------------------------------
+const bare = (over = {}) => render(<RealMap areas={[]} cityState="no_data" carePoints={CARE_POINTS} phase={1} showSignal onSelectArea={() => {}} onSelectCarePoint={() => {}} {...over} />)
+
+it('stays where it is and says why when a double click asks for a place with no deeper map', async () => {
+  bare()
+  await waitFor(() => expect(zoomIn()).toBeEnabled())
+  fireEvent.doubleClick(map(), { clientX: 4, clientY: 4 })
+  expect(map()).toHaveAttribute('data-level', 'city')
+  expect(screen.getByText(th.map.noDetail)).toBeInTheDocument()
+})
+it('asks for every map file together on first leaving the city level, and never again', async () => {
+  const tile = vi.fn(() => Promise.resolve({ water: [], canal: [], green: [], roads: {}, bridges: {}, rail: [], labels: [] }))
+  setMapSource(stubSource({ tile }))
+  const user = userEvent.setup()
+  bare()
+  await waitFor(() => expect(zoomIn()).toBeEnabled())
+  expect(tile).not.toHaveBeenCalled()
+  await user.click(zoomIn())
+  await waitFor(() => expect(tile).toHaveBeenCalledTimes(STUB_MANIFEST.district.length + STUB_MANIFEST.street.length))
+  dragOnce()
+  dragOnce()
+  expect(tile).toHaveBeenCalledTimes(STUB_MANIFEST.district.length + STUB_MANIFEST.street.length)
+})
+it('says so when a part of the map cannot be loaded, and does not ask again at every move', async () => {
+  const tile = vi.fn(() => Promise.reject(new Error('offline')))
+  setMapSource(stubSource({ tile }))
+  const user = userEvent.setup()
+  bare()
+  await waitFor(() => expect(zoomIn()).toBeEnabled())
+  await user.click(zoomIn())
+  expect(await screen.findByText(th.map.loadFailed)).toBeInTheDocument()
+  const asked = tile.mock.calls.length
+  dragOnce()
+  dragOnce()
+  expect(tile).toHaveBeenCalledTimes(asked)
+})
+it('still separates a grouped marker when the list of map files cannot be loaded', async () => {
+  setMapSource(stubSource({ manifest: () => Promise.reject(new Error('offline')) }))
+  const user = userEvent.setup()
+  bare()
+  await screen.findByText(th.map.loadFailed)
+  await user.click(many())
+  expect(map()).toHaveAttribute('data-level', 'district')
+})
+it('goes one level, not two, on a double click on a grouped marker', async () => {
+  openApp('/app')
+  await waitFor(() => expect(zoomIn()).toBeEnabled())
+  fireEvent.click(many(), { detail: 1 })
+  // The group has opened, so the second click and the double click land on the area now under the pointer.
+  fireEvent.click(cityArea(), { detail: 2 })
+  fireEvent.doubleClick(cityArea())
+  expect(map()).toHaveAttribute('data-level', 'district')
 })

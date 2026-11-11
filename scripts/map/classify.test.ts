@@ -10,7 +10,7 @@ it.each([
   ['poi', { class: 'school' }, null],
   ['poi', { class: 'railway', subclass: 'subway' }, 'station'],
   ['poi', { class: 'railway', subclass: 'subway_entrance' }, null],
-  ['poi', { class: 'town_hall' }, 'civic'],
+  ['poi', { class: 'town_hall', name: 'สำนักงานเขตพญาไท' }, 'civic'],
   ['poi', { class: 'place_of_worship' }, 'worship'],
   ['poi', { class: 'park' }, 'park'],
   ['transportation_name', { class: 'primary', name: 'ถนนพญาไท' }, 'road'],
@@ -36,3 +36,12 @@ it.each([
   [{ class: 'primary_construction' }, null],
   [{ class: 'ferry' }, null],
 ] as const)('classes the road %o as %s', (props, kind) => expect(roadClass(props)).toBe(kind))
+
+it('leaves out any name of a hospital, clinic, hotel or venue, whatever kind of place carries it', () => {
+  expect(labelKind('poi', { class: 'railway', subclass: 'halt', name: 'โรงพยาบาลรามาธิบดี' })).toBeNull()
+  expect(labelKind('transportation_name', { class: 'minor', name: 'ซอยโรงแรมเจริญผล' })).toBeNull()
+  expect(labelKind('poi', { class: 'town_hall', name: 'สถาบันพยาธิวิทยา' })).toBeNull()
+  expect(labelKind('poi', { class: 'town_hall', name: 'สโลว์คอมโบ' })).toBeNull()
+  expect(labelKind('poi', { class: 'town_hall', name: 'สำนักงานเขตราชเทวี' })).toBe('civic')
+  expect(labelKind('poi', { class: 'railway', subclass: 'station', name: 'พญาไท' })).toBe('station')
+})
