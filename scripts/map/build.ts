@@ -8,7 +8,7 @@ import { PbfReader } from 'pbf'
 import type { CityData, Label, LabelKind, Line, Manifest, RoadClass, Shape, TileData, TileRef, ZoneData } from '../../src/map/types.ts'
 import { CARE_POINTS } from '../../src/store/seed.ts'
 import { labelKind, roadClass } from './classify.ts'
-import { centroid, isClosed, lengthOf, simplify, simplifyRing, stitch, type LatLon } from './geometry.ts'
+import { isClosed, lengthOf, simplify, simplifyRing, stitch, type LatLon } from './geometry.ts'
 import { boundsOf, idOf, SETS, tileAt, type TileId } from './sets.ts'
 
 const CACHE = new URL('./.cache/', import.meta.url)

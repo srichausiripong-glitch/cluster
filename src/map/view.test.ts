@@ -75,6 +75,15 @@ it('lets the map be dragged a little at city level, never away, and never off th
   const far = clampView(STUB_MANIFEST, phone, { ...fit, cx: fit.cx + 1e7, cy: fit.cy - 1e7 })
   expect((far.cx - fit.cx) * fit.ppm).toBeLessThanOrEqual(390 * 0.35 + 0.01)
   expect((fit.cy - far.cy) * fit.ppm).toBeLessThanOrEqual(714 * 0.35 + 0.01)
+  // Below city level the whole screen stays on the data: dragged to the far corner, the screen's corner meets the data's corner.
   const street = clampView(STUB_MANIFEST, phone, { level: 'street', ppm: PPM.street, cx: 9e6, cy: 9e6 })
-  expect([street.cx, street.cy]).toEqual([-335, -276])
+  expect(toScreen(street, phone, [-335, -276])[0]).toBeCloseTo(390, 3)
+  expect(toScreen(street, phone, [-335, -276])[1]).toBeCloseTo(714, 3)
+})
+it('keeps the whole screen on the data when it goes one level in', () => {
+  const v = viewAt(STUB_MANIFEST, phone, 'district', at('cp9'))
+  expect(toScreen(v, phone, [-4541, -4423])[0]).toBeLessThanOrEqual(0.001)
+  expect(toScreen(v, phone, [2379, 6192])[0]).toBeGreaterThanOrEqual(390 - 0.001)
+  expect(toScreen(v, phone, [-4541, -4423])[1]).toBeLessThanOrEqual(0.001)
+  expect(toScreen(v, phone, [2379, 6192])[1]).toBeGreaterThanOrEqual(714 - 0.001)
 })

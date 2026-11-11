@@ -2,8 +2,10 @@ import { expect, it } from 'vitest'
 import type { PublishedArea } from '../domain/types'
 import { fakeCtx } from '../test/fakeCtx'
 import { paintDots, paintGround, paintLines, type Scene } from './paint'
+import { PPM } from './geo'
 import { DOT_R, EDGE, PALETTE } from './style'
-import { cityView, MAP_INSET } from './view'
+import type { TileData } from './types'
+import { cityView, MAP_INSET, type View } from './view'
 
 const size = { w: 390, h: 714, inset: MAP_INSET }
 const area = (areaId: string, state: PublishedArea['state'], density: PublishedArea['density'] = null, step: PublishedArea['step'] = null): PublishedArea => ({ areaId, state, density, step })
@@ -56,4 +58,43 @@ it('draws the edge of each signal in the dash of its age', () => {
   paintLines(f.ctx, s)
   const dashes = f.calls.filter((c) => c.name === 'setLineDash').map((c) => (c.args[0] as number[]).map((d) => Math.round(d * s.view.ppm * 10) / 10))
   expect(dashes).toContainEqual(EDGE.followup.dash)
+})
+
+// ---- only what is on the screen ----------------------------------------------------------------
+const tile = (over: Partial<TileData>): TileData => ({ water: [], canal: [], green: [], roads: {}, bridges: {}, rail: [], labels: [], ...over })
+const street: View = { level: 'street', ppm: PPM.street, cx: 0, cy: 0 }
+const district: View = { level: 'district', ppm: PPM.district, cx: 0, cy: 0 }
+/** Every point a paint asked the canvas to trace, in metres. */
+const traced = (f: ReturnType<typeof fakeCtx>) => f.calls.filter((c) => c.name === 'moveTo' || c.name === 'lineTo').map((c) => `${c.args[0]},${c.args[1]}`)
+
+it('draws only the roads, canals and buildings that are on the screen', () => {
+  const f = fakeCtx()
+  const buildings = [{ h: 12, r: [[10.5, 10.5, 30.5, 10.5, 30.5, 30.5], [7000.5, 10.5, 7030.5, 10.5, 7030.5, 30.5]], e: [[10.5, 10.5, 30.5, 10.5], [7000.5, 10.5, 7030.5, 10.5]] }]
+  paintLines(f.ctx, scene([], { view: street, tiles: [tile({ roads: { res: [[-50.5, 0.5, 50.5, 0.5], [5000.5, 5000.5, 5100.5, 5000.5]] }, canal: [[0.5, -40.5, 0.5, 40.5], [9000.5, 0.5, 9000.5, 40.5]], buildings })] }))
+  const points = traced(f)
+  for (const near of ['-50.5,0.5', '0.5,-40.5', '10.5,10.5']) expect(points, near).toContain(near)
+  for (const far of ['5000.5,5000.5', '9000.5,0.5', '7000.5,10.5']) expect(points, far).not.toContain(far)
+})
+it('leaves the built-up blocks that are out of view undrawn', () => {
+  const f = fakeCtx()
+  paintGround(f.ctx, scene([], { view: district, tiles: [tile({ blocks: [[[0.5, 0.5, 100.5, 0.5, 100.5, 100.5], [40000.5, 0.5, 40100.5, 0.5, 40100.5, 100.5]]] })] }))
+  expect(traced(f)).toContain('0.5,0.5')
+  expect(traced(f)).not.toContain('40000.5,0.5')
+})
+it('keeps a shape that reaches across the whole screen, though none of its corners is in view', () => {
+  const f = fakeCtx()
+  paintGround(f.ctx, scene([], { view: street, tiles: [tile({ green: [[[-9000.5, -9000.5, 9000.5, -9000.5, 9000.5, 9000.5, -9000.5, 9000.5]]] })] }))
+  expect(traced(f)).toContain('-9000.5,-9000.5')
+})
+it('keeps a line whose ends are both off the screen when it crosses the screen', () => {
+  const f = fakeCtx()
+  paintLines(f.ctx, scene([], { view: street, tiles: [tile({ roads: { pri: [[-8000.5, -3.5, 8000.5, 3.5]] } })] }))
+  expect(traced(f)).toContain('-8000.5,-3.5')
+})
+it('does not measure a name that is far off the screen', () => {
+  const f = fakeCtx()
+  paintLines(f.ctx, scene([], { view: street, tiles: [tile({ labels: [{ t: 'ถนนใกล้', x: 0, y: 0, k: 'road' }, { t: 'ถนนไกล', x: 6000, y: 0, k: 'road' }] })] }))
+  const measured = f.calls.filter((c) => c.name === 'measureText').map((c) => c.args[0])
+  expect(measured).toContain('ถนนใกล้')
+  expect(measured).not.toContain('ถนนไกล')
 })
