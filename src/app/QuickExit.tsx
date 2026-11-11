@@ -7,7 +7,7 @@ export function QuickExit() {
     <button
       type="button"
       onClick={() => window.location.replace('about:blank')}
-      className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-[13px] font-medium text-muted hover:bg-surface"
+      className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-[13px] font-semibold text-ink hover:bg-surface"
     >
       <LogOut size={16} strokeWidth={1.75} aria-hidden="true" />
       {th.common.quickExit}

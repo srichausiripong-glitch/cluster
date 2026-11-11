@@ -26,6 +26,7 @@ export const th = {
   map: {
     openSignal: 'ดูสัญญาณของพื้นที่',
     signalTitle: 'สัญญาณของกรุงเทพฯ',
+    signalTitleOf: 'สัญญาณของ{zone}',
     legendNotSafe: 'สีจางหรือพื้นที่ว่างไม่ได้แปลว่าปลอดภัย',
     legendWhat: 'นับจากผลที่คลินิกยืนยันและผู้ส่งยินยอมให้นับรวม ไม่ใช่สถานที่ติดเชื้อ',
     densityLabel: 'ระดับ',

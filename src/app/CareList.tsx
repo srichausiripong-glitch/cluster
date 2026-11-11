@@ -1,11 +1,10 @@
-import { ChevronRight, Radio, Waves } from 'lucide-react'
+import { ChevronRight, Waves } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
 import { CARE_POINTS, orderedCarePoints } from '../store/seed'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
-import { useEmbedTo } from './embed'
+import { SendSignalLink } from './SendSignalLink'
 import { SignalSheet } from './SignalSheet'
 import { carePointFor, useCity } from './useCity'
 
@@ -14,7 +13,6 @@ import { carePointFor, useCity } from './useCity'
  * care points. Equal to the map, not a fallback (spec 5.1, 18).
  */
 export function CareList() {
-  const to = useEmbedTo()
   const city = useCity()
   const [pointId, setPointId] = useState<string | null>(null)
   const [signalOpen, setSignalOpen] = useState(false)
@@ -44,13 +42,7 @@ export function CareList() {
       </ul>
 
       <div className="pointer-events-none sticky bottom-3 mt-3 flex justify-end">
-        <Link
-          to={to('/app/report')}
-          className="pointer-events-auto inline-flex min-h-14 items-center gap-2 rounded-full border-[2.5px] border-ink bg-care px-5 text-[17px] font-bold text-ink shadow-pop-lg"
-        >
-          <Radio size={22} strokeWidth={1.75} aria-hidden="true" />
-          {th.report.cta}
-        </Link>
+        <SendSignalLink className="pointer-events-auto" />
       </div>
 
       {signalOpen && (

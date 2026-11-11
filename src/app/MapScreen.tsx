@@ -1,8 +1,8 @@
-import { ChevronRight, Radio, Waves } from 'lucide-react'
+import { ChevronRight, Waves } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
 import { ZONES } from '../map/areas'
+import type { Level } from '../map/geo'
 import { PinMark } from '../map/legend'
 import { RealMap } from '../map/RealMap'
 import { usePartyStore } from '../store/partyStore'
@@ -10,24 +10,33 @@ import { CARE_POINTS, orderedCarePoints, PHASE2_AREAS } from '../store/seed'
 import { demo } from '../store/stores'
 import { zoneName } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
-import { useEmbedTo } from './embed'
+import { SendSignalLink } from './SendSignalLink'
 import { SignalSheet } from './SignalSheet'
 import { carePointFor, useCity } from './useCity'
 
+/** A box that can be pressed sinks onto its shadow. */
+const PRESS = 'shadow-pop transition-[transform,box-shadow] duration-75 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none'
+
 export function MapScreen() {
-  const to = useEmbedTo()
   const city = useCity()
   const { phase } = usePartyStore(demo)
   const [showCare, setShowCare] = useState(true)
   const [showSignal, setShowSignal] = useState(true)
   const [areaId, setAreaId] = useState<string | null>(null)
   const [pointId, setPointId] = useState<string | null>(null)
+  const [seen, setSeen] = useState<{ level: Level; zoneId: string | null }>({ level: 'city', zoneId: null })
 
   const areas = phase === 2 ? PHASE2_AREAS : [city]
   const selected = areaId === null ? null : areaId === 'bkk' ? city : (PHASE2_AREAS.find((a) => a.areaId === areaId) ?? city)
-  const selectedTitle = areaId && areaId !== 'bkk' ? (ZONES.find((z) => z.id === areaId)?.name ?? th.map.signalTitle) : th.map.signalTitle
+  const selectedZone = areaId && areaId !== 'bkk' ? ZONES.find((z) => z.id === areaId) : undefined
+  const selectedTitle = selectedZone ? th.map.signalTitleOf.replace('{zone}', selectedZone.name) : th.map.signalTitle
+  // In the phase 2 preview, below city level, the state box speaks for the zone in the middle of the map.
+  const zoneInView = phase === 2 && seen.level !== 'city' ? ZONES.find((z) => z.id === seen.zoneId) : undefined
+  const place = zoneInView
+    ? { id: zoneInView.id, name: zoneInView.name, state: PHASE2_AREAS.find((a) => a.areaId === zoneInView.id)?.state ?? ('no_data' as const) }
+    : { id: 'bkk', name: 'กรุงเทพฯ', state: city.state }
   const first = orderedCarePoints()[0]
-  const toggle = 'min-h-9 rounded-full border-2 border-ink px-3 text-[13px] font-bold shadow-pop'
+  const toggle = `min-h-9 rounded-full border-2 border-ink px-3 text-[13px] font-bold ${PRESS}`
 
   return (
     <div className="relative h-full overflow-hidden">
@@ -41,6 +50,7 @@ export function MapScreen() {
         selectedPoint={pointId}
         onSelectArea={setAreaId}
         onSelectCarePoint={setPointId}
+        onView={setSeen}
       />
 
       <div className="absolute inset-x-3 top-3 flex flex-wrap items-center gap-2">
@@ -56,29 +66,19 @@ export function MapScreen() {
       <button
         type="button"
         aria-label={th.map.openSignal}
-        onClick={() => setAreaId('bkk')}
-        className="absolute left-3 top-14 flex min-h-11 max-w-[calc(100%-5.5rem)] items-center gap-2 box px-3 text-left text-[13px] shadow-pop"
+        onClick={() => setAreaId(place.id)}
+        className={`absolute left-3 top-14 flex min-h-11 max-w-[calc(100%-5.5rem)] items-center gap-2 rounded-md border-2 border-ink bg-yellow px-3 text-left text-[13px] text-ink ${PRESS}`}
       >
-        <Waves size={18} strokeWidth={1.75} className="shrink-0 text-signal-edge" aria-hidden="true" />
+        <Waves size={18} strokeWidth={2} className="shrink-0" aria-hidden="true" />
         <span>
-          <span className="font-semibold">กรุงเทพฯ</span> <span className="text-muted">{th.map.state[city.state]}</span>
+          <span className="font-bold">{place.name}</span> {th.map.state[place.state]}
         </span>
-        <ChevronRight size={16} strokeWidth={1.75} className="shrink-0 text-muted" aria-hidden="true" />
+        <ChevronRight size={16} strokeWidth={2.25} className="shrink-0" aria-hidden="true" />
       </button>
 
-      <Link
-        to={to('/app/report')}
-        className="absolute bottom-[5.25rem] right-3 inline-flex min-h-14 items-center gap-2 rounded-full border-[2.5px] border-ink bg-care px-5 text-[17px] font-bold text-ink shadow-pop-lg"
-      >
-        <Radio size={22} strokeWidth={1.75} aria-hidden="true" />
-        {th.report.cta}
-      </Link>
+      <SendSignalLink className="absolute bottom-[5.25rem] right-3" />
 
-      <button
-        type="button"
-        onClick={() => setPointId(first.id)}
-        className="absolute inset-x-3 bottom-3 flex min-h-16 items-center gap-3 box px-3 text-left shadow-pop"
-      >
+      <button type="button" onClick={() => setPointId(first.id)} className={`absolute inset-x-3 bottom-3 flex min-h-16 items-center gap-3 box px-3 text-left ${PRESS}`}>
         <PinMark kind={first.kind} />
         <span className="min-w-0 flex-1">
           <span className="block text-[12px] text-muted">{th.map.nearest}</span>

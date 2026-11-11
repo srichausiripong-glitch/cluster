@@ -76,7 +76,10 @@
   0% { transform: scale(1); opacity: 0.5; }
   60%, 100% { transform: scale(1.22, 1.55); opacity: 0; }
 }
-.ripple { position: relative; }
+@layer components {
+  /* In a layer, so that a position utility on the same element still wins. */
+  .ripple { position: relative; }
+}
 .ripple::before,
 .ripple::after {
   content: "";
