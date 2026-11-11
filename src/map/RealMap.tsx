@@ -1,5 +1,5 @@
 import { Minus, Plus } from 'lucide-react'
-import { useEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 import { th } from '../copy/th'
 import type { AreaState, PublishedArea } from '../domain/types'
 import type { CarePoint } from '../store/seed'
@@ -43,6 +43,8 @@ const DRAG_PX = 6
 const LIVE_MS = 8
 /** A finger that has not moved for this long is resting: the map is drawn where it now is. */
 const REST_MS = 120
+/** How long one click on an area waits for a second: two clicks go one level in, one opens the area's sheet. */
+const DOUBLE_MS = 250
 
 const round = (n: number) => Math.round(n * 10) / 10
 const press = (run: () => void) => (e: KeyboardEvent) => {
@@ -90,6 +92,8 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
   const carried = useRef(false)
   const rested = useRef(false)
   const rest = useRef<ReturnType<typeof setTimeout>>(undefined)
+  /** An area that was clicked once and is waiting to see whether a second click follows. */
+  const picking = useRef<ReturnType<typeof setTimeout>>(undefined)
   const [, redraw] = useReducer((n: number) => n + 1, 0)
   const lastLevel = useRef<{ level: Level; ppm: number } | null>(null)
 
@@ -141,6 +145,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
       alive.current = false
       clearTimeout(settle)
       clearTimeout(rest.current)
+      clearTimeout(picking.current)
     }
   }, [])
 
@@ -261,6 +266,17 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
     setStored(manifest ? viewAt(manifest, size, to, target) : { level: to, ppm: PPM[to], cx: target[0], cy: target[1] })
   }
 
+  /**
+   * The areas cover the whole city, so the first click of a double click always lands on one. It
+   * must not open that area's sheet, or the sheet would swallow the second click: a click waits a
+   * moment, and a second click drops it and leaves the map to go one level in. The keyboard opens at once.
+   */
+  const pickArea = (areaId: string) => (e: MouseEvent) => {
+    clearTimeout(picking.current)
+    if (e.detail > 1) return
+    picking.current = setTimeout(() => onSelectArea(areaId), DOUBLE_MS)
+  }
+
   const local = (e: { clientX: number; clientY: number }): XY => {
     const rect = wrap.current?.getBoundingClientRect()
     return [e.clientX - (rect?.left ?? 0), e.clientY - (rect?.top ?? 0)]
@@ -344,7 +360,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
         </div>
         <svg width={size.w} height={size.h} className="absolute left-0 top-0" role="group" aria-label={th.map.source}>
           <g transform={`translate(${round(ox)} ${round(oy)}) scale(${shown.ppm})`}>
-            <path d={CITY_PATH} fill="transparent" role="button" tabIndex={0} aria-label={`กรุงเทพฯ: ${th.map.state[cityState]}`} className="map-area cursor-pointer" onClick={() => onSelectArea('bkk')} onKeyDown={press(() => onSelectArea('bkk'))} />
+            <path d={CITY_PATH} fill="transparent" role="button" tabIndex={0} aria-label={`กรุงเทพฯ: ${th.map.state[cityState]}`} className="map-area cursor-pointer" onClick={pickArea('bkk')} onKeyDown={press(() => onSelectArea('bkk'))} />
             {phase === 2 &&
               ZONES.map((z) => (
                 <path
@@ -355,7 +371,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
                   tabIndex={0}
                   aria-label={`${z.name}: ${th.map.state[byId.get(z.id)?.state ?? 'no_data']}`}
                   className="map-area cursor-pointer"
-                  onClick={() => onSelectArea(z.id)}
+                  onClick={pickArea(z.id)}
                   onKeyDown={press(() => onSelectArea(z.id))}
                 />
               ))}
