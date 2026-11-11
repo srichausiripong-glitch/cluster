@@ -180,3 +180,14 @@ it('shows what a state care point costs as a green tag', async () => {
   await user.click(screen.getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
   expect(within(screen.getByRole('dialog')).getByText('ฟรีตามสิทธิ').className).toMatch(/\bbg-leaf\b/)
 })
+it('keeps a sheet open when a second tap lands on the veil in the instant after it opened', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  await user.click(screen.getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
+  const veil = screen.getByRole('dialog').previousElementSibling as HTMLElement
+  await user.click(veil)
+  expect(screen.getByRole('dialog')).toBeInTheDocument()
+  await new Promise((done) => setTimeout(done, 350))
+  await user.click(veil)
+  expect(screen.queryByRole('dialog')).toBeNull()
+})

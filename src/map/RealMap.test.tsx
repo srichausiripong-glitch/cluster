@@ -259,3 +259,28 @@ it('draws at once when the level changes, however slow drawing is', async () => 
   expect(fake.calls.length).toBeGreaterThan(atDistrict)
   expect(picture().style.transform).toBe('')
 })
+
+// ---- one click or two --------------------------------------------------------------------------
+const cityArea = () => screen.getByRole('button', { name: /^กรุงเทพฯ:/ })
+
+it('goes one level in on a double click inside the city, and opens no sheet on the way', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  await user.dblClick(cityArea())
+  expect(map()).toHaveAttribute('data-level', 'district')
+  await new Promise((done) => setTimeout(done, 350))
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+it('opens the sheet of an area on one click, after the short wait that tells it from a double click', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  await user.click(cityArea())
+  expect(await screen.findByRole('dialog')).toHaveAttribute('aria-label', th.map.signalTitle)
+})
+it('opens the sheet of an area from the keyboard at once', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  cityArea().focus()
+  await user.keyboard('{Enter}')
+  expect(screen.getByRole('dialog')).toBeInTheDocument()
+})
