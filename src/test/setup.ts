@@ -6,8 +6,11 @@ import { setCarePoints } from '../data/carePoints'
 import { FIXTURE_POINTS } from './carePoints'
 import { stubSource } from './mapStub'
 
+// Server tests run in Node (marked `@vitest-environment node`), where there is no page.
+const browser = typeof window !== 'undefined'
+
 // jsdom has no canvas. The map draws nothing without a context; what it draws is tested with a recording stand-in.
-HTMLCanvasElement.prototype.getContext = (() => null) as typeof HTMLCanvasElement.prototype.getContext
+if (browser) HTMLCanvasElement.prototype.getContext = (() => null) as typeof HTMLCanvasElement.prototype.getContext
 
 beforeEach(() => {
   setMapSource(stubSource())
@@ -15,6 +18,7 @@ beforeEach(() => {
   setCarePoints(FIXTURE_POINTS)
 })
 afterEach(() => {
+  if (!browser) return
   cleanup()
   localStorage.clear()
   sessionStorage.clear()

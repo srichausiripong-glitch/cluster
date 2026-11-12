@@ -44,9 +44,9 @@ it('has street-level and district-level map round the four care points of the pi
   for (const id of ['cp1', 'cp2', 'cp4', 'cp5']) expect(manifest.street.some((ref) => inBox(at(id), ref.box)), id).toBe(true)
   for (const id of ['cp1', 'cp2', 'cp4', 'cp5']) expect(manifest.district.some((ref) => inBox(at(id), ref.box)), id).toBe(true)
 })
-it('adds no map library: the app still runs on the same six packages', () => {
+it('adds no map library: the app runs on its own six packages plus the database driver', () => {
   const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
-  expect(Object.keys(pkg.dependencies).sort()).toEqual(['@fontsource-variable/anuphan', 'lucide-react', 'qrcode.react', 'react', 'react-dom', 'react-router-dom'])
+  expect(Object.keys(pkg.dependencies).sort()).toEqual(['@fontsource-variable/anuphan', '@neondatabase/serverless', 'lucide-react', 'react', 'react-dom', 'react-router-dom'])
 })
 it('keeps every example care point inside its zone and at least 60 m from a real clinic or hospital', () => {
   for (const p of CARE_POINTS) {
