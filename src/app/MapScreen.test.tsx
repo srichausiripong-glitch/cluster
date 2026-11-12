@@ -1,11 +1,12 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { expect, it } from 'vitest'
+import { afterEach, expect, it } from 'vitest'
 import App from '../App'
 import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
-import { seedDemo } from '../store/actions'
+import type { PublishedArea } from '../domain/types'
+import { setPublishedForTest } from '../map/published'
 import { CARE_POINTS } from '../store/seed'
 
 const openApp = (path: string) =>
@@ -14,6 +15,11 @@ const openApp = (path: string) =>
       <App />
     </MemoryRouter>,
   )
+const area = (areaId: string, state: PublishedArea['state'], density: PublishedArea['density'] = null, step: PublishedArea['step'] = null): PublishedArea => ({ areaId, state, density, step })
+/** What the weekly file says: the city thin and new, as twelve fresh reports would make it; the zones in every state. */
+const SHOWN = [area('bkk', 'shown', 'thin', 'new'), area('south', 'shown', 'dense', 'new'), area('central', 'shown', 'medium', 'followup'), area('north', 'shown', 'thin', 'expiring'), area('east', 'below_threshold'), area('thon_north', 'no_data'), area('thon_south', 'no_data')]
+const publish = (which: 'shown' | 'below') => setPublishedForTest({ week: '2026-W46', areas: which === 'shown' ? SHOWN : [area('bkk', 'below_threshold'), area('south', 'below_threshold')] })
+afterEach(() => setPublishedForTest(null))
 const openSignal = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole('button', { name: th.map.openSignal }))
   return within(screen.getByRole('dialog'))
@@ -21,7 +27,7 @@ const openSignal = async (user: ReturnType<typeof userEvent.setup>) => {
 
 it('explains that a faded or empty area is not safe, and never shows the count behind the signal', async () => {
   const user = userEvent.setup()
-  seedDemo('threshold') // 12 reports
+  publish('shown')
   openApp('/app')
   const sheet = await openSignal(user)
   expect(sheet.getByText(th.map.legendNotSafe)).toBeInTheDocument()
@@ -30,14 +36,14 @@ it('explains that a faded or empty area is not safe, and never shows the count b
 })
 it('shows the below-threshold state as its own visible state', async () => {
   const user = userEvent.setup()
-  seedDemo('pilot')
+  publish('below')
   openApp('/app')
   const sheet = await openSignal(user)
   expect(sheet.getByRole('heading', { name: th.map.state.below_threshold })).toBeInTheDocument()
 })
 it('teaches every mark in the legend: dot sizes, edges, quiet states and pin shapes', async () => {
   const user = userEvent.setup()
-  seedDemo('threshold')
+  publish('shown')
   openApp('/app')
   const sheet = await openSignal(user)
   expect(sheet.getByText(th.map.key)).toBeInTheDocument()
@@ -49,7 +55,7 @@ it('teaches every mark in the legend: dot sizes, edges, quiet states and pin sha
 })
 it('pairs the signal sheet with a care point', async () => {
   const user = userEvent.setup()
-  seedDemo('pilot')
+  publish('below')
   openApp('/app')
   const sheet = await openSignal(user)
   expect(sheet.getByText(th.map.pair)).toBeInTheDocument()
@@ -65,14 +71,14 @@ it('moves focus into a sheet, closes it on Escape and returns focus to what open
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(opener).toHaveFocus()
 })
-it('names the city by its published state, and makes every zone reachable in the phase 2 preview', () => {
-  seedDemo('threshold')
+it('names the city by its published state, and makes every zone reachable', () => {
+  publish('shown')
   const view = openApp('/app')
   expect(screen.getByRole('button', { name: `กรุงเทพฯ: ${th.map.state.shown}` })).toBeInTheDocument()
   view.unmount()
-  openApp('/app?phase=2')
+  openApp('/app')
   expect(screen.getByRole('button', { name: `กรุงเทพใต้: ${th.map.state.shown}` })).toHaveAttribute('tabindex', '0')
-  expect(screen.getByRole('button', { name: `กรุงธนใต้: ${th.map.state.no_partner}` })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: `กรุงธนใต้: ${th.map.state.no_data}` })).toBeInTheDocument()
 })
 it('gives every marker a 44 px target and marks the selected one', async () => {
   const user = userEvent.setup()
@@ -91,7 +97,7 @@ it('offers a list view with every care point', () => {
 })
 it('carries the area signal and the send-signal button on the list, as on the map', async () => {
   const user = userEvent.setup()
-  seedDemo('pilot')
+  publish('below')
   openApp('/app/list')
   expect(screen.getByRole('link', { name: th.report.cta })).toHaveAttribute('href', '/app/report')
   const sheet = await openSignal(user)
@@ -136,9 +142,9 @@ it('marks the current tab by a filled shape, not by colour alone', () => {
   expect(current.querySelector('[data-active-pill]')).not.toBeNull()
   expect(screen.getByRole('link', { name: th.nav.map }).querySelector('[data-active-pill]')).toBeNull()
 })
-it('names the zone in view, in place of the city, once the map is below city level in the phase 2 preview', async () => {
+it('names the zone in view, in place of the city, once the map is below city level', async () => {
   const user = userEvent.setup()
-  openApp('/app?phase=2')
+  openApp('/app')
   const state = screen.getByRole('button', { name: th.map.openSignal })
   expect(state).toHaveTextContent('กรุงเทพฯ')
   await user.click(screen.getByRole('button', { name: th.map.zoomIn }))
@@ -150,15 +156,6 @@ it('names the zone in view, in place of the city, once the map is below city lev
   await user.click(screen.getByRole('button', { name: th.map.zoomOut }))
   expect(state).toHaveTextContent('กรุงเทพฯ')
 })
-it('keeps naming the city below city level while the zones are not open yet', async () => {
-  const user = userEvent.setup()
-  openApp('/app')
-  await user.click(screen.getByRole('button', { name: th.map.zoomIn }))
-  const state = screen.getByRole('button', { name: th.map.openSignal })
-  expect(state).toHaveTextContent('กรุงเทพฯ')
-  await user.click(state)
-  expect(screen.getByRole('dialog')).toHaveAttribute('aria-label', th.map.signalTitle)
-})
 it('shows the state of the city in a yellow box and the send button in pink with a ripple', () => {
   openApp('/app')
   expect(screen.getByRole('button', { name: th.map.openSignal }).className).toMatch(/\bbg-yellow\b/)
@@ -168,7 +165,7 @@ it('shows the state of the city in a yellow box and the send button in pink with
 })
 it('marks the value that applies now with a yellow tag', async () => {
   const user = userEvent.setup()
-  seedDemo('threshold')
+  publish('shown')
   openApp('/app')
   const sheet = await openSignal(user)
   const tags = sheet.getAllByText(th.map.current)

@@ -1,11 +1,8 @@
 import { LifeBuoy, List, Map as MapIcon, UserRound } from 'lucide-react'
-import { useEffect } from 'react'
-import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import { NavLink, Route, Routes } from 'react-router-dom'
 import { th } from '../copy/th'
 import { Logo } from '../design/Logo'
-import { logConnection } from '../store/actions'
 import { CareList } from './CareList'
-import { useEmbedTo } from './embed'
 import { HarmReport } from './HarmReport'
 import { HelpNow } from './HelpNow'
 import { MapScreen } from './MapScreen'
@@ -22,12 +19,6 @@ const NAV = [
 ]
 
 export function AppShell() {
-  const location = useLocation()
-  const to = useEmbedTo()
-  // What a web server would log for any page view: a time and a path, nothing about health.
-  useEffect(() => {
-    logConnection(location.pathname)
-  }, [location.pathname])
 
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col bg-bg">
@@ -49,7 +40,7 @@ export function AppShell() {
       </div>
       <nav aria-label="เมนูหลัก" className="grid h-[3.75rem] shrink-0 grid-cols-4 border-t-[2.5px] border-ink bg-surface">
         {NAV.map(({ path, label, icon: Icon, end }) => (
-          <NavLink key={path} to={to(path)} end={end} className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 text-[12px] text-ink ${isActive ? 'font-bold' : 'font-medium'}`}>
+          <NavLink key={path} to={path} end={end} className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 text-[12px] text-ink ${isActive ? 'font-bold' : 'font-medium'}`}>
             {({ isActive }) => (
               <>
                 {/* The current tab is told by a filled shape round its icon, not by colour alone. */}

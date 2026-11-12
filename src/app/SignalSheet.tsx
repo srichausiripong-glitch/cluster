@@ -4,7 +4,8 @@ import type { PublishedArea } from '../domain/types'
 import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
 import { DotSwatch, EdgeSample, PinMark, QuietSwatch } from '../map/legend'
-import { OFFICIAL_FIGURES, type CarePoint } from '../store/seed'
+import { OFFICIAL } from '../data/official'
+import type { CarePoint } from '../store/seed'
 import { CarePointRow } from './CarePointRow'
 
 const DENSITIES = ['thin', 'medium', 'dense'] as const
@@ -106,19 +107,26 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
         ))}
       </ul>
 
-      <h3 className="mb-1 mt-4 flex items-center gap-2 text-[13px] font-medium text-muted">
-        {th.map.official} <Chip>{th.common.sample}</Chip>
-      </h3>
-      <dl className="space-y-1 text-[15px]">
-        {OFFICIAL_FIGURES.map((f) => (
-          <div key={f.label}>
-            <dt>
-              {f.label} <span className="text-[13px] text-muted">({f.period})</span>
-            </dt>
-            <dd className="text-muted">{f.value}</dd>
-          </div>
-        ))}
-      </dl>
+      {OFFICIAL.length > 0 && (
+        <>
+          <h3 className="mb-1 mt-4 text-[13px] font-medium text-muted">{th.map.official}</h3>
+          <dl className="space-y-1 text-[15px]">
+            {OFFICIAL.map((f) => (
+              <div key={f.label}>
+                <dt>
+                  {f.label} <span className="text-[13px] text-muted">({f.period})</span>
+                </dt>
+                <dd className="text-muted">
+                  {f.value} ·{' '}
+                  <a href={f.source} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+                    {th.map.officialSource}
+                  </a>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </>
+      )}
     </Sheet>
   )
 }

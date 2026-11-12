@@ -1,21 +1,20 @@
 import { useState } from 'react'
 import { th } from '../copy/th'
-import { SOFT } from '../design/look'
+import { ALERT, SOFT } from '../design/look'
 import { Button } from '../design/primitives/Button'
-import { submitHarmReport } from '../store/actions'
-import { useEmbedTo } from './embed'
+import { HARM_KINDS, sendHarmReport, type HarmKind } from './harm'
 import { FlowHeader } from './FlowHeader'
 
-const KINDS = ['violence', 'outed', 'coerced', 'false_notice', 'other'] as const
+const KINDS = HARM_KINDS
 
 /** Fixed choices only: no free text, so nothing identifying can be typed in by mistake (spec 3.1, 5.8). */
 export function HarmReport() {
-  const to = useEmbedTo()
-  const [kind, setKind] = useState<(typeof KINDS)[number] | null>(null)
+  const [kind, setKind] = useState<HarmKind | null>(null)
   const [sent, setSent] = useState(false)
+  const [failed, setFailed] = useState(false)
   return (
     <main className="p-4">
-      <FlowHeader title={th.harm.title} backTo={to('/app/me')} />
+      <FlowHeader title={th.harm.title} backTo={'/app/me'} />
       {sent ? (
         <p className={`p-4 ${SOFT}`}>{th.harm.thanks}</p>
       ) : (
@@ -31,14 +30,20 @@ export function HarmReport() {
             size="lg"
             className="mt-3 w-full"
             disabled={!kind}
-            onClick={() => {
+            onClick={async () => {
               if (!kind) return
-              submitHarmReport(kind)
-              setSent(true)
+              const ok = await sendHarmReport(kind)
+              setSent(ok)
+              setFailed(!ok)
             }}
           >
             {th.harm.send}
           </Button>
+          {failed && (
+            <p role="alert" className={`px-3 py-2 text-[13px] font-semibold ${ALERT}`}>
+              {th.harm.failed}
+            </p>
+          )}
         </fieldset>
       )}
     </main>

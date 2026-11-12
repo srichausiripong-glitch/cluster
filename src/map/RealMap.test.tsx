@@ -9,10 +9,12 @@ import { fakeCtx } from '../test/fakeCtx'
 import { STUB_MANIFEST, stubSource } from '../test/mapStub'
 import { zoneAt } from './areas'
 import { RealMap } from './RealMap'
+import { setPublishedForTest } from './published'
 import { fetchSource, setMapSource } from './source'
 import { cityView, MAP_INSET, toScreen, viewAt } from './view'
 
 afterEach(() => {
+  setPublishedForTest(null)
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
@@ -49,7 +51,7 @@ it('credits OpenStreetMap on the map', () => {
   expect(screen.getByText(th.map.credit)).toBeInTheDocument()
 })
 it('writes the six zone names in white boxes with a black edge', () => {
-  openApp('/app?phase=2')
+  openApp('/app')
   const boxes = [...document.querySelectorAll('[data-caption]')]
   expect(boxes.map((b) => b.textContent).sort()).toEqual(['กรุงธนเหนือ', 'กรุงธนใต้', 'กรุงเทพกลาง', 'กรุงเทพตะวันออก', 'กรุงเทพเหนือ', 'กรุงเทพใต้'].sort())
   for (const b of boxes) {
@@ -132,7 +134,7 @@ it('goes down to street level where the prototype has street map at the middle o
 it('stops where the prototype has no deeper map, and says why, without going blank', async () => {
   setMapSource(stubSource({ manifest: () => Promise.resolve({ ...STUB_MANIFEST, street: [] }) }))
   const user = userEvent.setup()
-  openApp('/app?phase=2')
+  openApp('/app')
   await user.click(zoomIn())
   expect(map()).toHaveAttribute('data-level', 'district')
   expect(zoomIn()).toBeDisabled()
@@ -142,7 +144,7 @@ it('stops where the prototype has no deeper map, and says why, without going bla
 it('keeps zones, markers and sheets working when the map files cannot be loaded', async () => {
   setMapSource(stubSource({ city: () => Promise.reject(new Error('offline')) }))
   const user = userEvent.setup()
-  openApp('/app?phase=2')
+  openApp('/app')
   await waitFor(() => expect(screen.getByText(th.map.loadFailed)).toBeInTheDocument())
   // The city and its six zones.
   expect(document.querySelectorAll('.map-area')).toHaveLength(7)
@@ -199,7 +201,7 @@ it('keeps still for a person who asks for reduced motion', () => {
   vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('reduce'), addEventListener() {}, removeEventListener() {} }))
   const frames = vi.fn(() => 0)
   vi.stubGlobal('requestAnimationFrame', frames)
-  openApp('/app?phase=2')
+  openApp('/app')
   expect(map()).toHaveAttribute('data-still')
   expect(frames).not.toHaveBeenCalled()
   expect(document.querySelector('.pop-in')).toBeNull()
@@ -207,7 +209,8 @@ it('keeps still for a person who asks for reduced motion', () => {
 it('lets the newest zone breathe and the markers pop in when motion is allowed', () => {
   const frames = vi.fn(() => 0)
   vi.stubGlobal('requestAnimationFrame', frames)
-  openApp('/app?phase=2')
+  setPublishedForTest({ week: '2026-W46', areas: [{ areaId: 'south', state: 'shown', density: 'dense', step: 'new' }] })
+  openApp('/app')
   expect(map()).not.toHaveAttribute('data-still')
   expect(frames).toHaveBeenCalled()
   expect(document.querySelector('.pop-in')).not.toBeNull()

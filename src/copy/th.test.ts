@@ -11,11 +11,9 @@ function strings(value: unknown, out: string[] = []): string[] {
 }
 
 it('pins the copy the spec fixes', () => {
-  expect(th.demoBanner).toBe('ต้นแบบ ข้อมูลจำลอง')
   expect(th.draftClinical).toBe('ร่าง รอแพทย์ลงนาม')
   expect(th.map.step).toMatchObject({ new: 'เพิ่งรายงาน', followup: 'ช่วงติดตามผู้สัมผัส', expiring: 'ใกล้หมดอายุ', mixed: 'ผสม' })
   expect(th.map.state.below_threshold).toBe('ต่ำกว่าเกณฑ์')
-  expect(th.clinic.underK).toBe('น้อยกว่า 10')
   expect(th.report.cta).toBe('ส่งสัญญาณ')
 })
 it('uses none of the banned words anywhere in the copy or the advice', () => {

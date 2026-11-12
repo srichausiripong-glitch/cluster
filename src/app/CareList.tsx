@@ -7,14 +7,15 @@ import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
 import { SendSignalLink } from './SendSignalLink'
 import { SignalSheet } from './SignalSheet'
-import { carePointFor, useCity } from './useCity'
+import { useAreas } from '../map/published'
+import { carePointFor } from './useCity'
 
 /**
  * Everything the map says, as a list: the area's signal, the way to send one, and the same
  * care points. Equal to the map, not a fallback (spec 5.1, 18).
  */
 export function CareList() {
-  const city = useCity()
+  const { city } = useAreas()
   const [pointId, setPointId] = useState<string | null>(null)
   const [signalOpen, setSignalOpen] = useState(false)
   return (

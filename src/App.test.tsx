@@ -1,61 +1,41 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import { MemoryRouter } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import App from './App'
-import { th } from './copy/th'
-import { demo, pub } from './store/stores'
 
-function Where() {
-  const location = useLocation()
-  return <output aria-label="address">{location.pathname + location.search}</output>
-}
 const open = (path: string) =>
   render(
     <MemoryRouter initialEntries={[path]}>
       <App />
-      <Where />
     </MemoryRouter>,
   )
+const inApp = () => screen.getByRole('navigation', { name: 'เมนูหลัก' })
 
-it('shows the demo banner on the stage and on every back-office route', () => {
-  for (const path of ['/stage', '/clinic', '/operator', '/data']) {
+it('opens the app itself at the bare address', () => {
+  open('/')
+  expect(inApp()).toBeInTheDocument()
+})
+it('has no demo screens, seeds or phase switch', () => {
+  for (const path of ['/stage', '/clinic', '/clinic/issue', '/operator', '/data', '/design']) {
     const { unmount } = open(path)
-    expect(screen.getAllByText('ต้นแบบ ข้อมูลจำลอง').length).toBeGreaterThan(0)
+    expect(inApp()).toBeInTheDocument()
     unmount()
   }
+  open('/app?seed=threshold&phase=2')
+  const keys = Object.keys(localStorage)
+  expect(keys.filter((k) => /clinic|operator|public|ledger|demo/.test(k))).toEqual([])
+  expect(document.body.textContent).not.toContain('ตัวอย่างเฟส 2')
+  expect(document.body.textContent).not.toContain('ต้นแบบ ข้อมูลจำลอง')
 })
-it('keeps the demo banner when embed=1 is added outside a frame', () => {
-  open('/clinic?embed=1')
-  expect(screen.getByText('ต้นแบบ ข้อมูลจำลอง')).toBeInTheDocument()
-})
-it('seeds a demo scenario and the phase from the URL, then drops them from the address so a reload does not wipe the demo', () => {
-  open('/app?embed=1&seed=threshold&phase=2')
-  expect(pub.get().files).toHaveLength(1)
-  expect(demo.get()).toMatchObject({ phase: 2, seed: 'threshold' })
-  expect(screen.getByRole('status', { name: 'address' })).toHaveTextContent('/app?embed=1')
-})
-
-it('opens the app itself at the bare address, and keeps the pitch stage at /stage', () => {
-  render(
-    <MemoryRouter initialEntries={['/']}>
-      <App />
-    </MemoryRouter>,
-  )
-  expect(screen.getByRole('navigation', { name: 'เมนูหลัก' })).toBeInTheDocument()
-  expect(screen.queryByText(th.stage.title)).toBeNull()
-})
-it('shows no prototype strip in the app itself, and keeps it on the stage', () => {
-  const view = render(
-    <MemoryRouter initialEntries={['/app']}>
-      <App />
-    </MemoryRouter>,
-  )
-  expect(screen.queryByText(th.demoBanner)).toBeNull()
-  view.unmount()
-  render(
-    <MemoryRouter initialEntries={['/stage']}>
-      <App />
-    </MemoryRouter>,
-  )
-  expect(screen.getByText(th.demoBanner)).toBeInTheDocument()
+it('keeps a place for the public pages and the back office', () => {
+  for (const [path, name] of [
+    ['/privacy', 'นโยบายความเป็นส่วนตัว'],
+    ['/terms', 'ข้อตกลงการใช้'],
+    ['/transparency', 'รายงานความโปร่งใส'],
+    ['/admin', 'หลังบ้าน'],
+  ]) {
+    const { unmount } = open(path)
+    expect(screen.getByRole('heading', { level: 1, name })).toBeInTheDocument()
+    unmount()
+  }
 })

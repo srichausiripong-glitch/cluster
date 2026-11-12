@@ -15,7 +15,6 @@ import { Logo } from '../design/Logo'
 import { CARE_POINTS, orderedCarePoints } from '../store/seed'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
-import { useEmbedTo } from './embed'
 import { QuickExit } from './QuickExit'
 
 /** Days until the suggested re-test, per disease group (spec 6). Draft, like all clinical content. */
@@ -58,7 +57,6 @@ export function RecipientPage() {
 }
 
 function RecipientView({ hash }: { hash: string }) {
-  const to = useEmbedTo()
   const notice = decodeNotice(hash)
   const [revealed, setRevealed] = useState(false)
   const [branch, setBranch] = useState<Branch | null>(null)
@@ -176,12 +174,12 @@ function RecipientView({ hash }: { hash: string }) {
                 </li>
               ))}
             </ul>
-            <Link to={to('/app/list')} className={`mt-3 ${QUIET_LINK}`}>
+            <Link to={'/app/list'} className={`mt-3 ${QUIET_LINK}`}>
               {th.common.openList}
             </Link>
           </section>
 
-          <Link to={to('/app/harm')} className={`flex min-h-11 items-center text-[13px] ${TEXT_LINK}`}>
+          <Link to={'/app/harm'} className={`flex min-h-11 items-center text-[13px] ${TEXT_LINK}`}>
             {th.recipient.harm}
           </Link>
           <CarePointSheet point={CARE_POINTS.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />

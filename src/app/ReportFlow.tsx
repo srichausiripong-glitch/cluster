@@ -1,16 +1,14 @@
-import { Ban, Check as CheckIcon, CircleAlert, Phone, Smartphone } from 'lucide-react'
+import { Ban, Check as CheckIcon, Phone, Smartphone } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
-import { codeKind } from '../domain/codes'
 import type { DiseaseGroup, ReportSource } from '../domain/types'
-import { ALERT, PRIMARY_LINK, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
+import { PRIMARY_LINK, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Stepper } from '../design/primitives/Stepper'
-import { claimCodeOnPhone, consentCityCount, MAPPED_GROUPS, saveCard } from '../store/actions'
+import { saveCard } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
-import { useEmbedTo } from './embed'
 import { Check, Choice, FlowHeader } from './FlowHeader'
 
 const GROUPS: DiseaseGroup[] = ['gono_chlam', 'syphilis', 'mpox', 'hiv']
@@ -22,43 +20,25 @@ const SOURCES: Record<DiseaseGroup, ReportSource[]> = {
   hiv: ['clinic_code', 'hiv_self_test'],
 }
 type Outcome = 'counted' | 'kept' | 'nothing'
-type CodeError = 'unknown' | 'slip' | 'fastTrack'
-const CODE_ERROR: Record<CodeError, string> = { unknown: th.report.codeBad, slip: th.report.codeIsSlip, fastTrack: th.report.codeIsFastTrack }
 const OUTCOME_ICON = { counted: CheckIcon, kept: Smartphone, nothing: Ban } as const
 const primaryLink = PRIMARY_LINK
 const quietLink = QUIET_LINK
 
 export function ReportFlow() {
-  const to = useEmbedTo()
   const [step, setStep] = useState(0)
   const [group, setGroup] = useState<DiseaseGroup | null>(null)
   const [source, setSource] = useState<ReportSource | null>(null)
-  const [codeText, setCodeText] = useState('')
-  const [codeError, setCodeError] = useState<CodeError | null>(null)
-  // A checked clinic code lives here, in memory. It is never written to the phone, and the
-  // phone never learns its result: every valid code leads to the same screen (spec 3).
-  const [code, setCode] = useState<string | null>(null)
+  // Until the envelope (v1 plan, Task 6 and 9) nothing leaves the phone; the area box is not offered.
+  const code = null
   const [addToArea, setAddToArea] = useState(false)
   const [keepCard, setKeepCard] = useState(false)
   const [result, setResult] = useState<{ outcome: Outcome; kept: boolean; checked: boolean; oldCard: boolean } | null>(null)
   const { card } = usePartyStore(phone)
 
-  // HIV never reaches the map; mpox area information comes from official figures only.
-  const canAddToArea = code !== null && group !== null && MAPPED_GROUPS.includes(group)
+  const canAddToArea = false
   const willCount = canAddToArea && addToArea
 
-  const submitCode = () => {
-    const kind = codeKind(codeText)
-    if (kind === 'slip' || kind === 'fastTrack') return setCodeError(kind)
-    const id = codeText.trim().toUpperCase()
-    if (!claimCodeOnPhone(id).ok) return setCodeError('unknown')
-    setCodeError(null)
-    setCode(id)
-    setStep(2)
-  }
-
   const finish = () => {
-    if (willCount && code && group) consentCityCount(code, group)
     if (keepCard && group && source) saveCard({ group, source, sentAt: new Date().toISOString(), hasClinicCode: code !== null })
     // The receipt speaks for the whole phone, not for this pass alone: a card kept earlier is still there.
     setResult({ outcome: willCount ? 'counted' : keepCard ? 'kept' : 'nothing', kept: keepCard, checked: code !== null, oldCard: !keepCard && card !== null })
@@ -67,14 +47,14 @@ export function ReportFlow() {
 
   const OutcomeIcon = result ? OUTCOME_ICON[result.outcome] : CheckIcon
   const notifyLink = (cls: string) => (
-    <Link to={to('/app/notify')} state={{ group, hasClinicCode: code !== null }} className={cls}>
+    <Link to={'/app/notify'} state={{ group, hasClinicCode: code !== null }} className={cls}>
       {th.report.goNotify}
     </Link>
   )
 
   return (
     <main className="p-4">
-      <FlowHeader title={th.report.cta} backTo={to('/app')} onBack={step > 0 && step < 3 ? () => setStep(step - 1) : undefined} />
+      <FlowHeader title={th.report.cta} backTo={'/app'} onBack={step > 0 && step < 3 ? () => setStep(step - 1) : undefined} />
       <Stepper steps={[...th.report.steps]} current={step} />
 
       {step === 0 && (
@@ -90,8 +70,6 @@ export function ReportFlow() {
                 // A new group starts clean: no source, no code, and no box left ticked from before.
                 setGroup(g)
                 setSource(null)
-                setCode(null)
-                setCodeError(null)
                 setAddToArea(false)
                 setKeepCard(false)
                 setStep(1)
@@ -113,57 +91,14 @@ export function ReportFlow() {
               onClick={() => {
                 setSource(s)
                 if (s !== 'clinic_code') {
-                  setCode(null)
                   setStep(2)
                 }
               }}
             />
           ))}
-          {source === 'clinic_code' && (
-            <form
-              className="box p-4"
-              onSubmit={(e) => {
-                e.preventDefault()
-                submitCode()
-              }}
-            >
-              <label htmlFor="clinic-code" className="mb-1 block text-[13px] font-semibold">
-                {th.report.codeInput}
-              </label>
-              <div className="flex gap-2">
-                <input
-                  id="clinic-code"
-                  value={codeText}
-                  onChange={(e) => {
-                    setCodeText(e.target.value)
-                    setCodeError(null)
-                  }}
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  inputMode="text"
-                  aria-invalid={codeError !== null}
-                  aria-describedby={`clinic-code-format${codeError ? ' clinic-code-error' : ''}`}
-                  className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-bold uppercase tracking-widest"
-                />
-                <Button type="submit" disabled={codeText.trim() === ''}>
-                  {th.report.useCode}
-                </Button>
-              </div>
-              {codeError && (
-                <p id="clinic-code-error" role="alert" className={`mt-2 flex items-start gap-2 px-3 py-2 text-[13px] font-semibold ${ALERT}`}>
-                  <CircleAlert size={18} strokeWidth={2} className="mt-0.5 shrink-0" aria-hidden="true" />
-                  {CODE_ERROR[codeError]}
-                </p>
-              )}
-              <p id="clinic-code-format" className="mt-2 text-[13px] text-muted">
-                {th.report.codeFormat}
-              </p>
-              <p className="text-[13px] text-muted">{th.report.codeCheckNote}</p>
-            </form>
-          )}
           <div className="box flex flex-wrap items-center justify-between gap-x-3 px-4 py-3">
             <p className="min-w-0 flex-1 text-[13px]">{group === 'syphilis' ? th.report.noCodeSyphilis : th.report.noCodeOther}</p>
-            <Link to={to('/app/list')} className={`inline-flex min-h-11 items-center ${TEXT_LINK}`}>
+            <Link to={'/app/list'} className={`inline-flex min-h-11 items-center ${TEXT_LINK}`}>
               {th.report.findCare}
             </Link>
           </div>
@@ -199,13 +134,13 @@ export function ReportFlow() {
 
           <h3 className="text-[13px] font-medium text-muted">{th.report.next}</h3>
           {source === 'symptoms' && (
-            <Link to={to('/app/list')} className={primaryLink}>
+            <Link to={'/app/list'} className={primaryLink}>
               {th.report.nextTest}
             </Link>
           )}
           {source === 'hiv_self_test' && (
             <>
-              <Link to={to('/app/list')} className={primaryLink}>
+              <Link to={'/app/list'} className={primaryLink}>
                 {th.report.nextConfirm}
               </Link>
               <a href="tel:1663" className={quietLink}>
@@ -215,7 +150,7 @@ export function ReportFlow() {
             </>
           )}
           {notifyLink(source === 'clinic_code' ? primaryLink : quietLink)}
-          <Link to={to('/app')} className={quietLink}>
+          <Link to={'/app'} className={quietLink}>
             {th.report.backToMap}
           </Link>
         </section>

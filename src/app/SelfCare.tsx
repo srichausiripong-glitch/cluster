@@ -8,7 +8,6 @@ import { Card } from '../design/primitives/Card'
 import { wipePhone } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
-import { useEmbedTo } from './embed'
 
 /** How long a kept card stays on the phone, per disease group, in days (spec 7.3 bands; HIV and mpox use 28). */
 const CARD_DAYS = { gono_chlam: 28, syphilis: 84, mpox: 28, hiv: 28 } as const
@@ -24,7 +23,6 @@ function downloadReminder() {
 }
 
 export function SelfCare() {
-  const to = useEmbedTo()
   const { card } = usePartyStore(phone)
   const days = card ? Math.max(0, Math.floor((Date.now() - new Date(card.sentAt).getTime()) / 86_400_000)) : 0
   const left = card ? Math.max(0, CARD_DAYS[card.group] - days) : 0
@@ -64,10 +62,10 @@ export function SelfCare() {
       </Card>
 
       {/* "Later" in the telling flow promises a way back; this is it. */}
-      <Link to={to('/app/notify')} className={QUIET_LINK}>
+      <Link to={'/app/notify'} className={QUIET_LINK}>
         {th.report.goNotify}
       </Link>
-      <Link to={to('/app/harm')} className={QUIET_LINK}>
+      <Link to={'/app/harm'} className={QUIET_LINK}>
         {th.me.harm}
       </Link>
     </main>

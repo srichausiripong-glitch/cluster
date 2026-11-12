@@ -5,33 +5,30 @@ import { PRESS } from '../design/look'
 import { ZONES } from '../map/areas'
 import type { Level } from '../map/geo'
 import { PinMark } from '../map/legend'
+import { useAreas } from '../map/published'
 import { RealMap } from '../map/RealMap'
-import { usePartyStore } from '../store/partyStore'
-import { CARE_POINTS, orderedCarePoints, PHASE2_AREAS } from '../store/seed'
-import { demo } from '../store/stores'
+import { CARE_POINTS, orderedCarePoints } from '../store/seed'
 import { zoneName } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
 import { SendSignalLink } from './SendSignalLink'
 import { SignalSheet } from './SignalSheet'
-import { carePointFor, useCity } from './useCity'
+import { carePointFor } from './useCity'
 
 export function MapScreen() {
-  const city = useCity()
-  const { phase } = usePartyStore(demo)
+  const { zones, city, byId } = useAreas()
   const [showCare, setShowCare] = useState(true)
   const [showSignal, setShowSignal] = useState(true)
   const [areaId, setAreaId] = useState<string | null>(null)
   const [pointId, setPointId] = useState<string | null>(null)
   const [seen, setSeen] = useState<{ level: Level; zoneId: string | null }>({ level: 'city', zoneId: null })
 
-  const areas = phase === 2 ? PHASE2_AREAS : [city]
-  const selected = areaId === null ? null : areaId === 'bkk' ? city : (PHASE2_AREAS.find((a) => a.areaId === areaId) ?? city)
+  const selected = areaId === null ? null : byId(areaId)
   const selectedZone = areaId && areaId !== 'bkk' ? ZONES.find((z) => z.id === areaId) : undefined
   const selectedTitle = selectedZone ? th.map.signalTitleOf.replace('{zone}', selectedZone.name) : th.map.signalTitle
-  // In the phase 2 preview, below city level, the state box speaks for the zone in the middle of the map.
-  const zoneInView = phase === 2 && seen.level !== 'city' ? ZONES.find((z) => z.id === seen.zoneId) : undefined
+  // Below city level, the state box speaks for the zone in the middle of the map.
+  const zoneInView = seen.level !== 'city' ? ZONES.find((z) => z.id === seen.zoneId) : undefined
   const place = zoneInView
-    ? { id: zoneInView.id, name: zoneInView.name, state: PHASE2_AREAS.find((a) => a.areaId === zoneInView.id)?.state ?? ('no_data' as const) }
+    ? { id: zoneInView.id, name: zoneInView.name, state: byId(zoneInView.id).state }
     : { id: 'bkk', name: 'กรุงเทพฯ', state: city.state }
   const first = orderedCarePoints()[0]
   const toggle = `min-h-9 rounded-full border-2 border-ink px-3 text-[13px] font-bold ${PRESS}`
@@ -39,10 +36,10 @@ export function MapScreen() {
   return (
     <div className="relative h-full overflow-hidden">
       <RealMap
-        areas={areas}
+        areas={zones}
         cityState={city.state}
         carePoints={showCare ? CARE_POINTS : []}
-        phase={phase}
+        phase={2}
         showSignal={showSignal}
         selectedArea={areaId}
         selectedPoint={pointId}
@@ -58,7 +55,6 @@ export function MapScreen() {
         <button type="button" aria-pressed={showSignal} onClick={() => setShowSignal((v) => !v)} className={`${toggle} ${showSignal ? 'bg-signal text-white' : 'bg-surface text-muted'}`}>
           {th.map.layers.signal}
         </button>
-        {phase === 2 && <span className="rounded-full border-2 border-ink bg-surface px-3 py-1 text-[12px] font-bold text-ink">{th.map.phase2}</span>}
       </div>
 
       <button
