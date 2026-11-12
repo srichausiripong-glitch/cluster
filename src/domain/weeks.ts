@@ -10,6 +10,11 @@ export function isoWeek(d: Date): string {
   return `${t.getUTCFullYear()}-W${String(week).padStart(2, '0')}`
 }
 
+/** The Monday that starts an ISO week, as a date. */
+export function mondayDate(week: string): Date {
+  return new Date(mondayOf(week))
+}
+
 function mondayOf(week: string): number {
   const [year, n] = week.split('-W').map(Number)
   const jan4 = new Date(Date.UTC(year, 0, 4)) // always in week 1

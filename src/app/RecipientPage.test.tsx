@@ -10,7 +10,7 @@ import { encodeNotice } from '../domain/link'
 import { composeNotice, type NoticeInput } from '../domain/notify'
 
 const hashOf = (input: Partial<NoticeInput>) =>
-  '#' + encodeNotice(composeNotice({ group: 'syphilis', hasClinicCode: true, nameDisease: true, band: 'w4', week: '2026-W46', ...input }))
+  '#' + encodeNotice(composeNotice({ group: 'syphilis', hasLabResult: true, nameDisease: true, band: 'w4', week: '2026-W46', ...input }))
 
 function Go({ to }: { to: string }) {
   const navigate = useNavigate()
@@ -66,7 +66,7 @@ it('shows the clinic code but no disease name for an invitation that names none'
 })
 it('tells the recipient of an unnamed 72-hour link to go today, with PEP care points first', async () => {
   const user = userEvent.setup()
-  open(hashOf({ group: 'hiv', hasClinicCode: false, nameDisease: false, band: 'h72' }))
+  open(hashOf({ group: 'hiv', hasLabResult: false, nameDisease: false, band: 'h72' }))
   await reveal(user)
   expect(screen.getByRole('heading', { name: 'ควรไปวันนี้' })).toBeInTheDocument()
   expect(screen.getByText(/ไปจุดบริการวันนี้/)).toBeInTheDocument()

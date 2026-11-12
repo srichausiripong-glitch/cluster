@@ -17,7 +17,7 @@ function Bomb() {
 it('offers a reset instead of a blank page when stored data breaks a screen', async () => {
   const user = userEvent.setup()
   const quiet = vi.spyOn(console, 'error').mockImplementation(() => {})
-  saveCard({ group: 'syphilis', source: 'symptoms', sentAt: '2026-11-11T00:00:00.000Z', hasClinicCode: false })
+  saveCard({ group: 'syphilis', source: 'symptoms', sentAt: '2026-11-11T00:00:00.000Z', hasLabResult: false })
   render(
     <ErrorBoundary>
       <Bomb />

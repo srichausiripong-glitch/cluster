@@ -3,7 +3,8 @@ import type { DiseaseGroup, ExposureBand, Notice } from './types'
 
 export interface NoticeInput {
   group: DiseaseGroup
-  hasClinicCode: boolean
+  /** The sender said the result came from a clinic or a lab. */
+  hasLabResult: boolean
   nameDisease: boolean
   band: ExposureBand
   week: string
@@ -19,9 +20,9 @@ export function composeNotice(input: NoticeInput): Notice {
   return {
     v: 1,
     group: named ? input.group : null,
-    tier: input.hasClinicCode ? 1 : 2,
+    tier: input.hasLabResult ? 1 : 2,
     band: input.band,
     week: input.week,
-    code: weeklyCode(input.group, input.hasClinicCode, input.week, named),
+    code: weeklyCode(input.group, input.hasLabResult, input.week, named),
   }
 }

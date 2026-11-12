@@ -15,10 +15,10 @@ const BANDS: ExposureBand[] = ['h72', 'w2', 'w4', 'm3', 'older']
 type View = 'safety' | 'channel' | 'link' | 'slip' | 'later'
 
 /** The report step hands over the group in router state, so no disease name reaches the address bar or a server log. */
-function fromReport(state: unknown): { group: DiseaseGroup | null; hasClinicCode: boolean } {
-  const s = (state ?? {}) as { group?: unknown; hasClinicCode?: unknown }
+function fromReport(state: unknown): { group: DiseaseGroup | null; hasLabResult: boolean } {
+  const s = (state ?? {}) as { group?: unknown; hasLabResult?: unknown }
   const group = GROUPS.find((g) => g === s.group) ?? null
-  return { group, hasClinicCode: group !== null && s.hasClinicCode === true }
+  return { group, hasLabResult: group !== null && s.hasLabResult === true }
 }
 
 export function NotifyFlow() {
@@ -48,7 +48,7 @@ export function NotifyFlow() {
 
   const makeLink = () => {
     if (!group || !band) return
-    const notice = composeNotice({ group, hasClinicCode: handed.hasClinicCode, nameDisease: named, band, week: currentWeek() })
+    const notice = composeNotice({ group, hasLabResult: handed.hasLabResult, nameDisease: named, band, week: currentWeek() })
     setLink(buildLink(window.location.origin, notice))
     setCopied('no')
   }

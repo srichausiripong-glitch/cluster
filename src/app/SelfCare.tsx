@@ -5,7 +5,8 @@ import { buildIcs } from '../domain/ics'
 import { QUIET_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
-import { wipePhone } from '../store/actions'
+import { ZONES } from '../map/areas'
+import { cancelPending, wipePhone } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 
@@ -23,7 +24,7 @@ function downloadReminder() {
 }
 
 export function SelfCare() {
-  const { card } = usePartyStore(phone)
+  const { card, pending } = usePartyStore(phone)
   const days = card ? Math.max(0, Math.floor((Date.now() - new Date(card.sentAt).getTime()) / 86_400_000)) : 0
   const left = card ? Math.max(0, CARD_DAYS[card.group] - days) : 0
 
@@ -41,6 +42,16 @@ export function SelfCare() {
       ) : (
         <Card>
           <p className="text-muted">{th.me.none}</p>
+        </Card>
+      )}
+
+      {pending && (
+        <Card>
+          <h2 className="font-bold">{th.me.pendingTitle}</h2>
+          <p className="mt-1">{th.me.pendingBody.replace('{kind}', th.me.kind[pending.kind]).replace('{zone}', ZONES.find((z) => z.id === pending.zone)?.name ?? '')}</p>
+          <Button variant="secondary" className="mt-2" onClick={cancelPending}>
+            {th.me.cancelPending}
+          </Button>
         </Card>
       )}
 

@@ -1,5 +1,5 @@
-import type { DiseaseGroup } from '../domain/types'
-import { isoWeek } from '../domain/weeks'
+import type { DiseaseGroup, PendingReport } from '../domain/types'
+import { isoWeek, shiftWeek } from '../domain/weeks'
 import type { SignalCard } from './stores'
 import { phone } from './stores'
 
@@ -20,4 +20,13 @@ export function addReminder(date: string): void {
 
 export function wipePhone(): void {
   phone.reset()
+}
+
+/** Puts a report on the phone to go with the next envelope. One at a time: a new one replaces the old. */
+export function queueReport(report: PendingReport): void {
+  phone.update((s) => ({ ...s, pending: report, testedNextWeek: report.kind === 'tested' ? shiftWeek(currentWeek(), 4) : s.testedNextWeek }))
+}
+
+export function cancelPending(): void {
+  phone.update((s) => ({ ...s, pending: null }))
 }

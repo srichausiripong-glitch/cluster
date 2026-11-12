@@ -15,7 +15,7 @@ const open = (path: string) =>
       <App />
     </MemoryRouter>,
   )
-const hashOf = (input: Partial<NoticeInput>) => '#' + encodeNotice(composeNotice({ group: 'syphilis', hasClinicCode: true, nameDisease: true, band: 'w4', week: '2026-W46', ...input }))
+const hashOf = (input: Partial<NoticeInput>) => '#' + encodeNotice(composeNotice({ group: 'syphilis', hasLabResult: true, nameDisease: true, band: 'w4', week: '2026-W46', ...input }))
 /** Every element that shows clinical text, with the id it claims. */
 const shown = () => [...document.querySelectorAll<HTMLElement>('[data-clinical]')].map((el) => ({ id: el.dataset.clinical!, text: el.textContent ?? '' }))
 
