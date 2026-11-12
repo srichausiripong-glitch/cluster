@@ -1,5 +1,6 @@
 import { Clock, Phone } from 'lucide-react'
 import { useState } from 'react'
+import { clinical, isSigned } from '../copy/clinical'
 import { th } from '../copy/th'
 import { PRESS } from '../design/look'
 import { Banner } from '../design/primitives/Banner'
@@ -22,11 +23,15 @@ export function HelpNow() {
             <Clock size={20} strokeWidth={2} aria-hidden="true" />
             {th.help.pepTitle}
           </h2>
-          <span role="note" className="rounded-sm border border-white/70 px-2 py-0.5 text-[12px]">
-            {th.draftClinical}
-          </span>
+          {!isSigned('help.pep') && (
+            <span role="note" className="rounded-sm border border-white/70 px-2 py-0.5 text-[12px]">
+              {th.draftClinical}
+            </span>
+          )}
         </div>
-        <p className="mt-1 text-white/85">{th.help.pepBody}</p>
+        <p data-clinical="help.pep" className="mt-1 text-white/85">
+          {clinical('help.pep').text}
+        </p>
         <div className="mt-3 space-y-2">
           {pepPoints.map((p) => (
             <CarePointRow key={p.id} point={p} tone="dark" onOpen={() => setPointId(p.id)} />
@@ -37,9 +42,11 @@ export function HelpNow() {
       <Card>
         <div className="mb-1 flex flex-wrap items-center gap-2">
           <h2 className="text-[17px] font-bold">{th.help.mpoxTitle}</h2>
-          <Banner tone="draft">{th.draftClinical}</Banner>
+          {!isSigned('help.mpoxVaccine') && <Banner tone="draft">{th.draftClinical}</Banner>}
         </div>
-        <p className="text-muted">{th.help.mpoxBody}</p>
+        <p data-clinical="help.mpoxVaccine" className="text-muted">
+          {clinical('help.mpoxVaccine').text}
+        </p>
       </Card>
 
       <section>

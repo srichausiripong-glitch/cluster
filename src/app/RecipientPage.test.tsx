@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import App from '../App'
+import { clinical } from '../copy/clinical'
 import { th } from '../copy/th'
 import { weeklyCode } from '../domain/fastTrack'
 import { encodeNotice } from '../domain/link'
@@ -80,11 +81,11 @@ it('asks a reader of a named HIV notice which situation applies, and shows only 
   expect(screen.queryByText(/PEP ให้เร็วที่สุด/)).toBeNull()
   expect(screen.getAllByText(th.draftClinical).length).toBeGreaterThan(0)
   await user.click(screen.getByRole('button', { name: th.recipient.hiv.plhiv.label }))
-  expect(screen.getByText(th.recipient.hiv.plhiv.advice)).toBeInTheDocument()
+  expect(screen.getByText(clinical('recipient.hiv.plhiv').text)).toBeInTheDocument()
   expect(screen.queryByText(/PEP ให้เร็วที่สุด/)).toBeNull()
   await user.click(screen.getByRole('button', { name: th.recipient.hiv.within72.label }))
-  expect(screen.getByText(th.recipient.hiv.within72.advice)).toBeInTheDocument()
-  expect(screen.queryByText(th.recipient.hiv.plhiv.advice)).toBeNull()
+  expect(screen.getByText(clinical('recipient.hiv.within72').text)).toBeInTheDocument()
+  expect(screen.queryByText(clinical('recipient.hiv.plhiv').text)).toBeNull()
 })
 it('offers a quick exit, the full list of care points and the harm form', async () => {
   const user = userEvent.setup()

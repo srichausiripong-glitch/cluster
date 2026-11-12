@@ -47,4 +47,6 @@ export interface Advice {
   title: string
   steps: string[]
   urgent: boolean
+  /** The clinical register ids of the title and each step, in order. */
+  ids: { title: string; steps: string[] }
 }

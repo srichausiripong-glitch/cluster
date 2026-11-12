@@ -2,11 +2,11 @@ import { CalendarPlus, Check as Tick, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { formatThaiDate } from '../copy/format'
+import { clinical, isSigned } from '../copy/clinical'
 import { th } from '../copy/th'
 import { adviceFor } from '../domain/advice'
 import { buildIcs } from '../domain/ics'
 import { decodeNotice } from '../domain/link'
-import type { DiseaseGroup } from '../domain/types'
 import { PRESS, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
 import { Banner } from '../design/primitives/Banner'
 import { Button } from '../design/primitives/Button'
@@ -17,8 +17,6 @@ import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
 import { QuickExit } from './QuickExit'
 
-/** Days until the suggested re-test, per disease group (spec 6). Draft, like all clinical content. */
-const RETEST_DAYS: Record<DiseaseGroup | 'none', number[]> = { syphilis: [84], gono_chlam: [14], mpox: [21], hiv: [30, 90], none: [30] }
 const HIV_BRANCHES = ['plhiv', 'prep', 'within72', 'later'] as const
 type Branch = (typeof HIV_BRANCHES)[number]
 const DAY = 86_400_000
@@ -36,9 +34,9 @@ function downloadCalendar(days: number[]) {
 }
 
 /** The re-test date in words with a day count from today: the page's day counter (spec 5.5). */
-function Retest({ days, tone }: { days: number[]; tone: string }) {
+function Retest({ id, days, tone }: { id: string; days: number[]; tone: string }) {
   return (
-    <p className={`mt-3 text-[13px] ${tone}`}>
+    <p data-clinical={id} className={`mt-3 text-[13px] ${tone}`}>
       <span className="font-bold">{th.recipient.retest}</span>{' '}
       {days.map((n) => `${formatThaiDate(new Date(Date.now() + n * DAY))} (${th.recipient.inDays.replace('{n}', String(n))})`).join(' · ')}
     </p>
@@ -67,7 +65,8 @@ function RecipientView({ hash }: { hash: string }) {
   // The tier line ("watch for symptoms...") would contradict a same-day instruction, so an urgent notice shows the time only.
   const when = notice ? `${th.recipient.band}: ${th.notify.bands[notice.band]}` : null
   const meta = notice && !advice.urgent && !namedHiv ? `${th.recipient.tier[notice.tier]} · ${when}` : when
-  const retestDays = RETEST_DAYS[notice?.group ?? 'none']
+  const retestId = `retest.${notice?.group ?? 'none'}`
+  const retestDays = clinical(retestId).days ?? []
 
   // When time matters, the places that have PEP come first.
   const urgentCare = namedHiv ? branch === 'within72' : advice.urgent
@@ -96,7 +95,7 @@ function RecipientView({ hash }: { hash: string }) {
             <section className="step-in box p-4">
               <div className="mb-1 flex flex-wrap items-center gap-2">
                 <h2 className="text-[20px] font-bold">{th.group.hiv}</h2>
-                <Banner tone="draft">{th.draftClinical}</Banner>
+                {!isSigned(...HIV_BRANCHES.map((k) => `recipient.hiv.${k}`), retestId) && <Banner tone="draft">{th.draftClinical}</Banner>}
               </div>
               <p className="text-[13px] text-muted">{meta}</p>
               <p className="mt-2">{th.recipient.hivLead}</p>
@@ -119,9 +118,9 @@ function RecipientView({ hash }: { hash: string }) {
                 <div className={`step-in mt-4 p-3 ${branch === 'within72' ? `rounded-md ${URGENT}` : SOFT}`}>
                   <p className="flex items-start gap-2">
                     {branch === 'within72' && <Clock size={20} strokeWidth={2} className="mt-0.5 shrink-0 text-yellow" aria-hidden="true" />}
-                    {th.recipient.hiv[branch].advice}
+                    <span data-clinical={`recipient.hiv.${branch}`}>{clinical(`recipient.hiv.${branch}`).text}</span>
                   </p>
-                  {(branch === 'within72' || branch === 'later') && <Retest days={retestDays} tone={branch === 'within72' ? 'text-white/85' : 'text-muted'} />}
+                  {(branch === 'within72' || branch === 'later') && <Retest id={retestId} days={retestDays} tone={branch === 'within72' ? 'text-white/85' : 'text-muted'} />}
                 </div>
               )}
             </section>
@@ -130,8 +129,12 @@ function RecipientView({ hash }: { hash: string }) {
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 {/* The "go today" block stays black with white words; its title and clock are yellow. */}
                 {advice.urgent && <Clock size={20} strokeWidth={2} className="text-yellow" aria-hidden="true" />}
-                {(notice?.group || advice.urgent) && <h2 className={`text-[20px] font-bold ${advice.urgent ? 'text-yellow' : ''}`}>{advice.title}</h2>}
-                {advice.urgent ? (
+                {(notice?.group || advice.urgent) && (
+                  <h2 data-clinical={advice.ids.title} className={`text-[20px] font-bold ${advice.urgent ? 'text-yellow' : ''}`}>
+                    {advice.title}
+                  </h2>
+                )}
+                {isSigned(advice.ids.title, ...advice.ids.steps, retestId) ? null : advice.urgent ? (
                   <span role="note" className="rounded-sm border border-white/70 px-2 py-0.5 text-[12px]">
                     {th.draftClinical}
                   </span>
@@ -142,15 +145,19 @@ function RecipientView({ hash }: { hash: string }) {
               {meta && <p className={`text-[13px] ${advice.urgent ? 'text-white/85' : 'text-muted'}`}>{meta}</p>}
               <h3 className="mb-1 mt-3 text-[13px] font-bold">{th.recipient.todo}</h3>
               <ol className="list-decimal space-y-1 pl-5">
-                {advice.steps.map((step) => (
-                  <li key={step}>{step}</li>
+                {advice.steps.map((step, i) => (
+                  <li key={step} data-clinical={advice.ids.steps[i]}>
+                    {step}
+                  </li>
                 ))}
               </ol>
-              <Retest days={retestDays} tone={advice.urgent ? 'text-white/85' : 'text-muted'} />
+              <Retest id={retestId} days={retestDays} tone={advice.urgent ? 'text-white/85' : 'text-muted'} />
             </section>
           )}
 
-          <p className="rounded-md border-2 border-ink bg-bg p-3 text-[13px]">{th.recipient.pregnancy}</p>
+          <p data-clinical="recipient.pregnancy" className="rounded-md border-2 border-ink bg-bg p-3 text-[13px]">
+            {clinical('recipient.pregnancy').text}
+          </p>
 
           {notice && (
             <Card className="text-center">
