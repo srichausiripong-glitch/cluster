@@ -1,0 +1,44 @@
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
+import { afterEach, expect, it, vi } from 'vitest'
+import App from '../App'
+import { th } from '../copy/th'
+
+afterEach(() => vi.unstubAllEnvs())
+const open = (path: string) =>
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <App />
+    </MemoryRouter>,
+  )
+
+it('names who controls the data and how to reach them, from the deploy settings', () => {
+  vi.stubEnv('VITE_CONTROLLER_NAME', 'ผู้ควบคุมทดสอบ')
+  vi.stubEnv('VITE_CONTACT_EMAIL', 'contact@example.org')
+  open('/privacy')
+  expect(screen.getByText(/ผู้ควบคุมทดสอบ/)).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'contact@example.org' })).toHaveAttribute('href', 'mailto:contact@example.org')
+})
+it('says what the server keeps, what Vercel keeps, and that the operator sees an envelope while taking it', () => {
+  open('/privacy')
+  const kept = within(screen.getByRole('region', { name: th.privacy.serverKeeps }))
+  for (const line of th.privacy.kept) expect(kept.getByText(line)).toBeInTheDocument()
+  expect(screen.getByText(th.privacy.vercelLogs)).toBeInTheDocument()
+  expect(screen.getByText(th.privacy.operatorSees)).toBeInTheDocument()
+  expect(document.body.textContent).not.toMatch(/คลินิกพาร์ตเนอร์|รหัสคลินิก/)
+})
+it('says in the terms that signals are user reports nobody checks', () => {
+  open('/terms')
+  expect(screen.getByText(th.terms.unverified)).toBeInTheDocument()
+})
+it('links both pages from the help page and from the consent step of a report', async () => {
+  const user = userEvent.setup()
+  const view = open('/app/help')
+  expect(screen.getByRole('link', { name: th.privacy.title })).toHaveAttribute('href', '/privacy')
+  expect(screen.getByRole('link', { name: th.terms.title })).toHaveAttribute('href', '/terms')
+  view.unmount()
+  open('/app/report')
+  await user.click(screen.getByRole('button', { name: th.report.way.tested }))
+  expect(screen.getByRole('link', { name: th.privacy.title })).toHaveAttribute('href', '/privacy')
+})

@@ -2,12 +2,13 @@ import { Clock, Phone } from 'lucide-react'
 import { useState } from 'react'
 import { clinical, isSigned } from '../copy/clinical'
 import { th } from '../copy/th'
-import { PRESS } from '../design/look'
+import { PRESS, TEXT_LINK } from '../design/look'
 import { Banner } from '../design/primitives/Banner'
 import { Card } from '../design/primitives/Card'
 import { CARE_POINTS } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
+import { Go } from './Go'
 
 export function HelpNow() {
   const [pointId, setPointId] = useState<string | null>(null)
@@ -50,6 +51,14 @@ export function HelpNow() {
       </Card>
 
       <p className="box p-3 text-[13px] text-muted">{th.help.historyNote}</p>
+      <p className="flex flex-wrap gap-x-4 text-[13px]">
+        <Go to="/privacy" className={TEXT_LINK}>
+          {th.privacy.title}
+        </Go>
+        <Go to="/terms" className={TEXT_LINK}>
+          {th.terms.title}
+        </Go>
+      </p>
 
       <section>
         <h2 className="mb-2 text-[17px] font-bold">{th.help.hotlines}</h2>

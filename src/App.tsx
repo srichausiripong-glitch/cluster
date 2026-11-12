@@ -4,7 +4,8 @@ import { AdminPage } from './admin/AdminPage'
 import { AppShell } from './app/AppShell'
 import { ErrorBoundary } from './app/ErrorBoundary'
 import { RecipientPage } from './app/RecipientPage'
-import { Placeholder } from './pages/Placeholder'
+import { Privacy } from './pages/Privacy'
+import { Terms } from './pages/Terms'
 import { Transparency } from './pages/Transparency'
 
 export default function App() {
@@ -21,8 +22,8 @@ export default function App() {
             }
           />
           <Route path="/r" element={<RecipientPage />} />
-          <Route path="/privacy" element={<Placeholder title="นโยบายความเป็นส่วนตัว" />} />
-          <Route path="/terms" element={<Placeholder title="ข้อตกลงการใช้" />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="/transparency" element={<Transparency />} />
           <Route path="/admin" element={<AdminPage />} />
           {/* The bare address, and any address the app does not know, opens the app. */}

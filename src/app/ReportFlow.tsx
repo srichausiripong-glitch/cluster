@@ -183,6 +183,9 @@ export function ReportFlow() {
                 <li>{th.report.waits}</li>
                 <li className="font-semibold">{th.report.noTakeBack}</li>
               </ul>
+              <Go to="/privacy" className={`inline-flex min-h-11 items-center text-[13px] ${TEXT_LINK}`}>
+                {th.privacy.title}
+              </Go>
               <Check id="adult" label={th.report.age} checked={adult} onChange={setAdult} />
               <Check id="to-map" label={th.report.toMap} checked={toMap && adult && zone !== null} disabled={!adult || zone === null} onChange={setToMap} />
             </div>
