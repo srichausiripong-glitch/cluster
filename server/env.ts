@@ -1,4 +1,4 @@
-import { neonDb, type Db } from './db'
+import { neonDb, type Db } from './db.js'
 
 /** The server's settings, from Vercel's environment variables. Tests lay their own over them. */
 let override: Record<string, string> | null = null

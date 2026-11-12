@@ -1,4 +1,4 @@
-import type { DensityBand } from './types'
+import type { DensityBand } from './types.js'
 
 /** Minimum number of reports behind every displayed attribute (spec 7.2). */
 export const K = 10

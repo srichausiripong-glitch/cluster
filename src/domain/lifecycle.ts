@@ -1,4 +1,4 @@
-import type { LifecycleStep } from './types'
+import type { LifecycleStep } from './types.js'
 
 /** Last week (inclusive) of each step, counted from the publication week = 1 (spec 7.3). */
 export const BANDS = {

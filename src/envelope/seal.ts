@@ -1,4 +1,4 @@
-import { pad, unpad, type Plain } from '../domain/envelope'
+import { pad, unpad, type Plain } from '../domain/envelope.js'
 
 /** A sealed envelope as it travels: the phone's one-time public key, the IV and the sealed content, in base64url. */
 export interface Sealed {

@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
-import type { Db } from './db'
-import { env } from './env'
+import type { Db } from './db.js'
+import { env } from './env.js'
 
 /** A reviewer: a name and an scrypt hash of the password, from ADMIN_USERS (v1 spec 6). */
 export interface Reviewer {

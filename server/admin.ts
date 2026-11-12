@@ -1,6 +1,6 @@
-import { ZONES_IN_FILE } from '../src/domain/display'
-import type { Db } from './db'
-import { serverWeek } from './week'
+import { ZONES_IN_FILE } from '../src/domain/display.js'
+import type { Db } from './db.js'
+import { serverWeek } from './week.js'
 
 const day = (now: Date) => new Date(now.getTime() + 7 * 3600_000).toISOString().slice(0, 10)
 

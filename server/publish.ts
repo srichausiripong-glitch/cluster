@@ -1,9 +1,9 @@
-import { displayFile, type CountRow } from '../src/domain/display'
-import { heldCells } from '../src/domain/held'
-import type { PublishedFile, ReportKind } from '../src/domain/types'
-import { weekIndex } from '../src/domain/weeks'
-import type { Db } from './db'
-import { serverWeek } from './week'
+import { displayFile, type CountRow } from '../src/domain/display.js'
+import { heldCells } from '../src/domain/held.js'
+import type { PublishedFile, ReportKind } from '../src/domain/types.js'
+import { weekIndex } from '../src/domain/weeks.js'
+import type { Db } from './db.js'
+import { serverWeek } from './week.js'
 
 /** Totals older than this many weeks are deleted (amendment 7). */
 const KEEP_WEEKS = 12

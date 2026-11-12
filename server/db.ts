@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless'
-import { SCHEMA } from './schema'
+import { SCHEMA } from './schema.js'
 
 /** The one thing the server needs from a database: run a statement with parameters, get rows back. */
 export interface Db {

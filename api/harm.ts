@@ -1,6 +1,6 @@
-import { HARM_KINDS } from '../src/app/harm'
-import { getDb } from '../server/env'
-import { serverWeek } from '../server/week'
+import { HARM_KINDS } from '../src/app/harm.js'
+import { getDb } from '../server/env.js'
+import { serverWeek } from '../server/week.js'
 
 /** Counts one harm report by its fixed kind. No text, no address, no time finer than the week. */
 export async function POST(request: Request): Promise<Response> {

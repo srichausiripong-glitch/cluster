@@ -1,5 +1,5 @@
-import { clientIp, getDb, powBits, privateJwk } from '../server/env'
-import { intake } from '../server/intake'
+import { clientIp, getDb, powBits, privateJwk } from '../server/env.js'
+import { intake } from '../server/intake.js'
 
 /** Takes one weekly envelope. Answers 202 for every envelope it accepts, counted or not. */
 export async function POST(request: Request): Promise<Response> {

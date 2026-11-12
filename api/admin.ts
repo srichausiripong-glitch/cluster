@@ -1,6 +1,6 @@
-import { adminState, decideHeld, setIntake, suspend, unsuspend } from '../server/admin'
-import { login, reviewerOf, sessionCookie, sessionValue } from '../server/auth'
-import { getDb, json } from '../server/env'
+import { adminState, decideHeld, setIntake, suspend, unsuspend } from '../server/admin.js'
+import { login, reviewerOf, sessionCookie, sessionValue } from '../server/auth.js'
+import { getDb, json } from '../server/env.js'
 
 /** The back office, one endpoint: { action, … } (v1 spec 6). Every action but login needs a session. */
 export async function POST(request: Request): Promise<Response> {

@@ -1,8 +1,8 @@
-import { Q } from '../../src/domain/envelope'
-import { shiftWeek } from '../../src/domain/weeks'
-import { env, getDb, json } from '../../server/env'
-import { publishWeek } from '../../server/publish'
-import { serverWeek } from '../../server/week'
+import { Q } from '../../src/domain/envelope.js'
+import { shiftWeek } from '../../src/domain/weeks.js'
+import { env, getDb, json } from '../../server/env.js'
+import { publishWeek } from '../../server/publish.js'
+import { serverWeek } from '../../server/week.js'
 
 /** Vercel Cron calls this every Monday 03:00 in Bangkok to publish the week that just ended. */
 export async function GET(request: Request): Promise<Response> {

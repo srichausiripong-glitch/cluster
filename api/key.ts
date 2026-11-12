@@ -1,5 +1,5 @@
-import { json, powBits, privateJwk } from '../server/env'
-import { serverWeek } from '../server/week'
+import { json, powBits, privateJwk } from '../server/env.js'
+import { serverWeek } from '../server/week.js'
 
 /** The server week, the proof-of-work difficulty and the public key a phone seals its envelope with. */
 export function GET(_request?: Request): Response {

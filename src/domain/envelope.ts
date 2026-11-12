@@ -1,5 +1,5 @@
-import { ZONES_IN_FILE } from './display'
-import type { PendingReport, ReportKind } from './types'
+import { ZONES_IN_FILE } from './display.js'
+import type { PendingReport, ReportKind } from './types.js'
 
 /** Every envelope's plain content is padded to this many bytes before it is sealed (amendment 5). */
 export const PLAIN_BYTES = 256

@@ -1,10 +1,10 @@
-import { POW_DIGITS, powInput, powOk, REPORT_KINDS, type Plain } from '../src/domain/envelope'
-import { ZONES_IN_FILE } from '../src/domain/display'
-import { hashHex } from '../src/envelope/pow'
-import { unseal, type Sealed } from '../src/envelope/seal'
-import type { Db } from './db'
-import { hiddenGroup, weekKey } from './keys'
-import { serverWeek } from './week'
+import { POW_DIGITS, powInput, powOk, REPORT_KINDS, type Plain } from '../src/domain/envelope.js'
+import { ZONES_IN_FILE } from '../src/domain/display.js'
+import { hashHex } from '../src/envelope/pow.js'
+import { unseal, type Sealed } from '../src/envelope/seal.js'
+import type { Db } from './db.js'
+import { hiddenGroup, weekKey } from './keys.js'
+import { serverWeek } from './week.js'
 
 /** Reports counted from one network group in one week (amendment 6). */
 export const NETWORK_CAP = 30

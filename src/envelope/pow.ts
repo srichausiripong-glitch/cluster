@@ -1,4 +1,4 @@
-import { powOk } from '../domain/envelope'
+import { powOk } from '../domain/envelope.js'
 
 export async function hashHex(text: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))

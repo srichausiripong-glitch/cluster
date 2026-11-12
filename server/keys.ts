@@ -1,5 +1,5 @@
 import { createHmac, randomBytes } from 'node:crypto'
-import type { Db } from './db'
+import type { Db } from './db.js'
 
 /** The key that hides network groups for one week. Made on first use; deleted with the week. */
 export async function weekKey(db: Db, week: string): Promise<Buffer> {

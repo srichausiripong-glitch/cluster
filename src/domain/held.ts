@@ -1,6 +1,6 @@
-import type { CountRow } from './display'
-import type { ReportKind } from './types'
-import { shiftWeek } from './weeks'
+import type { CountRow } from './display.js'
+import type { ReportKind } from './types.js'
+import { shiftWeek } from './weeks.js'
 
 /** A cell is held when its week is above twenty and above three times the highest of the four weeks before (amendment 6). */
 export function heldCells(counts: CountRow[], week: string): { zone: string; kind: ReportKind; n: number }[] {

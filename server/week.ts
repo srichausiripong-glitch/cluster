@@ -1,4 +1,4 @@
-import { isoWeek } from '../src/domain/weeks'
+import { isoWeek } from '../src/domain/weeks.js'
 
 /** The ISO week in Bangkok (UTC+7), whatever zone the server runs in. */
 export function serverWeek(now: Date): string {

@@ -1,5 +1,5 @@
-import { getDb, json } from '../server/env'
-import { latestPublished } from '../server/publish'
+import { getDb, json } from '../server/env.js'
+import { latestPublished } from '../server/publish.js'
 
 /** The latest weekly file, the same for every phone. Before the first publication, an empty one. */
 export async function GET(_request?: Request): Promise<Response> {

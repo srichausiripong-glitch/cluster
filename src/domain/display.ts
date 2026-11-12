@@ -1,7 +1,7 @@
-import { BANDS, stepFor } from './lifecycle'
-import { densityBand, K } from './publication'
-import type { PublishedArea, ReportKind, TestingLevel } from './types'
-import { weekIndex } from './weeks'
+import { BANDS, stepFor } from './lifecycle.js'
+import { densityBand, K } from './publication.js'
+import type { PublishedArea, ReportKind, TestingLevel } from './types.js'
+import { weekIndex } from './weeks.js'
 
 export const ZONES_IN_FILE = ['north', 'central', 'east', 'south', 'thon_north', 'thon_south'] as const
 const KINDS: ReportKind[] = ['gono_chlam', 'syphilis', 'tested']
