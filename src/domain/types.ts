@@ -19,13 +19,11 @@ export type Party = 'phone' | 'clinic' | 'operator' | 'public'
 
 /** What a self-sent link carries. It lives only in the URL fragment. */
 export interface Notice {
-  v: 1
+  v: 2
   group: DiseaseGroup | null
   tier: 1 | 2
   band: ExposureBand
   week: string
-  /** Weekly fast-track code. It tells a clinic the disease group even when the page names none. */
-  code: string
 }
 
 export interface SignalReport {

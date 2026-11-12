@@ -1,4 +1,3 @@
-import { weeklyCode } from './fastTrack'
 import type { DiseaseGroup, ExposureBand, Notice } from './types'
 
 export interface NoticeInput {
@@ -18,11 +17,10 @@ export function composeNotice(input: NoticeInput): Notice {
   const mayName = input.group !== 'hiv' || input.band === 'h72'
   const named = input.nameDisease && mayName
   return {
-    v: 1,
+    v: 2,
     group: named ? input.group : null,
     tier: input.hasLabResult ? 1 : 2,
     band: input.band,
     week: input.week,
-    code: weeklyCode(input.group, input.hasLabResult, input.week, named),
   }
 }

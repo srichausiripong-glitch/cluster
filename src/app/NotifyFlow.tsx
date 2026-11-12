@@ -178,9 +178,10 @@ export function NotifyFlow() {
                 <Button ref={copyButton} variant="secondary" onClick={() => void copyLink()}>
                   {copied === 'done' ? th.common.copied : th.notify.copyLink}
                 </Button>
-                <Link to={recipientPath} className={`inline-flex min-h-11 items-center px-2 ${TEXT_LINK}`}>
+                {/* A new tab, so the link just made stays here when the preview is closed. */}
+                <a href={recipientPath} target="_blank" rel="noreferrer" className={`inline-flex min-h-11 items-center px-2 ${TEXT_LINK}`}>
                   {th.notify.openRecipient}
-                </Link>
+                </a>
               </div>
             </div>
           )}
@@ -193,6 +194,7 @@ export function NotifyFlow() {
             <p>{th.notify.clinicWho}</p>
             <p className="mt-1">{th.notify.truthClinic}</p>
           </div>
+          <p className="box p-4">{th.notify.clinicAdvice}</p>
           <Link to="/app/list" className={PRIMARY_LINK}>
             {th.common.openList}
           </Link>

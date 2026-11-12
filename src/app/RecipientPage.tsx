@@ -10,7 +10,6 @@ import { decodeNotice } from '../domain/link'
 import { PRESS, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
 import { Banner } from '../design/primitives/Banner'
 import { Button } from '../design/primitives/Button'
-import { Card } from '../design/primitives/Card'
 import { Logo } from '../design/Logo'
 import { CARE_POINTS, orderedCarePoints } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
@@ -61,7 +60,7 @@ function RecipientView({ hash }: { hash: string }) {
   const [pointId, setPointId] = useState<string | null>(null)
   const showDetail = notice === null || revealed
   const namedHiv = notice?.group === 'hiv'
-  const advice = notice ? adviceFor(notice.group, notice.tier, notice.band) : adviceFor(null, 2, 'w4', false)
+  const advice = notice ? adviceFor(notice.group, notice.tier, notice.band) : adviceFor(null, 2, 'w4')
   // The tier line ("watch for symptoms...") would contradict a same-day instruction, so an urgent notice shows the time only.
   const when = notice ? `${th.recipient.band}: ${th.notify.bands[notice.band]}` : null
   const meta = notice && !advice.urgent && !namedHiv ? `${th.recipient.tier[notice.tier]} · ${when}` : when
@@ -159,13 +158,6 @@ function RecipientView({ hash }: { hash: string }) {
             {clinical('recipient.pregnancy').text}
           </p>
 
-          {notice && (
-            <Card className="text-center">
-              <h2 className="text-[13px] font-medium text-muted">{th.recipient.fastTrack}</h2>
-              <p className="my-1 text-[32px] font-bold tracking-[0.25em] text-ink">{notice.code}</p>
-              <p className="text-left text-[13px] text-muted">{th.recipient.fastTrackHint}</p>
-            </Card>
-          )}
 
           <Button variant="secondary" className="w-full" onClick={() => downloadCalendar(retestDays)}>
             <CalendarPlus size={18} strokeWidth={2} aria-hidden="true" />

@@ -17,7 +17,6 @@ export interface ClinicalText {
 const draft = (id: string, text: string, days?: number[]): ClinicalText => (days ? { id, text, status: 'draft', days } : { id, text, status: 'draft' })
 
 const REGISTER: ClinicalText[] = [
-  draft('advice.code', "แสดงรหัสด้านล่างที่จุดบริการ ไม่ต้องอธิบายอะไร"),
   draft('advice.unnamed.h72.title', "ควรไปวันนี้"),
   draft('advice.unnamed.h72.go', "ไปจุดบริการวันนี้ ถ้าไปได้"),
   draft('advice.unnamed.h72.tell', "บอกเจ้าหน้าที่ว่าความเสี่ยงเกิดขึ้นไม่เกิน 72 ชั่วโมง เพราะการป้องกันบางอย่างต้องเริ่มภายในช่วงนี้"),

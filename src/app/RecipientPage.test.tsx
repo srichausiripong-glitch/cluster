@@ -5,7 +5,6 @@ import { expect, it } from 'vitest'
 import App from '../App'
 import { clinical } from '../copy/clinical'
 import { th } from '../copy/th'
-import { weeklyCode } from '../domain/fastTrack'
 import { encodeNotice } from '../domain/link'
 import { composeNotice, type NoticeInput } from '../domain/notify'
 
@@ -35,7 +34,7 @@ it.each(['', '#', '#%%%', '#e30'])('shows the generic invitation, with no code a
   expect(screen.getByText(th.recipient.genericTitle)).toBeInTheDocument()
   expect(screen.getByText(th.recipient.intro)).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: th.recipient.reveal })).toBeNull()
-  expect(screen.queryByText(th.recipient.fastTrack)).toBeNull()
+  expect(document.body.textContent).not.toMatch(/รหัส/)
   expect(screen.queryByText(/รหัสด้านล่าง/)).toBeNull()
 })
 it('reveals detail only after a tap and shows no verified badge', async () => {
@@ -44,7 +43,6 @@ it('reveals detail only after a tap and shows no verified badge', async () => {
   expect(screen.queryByText(th.group.syphilis)).toBeNull()
   await reveal(user)
   expect(screen.getByText(th.group.syphilis)).toBeInTheDocument()
-  expect(screen.getByText(weeklyCode('syphilis', true, '2026-W46', true))).toBeInTheDocument()
   expect(screen.getByText(th.draftClinical)).toBeInTheDocument()
   expect(screen.queryByText(/ยืนยันแล้ว/)).toBeNull()
 })
@@ -57,12 +55,18 @@ it('hides the detail again when another link is opened in the same tab', async (
   expect(screen.queryByText(th.group.gono_chlam)).toBeNull()
   expect(screen.getByRole('button', { name: th.recipient.reveal })).toBeInTheDocument()
 })
-it('shows the clinic code but no disease name for an invitation that names none', async () => {
+it('asks for a full set of tests, with no code and no disease name, for an invitation that names none', async () => {
   const user = userEvent.setup()
   open(hashOf({ nameDisease: false }))
   await reveal(user)
   expect(screen.queryByText(th.group.syphilis)).toBeNull()
-  expect(screen.getByText(weeklyCode('syphilis', true, '2026-W46'))).toBeInTheDocument()
+  expect(document.querySelector('[data-clinical="recipient.fullPanel"]')).toHaveTextContent('ครบชุด')
+  expect(document.body.textContent).not.toMatch(/รหัส/)
+})
+it('shows the generic page for a link made before codes were removed', () => {
+  open('#' + btoa(JSON.stringify({ v: 1, group: 'syphilis', tier: 1, band: 'w4', week: '2026-W46', code: 'AB123' })).replace(/=+$/, ''))
+  expect(screen.queryByRole('button', { name: th.recipient.reveal })).toBeNull()
+  expect(screen.getByText(th.recipient.genericTitle)).toBeInTheDocument()
 })
 it('tells the recipient of an unnamed 72-hour link to go today, with PEP care points first', async () => {
   const user = userEvent.setup()

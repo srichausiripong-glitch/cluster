@@ -16,9 +16,9 @@ const advice = (title: string, steps: string[], urgent: boolean): Advice => ({
  * A link for contact within 72 hours always says "go today", whether or not it names a
  * disease. If only HIV links did, the urgency itself would name the disease.
  */
-export function adviceFor(group: DiseaseGroup | null, tier: 1 | 2, band: ExposureBand, hasCode = true): Advice {
+export function adviceFor(group: DiseaseGroup | null, tier: 1 | 2, band: ExposureBand): Advice {
   if (group === null) {
-    const code = hasCode ? ['advice.code'] : []
+    const code = ['recipient.fullPanel']
     if (band === 'h72') return advice('advice.unnamed.h72.title', ['advice.unnamed.h72.go', 'advice.unnamed.h72.tell', ...code], true)
     return advice('advice.unnamed.title', [tier === 1 ? 'advice.unnamed.tier1' : 'advice.unnamed.tier2', ...code, 'advice.unnamed.recent'], false)
   }
