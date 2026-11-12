@@ -1,6 +1,6 @@
 import { adminState, decideHeld, setIntake, suspend, unsuspend } from '../server/admin.js'
 import { login, reviewerOf, sessionCookie, sessionValue } from '../server/auth.js'
-import { getDb, json } from '../server/env.js'
+import { clientIp, getDb, json } from '../server/env.js'
 
 /** The back office, one endpoint: { action, … } (v1 spec 6). Every action but login needs a session. */
 export async function POST(request: Request): Promise<Response> {
@@ -14,7 +14,7 @@ export async function POST(request: Request): Promise<Response> {
   const now = new Date()
   if (body.action === 'login') {
     const name = String(body.name ?? '')
-    const result = await login(db, name, String(body.password ?? ''), now.getTime())
+    const result = await login(db, name, String(body.password ?? ''), now.getTime(), clientIp(request))
     if (result === 'locked') return new Response(null, { status: 429 })
     if (result === 'wrong') return new Response(null, { status: 401 })
     return new Response(null, { status: 200, headers: { 'set-cookie': sessionCookie(sessionValue(name, now.getTime())) } })

@@ -15,12 +15,25 @@ const KEEP_WEEKS = 12
 export async function publishWeek(db: Db, endedWeek: string, now: Date, q: number): Promise<PublishedFile> {
   const counts = await db.query<CountRow>('select zone, kind, week, n from counts')
 
-  for (const cell of heldCells(counts, endedWeek)) {
-    const [seen] = await db.query('select id from held where zone = $1 and kind = $2 and week = $3', [cell.zone, cell.kind, endedWeek])
-    if (!seen) await db.query("insert into held (zone, kind, week, n, status) values ($1, $2, $3, $4, 'pending')", [cell.zone, cell.kind, endedWeek, cell.n])
+  type Held = { zone: string; kind: ReportKind; week: string }
+  const heldNow = () => db.query<Held>("select zone, kind, week from held where status <> 'released'")
+  const isIn = (held: Held[]) => (c: CountRow) => held.some((h) => h.zone === c.zone && h.kind === c.kind && h.week === c.week)
+
+  // Every week since the last publication is checked, oldest first, so a week whose job failed
+  // (Vercel does not retry a cron) is still held-checked before its counts reach a file.
+  const [last] = await db.query<{ week: string }>('select max(week) as week from published')
+  const toCheck = [...new Set(counts.map((c) => c.week))]
+    .filter((w) => w === endedWeek || (weekIndex(w, endedWeek) > 1 && (!last?.week || weekIndex(last.week, w) > 1)))
+    .sort((a, b) => 1 - weekIndex(a, b))
+  for (const week of toCheck) {
+    const rejected = isIn(await heldNow())
+    const kept = counts.filter((c) => !rejected(c))
+    for (const cell of heldCells(kept, week)) {
+      const [seen] = await db.query('select id from held where zone = $1 and kind = $2 and week = $3', [cell.zone, cell.kind, week])
+      if (!seen) await db.query("insert into held (zone, kind, week, n, status) values ($1, $2, $3, $4, 'pending')", [cell.zone, cell.kind, week, cell.n])
+    }
   }
-  const held = await db.query<{ zone: string; kind: ReportKind; week: string }>("select zone, kind, week from held where status <> 'released'")
-  const isHeld = (c: CountRow) => held.some((h) => h.zone === c.zone && h.kind === c.kind && h.week === c.week)
+  const isHeld = isIn(await heldNow())
 
   const envelopes = Object.fromEntries((await db.query<{ week: string; n: number }>('select week, n from envelope_totals')).map((r) => [r.week, r.n]))
   const suspended = (await db.query<{ zone: string }>('select zone from suspensions where ended is null')).map((r) => r.zone)

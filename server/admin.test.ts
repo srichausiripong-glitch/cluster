@@ -16,7 +16,8 @@ beforeEach(async () => {
   setEnvForTest({ ADMIN_USERS: JSON.stringify([{ name: 'ก้อย', hash: hashPassword('pw-koi') }, { name: 'บอล', hash: hashPassword('pw-ball') }]), SESSION_SECRET: 'session-secret-for-tests' })
   await db.query("insert into held (zone, kind, week, n, status) values ('north', 'syphilis', '2026-W46', 40, 'pending')")
 })
-const call = (body: unknown, cookie?: string) => admin(new Request('https://cluster.test/api/admin', { method: 'POST', headers: { 'content-type': 'application/json', ...(cookie ? { cookie } : {}) }, body: JSON.stringify(body) }))
+const call = (body: unknown, cookie?: string, ip = '198.51.100.7') =>
+  admin(new Request('https://cluster.test/api/admin', { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': ip, ...(cookie ? { cookie } : {}) }, body: JSON.stringify(body) }))
 async function login(name: string, password: string): Promise<string> {
   const res = await call({ action: 'login', name, password })
   expect(res.status, name).toBe(200)
@@ -35,6 +36,26 @@ it('refuses an unknown name or a wrong password', async () => {
 it('locks a name for fifteen minutes after five wrong passwords, even for the right one', async () => {
   for (let i = 0; i < 5; i++) await call({ action: 'login', name: 'ก้อย', password: 'wrong' })
   expect((await call({ action: 'login', name: 'ก้อย', password: 'pw-koi' })).status).toBe(429)
+})
+it('never lets wrong guesses from another network lock a reviewer out, since reviewer names are public', async () => {
+  for (let i = 0; i < 12; i++) await call({ action: 'login', name: 'ก้อย', password: 'wrong' }, undefined, '203.0.113.5')
+  expect((await call({ action: 'login', name: 'ก้อย', password: 'pw-koi' }, undefined, '198.51.100.7')).status).toBe(200)
+})
+it('records no failure for a name that is not a reviewer', async () => {
+  for (let i = 0; i < 6; i++) await call({ action: 'login', name: `x${i}`.repeat(200), password: 'wrong' })
+  expect(await db.query('select * from login_failures')).toEqual([])
+})
+it('still locks after five wrong guesses sent at the same moment', async () => {
+  await Promise.all(Array.from({ length: 8 }, () => call({ action: 'login', name: 'ก้อย', password: 'wrong' })))
+  expect((await call({ action: 'login', name: 'ก้อย', password: 'pw-koi' })).status).toBe(429)
+})
+it('keeps a reviewer whose name has a dot signed in as that reviewer, and only that one', async () => {
+  setEnvForTest({ ADMIN_USERS: JSON.stringify([{ name: 'a', hash: hashPassword('pw-a') }, { name: 'a.b', hash: hashPassword('pw-ab') }]), SESSION_SECRET: 'session-secret-for-tests' })
+  const ab = await login('a.b', 'pw-ab')
+  expect((await call({ action: 'state' }, ab)).status).toBe(200)
+  const [{ id }] = await db.query<{ id: number }>('select id from held')
+  await call({ action: 'held', id, choice: 'release' }, ab)
+  expect((await db.query<{ first_reviewer: string }>('select first_reviewer from held'))[0].first_reviewer).toBe('a.b')
 })
 it('refuses every action without a valid session', async () => {
   for (const action of ['state', 'intake', 'held', 'suspend', 'unsuspend']) expect((await call({ action })).status, action).toBe(401)

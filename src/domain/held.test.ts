@@ -22,3 +22,7 @@ it('judges each zone and kind on its own', () => {
   const other: CountRow = { zone: 'north', kind: 'tested', week: '2026-W46', n: 50 }
   expect(heldCells([row('2026-W46', 21), other], '2026-W46').map((c) => c.zone).sort()).toEqual(['north', 'south'])
 })
+it("holds a zone's signal cells when their sum jumps, even when neither kind does alone (amendment 6: the zone's count)", () => {
+  const gono: CountRow = { zone: 'south', kind: 'gono_chlam', week: '2026-W46', n: 15 }
+  expect(heldCells([row('2026-W46', 15), gono], '2026-W46').map((c) => c.kind).sort()).toEqual(['gono_chlam', 'syphilis'])
+})
