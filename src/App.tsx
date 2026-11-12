@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { AdminPage } from './admin/AdminPage'
 import { AppShell } from './app/AppShell'
 import { ErrorBoundary } from './app/ErrorBoundary'
 import { RecipientPage } from './app/RecipientPage'
 import { Placeholder } from './pages/Placeholder'
+import { Transparency } from './pages/Transparency'
 
 export default function App() {
   return (
@@ -21,8 +23,8 @@ export default function App() {
           <Route path="/r" element={<RecipientPage />} />
           <Route path="/privacy" element={<Placeholder title="นโยบายความเป็นส่วนตัว" />} />
           <Route path="/terms" element={<Placeholder title="ข้อตกลงการใช้" />} />
-          <Route path="/transparency" element={<Placeholder title="รายงานความโปร่งใส" />} />
-          <Route path="/admin" element={<Placeholder title="หลังบ้าน" />} />
+          <Route path="/transparency" element={<Transparency />} />
+          <Route path="/admin" element={<AdminPage />} />
           {/* The bare address, and any address the app does not know, opens the app. */}
           <Route path="*" element={<Navigate to="/app" replace />} />
         </Routes>

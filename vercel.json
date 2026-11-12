@@ -24,11 +24,7 @@
       "schedule": "0 20 * * 0"
     }
   ],
-  "functions": {
-    "api/**/*.ts": {
-      "regions": [
-        "sin1"
-      ]
-    }
-  }
+  "regions": [
+    "sin1"
+  ]
 }
