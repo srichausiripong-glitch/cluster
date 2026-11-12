@@ -50,6 +50,18 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
           <p className="text-[13px] text-muted">{th.map.stateHint[area.state]}</p>
         </div>
       </div>
+      {/* Every signal is what users said, and nobody has checked it (amendment 4.3). */}
+      <p className="mt-3">
+        <Chip tone="now" small>
+          {th.map.unconfirmed}
+        </Chip>
+      </p>
+      {area.areaId !== 'bkk' && area.state !== 'suspended' && (
+        <div className="mt-3 rounded-md border-2 border-ink bg-bg p-3 text-[13px]">
+          <p className="font-bold">{`${th.map.testing}: ${th.map.testingLevel[area.testing ?? 'none']}`}</p>
+          {area.testing && <p className="text-muted">{th.map.testingNotSafe}</p>}
+        </div>
+      )}
 
       {shown && (
         <div className="mt-4 grid grid-cols-1 gap-4 min-[360px]:grid-cols-[2fr_3fr]">

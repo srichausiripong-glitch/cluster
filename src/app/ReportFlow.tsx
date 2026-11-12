@@ -9,6 +9,7 @@ import { NOTE, PRIMARY_LINK, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Stepper } from '../design/primitives/Stepper'
 import { ZONES } from '../map/areas'
+import { useIntakeOpen } from '../map/published'
 import { currentWeek, queueReport, saveCard } from '../store/actions'
 import { ZONE_IDS } from '../store/seed'
 import { usePartyStore } from '../store/partyStore'
@@ -68,7 +69,8 @@ export function ReportFlow() {
   const week = currentWeek()
   // "Tested" may go to the map once in four weeks; the phone remembers only when it may again.
   const testedWait = kind === 'tested' && testedNextWeek !== null && testedNextWeek > week
-  const mapOffered = kind !== null && !testedWait
+  const intakeOpen = useIntakeOpen()
+  const mapOffered = kind !== null && !testedWait && intakeOpen
   const willQueue = mapOffered && toMap && zone !== null && adult
   const cardOffered = way !== 'tested' && group !== null
 
@@ -158,6 +160,7 @@ export function ReportFlow() {
             <p className={`px-4 py-3 text-[13px] ${NOTE}`}>{th.report.testedAgainFrom.replace('{date}', formatThaiDate(mondayDate(testedNextWeek)))}</p>
           )}
 
+          {kind !== null && !intakeOpen && <p className={`px-4 py-3 text-[13px] ${NOTE}`}>{th.report.intakeClosed}</p>}
           {mapOffered && (
             <div className="box space-y-3 p-4">
               {pending && <p className={`px-3 py-2 text-[13px] font-semibold ${SOFT}`}>{th.report.replacesPending}</p>}

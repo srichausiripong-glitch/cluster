@@ -41,8 +41,9 @@ export interface PublishedArea {
 
 /** The weekly file the server publishes and every phone reads. */
 export interface PublishedFile {
-  week: string
-  publishedAt: string
+  /** Null before the first publication. */
+  week: string | null
+  publishedAt: string | null
   intakeOpen: boolean
   areas: PublishedArea[]
 }
