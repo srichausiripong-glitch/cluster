@@ -30,7 +30,7 @@ const post = (path: string, body: unknown, ip = '203.0.113.5') => req(path, { me
 it('gives the week, the work to do and the public key, never the private part', async () => {
   const res = await key(req('/api/key'))
   const body = await res.json()
-  expect(body).toEqual({ week: serverWeek(new Date()), bits: 8, jwk: { kty: 'EC', crv: 'P-256', x: publicJwk.x, y: publicJwk.y } })
+  expect(body).toEqual({ week: serverWeek(new Date()), bits: 8, intakeOpen: true, jwk: { kty: 'EC', crv: 'P-256', x: publicJwk.x, y: publicJwk.y } })
   expect(JSON.stringify(body)).not.toContain('"d"')
   expect(res.headers.get('cache-control')).toBe('no-store')
 })
@@ -45,7 +45,7 @@ it('takes an envelope made by the phone, and refuses what is not one', async () 
 it('answers with an empty file before anything has been published', async () => {
   const res = await published(req('/api/published'))
   expect(await res.json()).toEqual({ week: null, publishedAt: null, intakeOpen: true, areas: [] })
-  expect(res.headers.get('cache-control')).toBe('public, max-age=3600')
+  expect(res.headers.get('cache-control')).toBe('public, max-age=60, s-maxage=60')
 })
 it('counts a harm report by kind, and refuses a kind it does not know', async () => {
   expect((await harm(post('/api/harm', { kind: 'outed' }))).status).toBe(202)
@@ -67,4 +67,13 @@ it('counts at most three harm reports from one network in a week', async () => {
   for (let i = 0; i < 10; i++) expect((await send('203.0.113.9')).status).toBe(202)
   await send('198.51.100.4')
   expect((await db.query<{ n: number }>("select n from harm_reports where kind = 'violence'"))[0].n).toBe(4)
+})
+
+it('says at once that intake closed, in the published file and in the key answer', async () => {
+  await db.query("insert into published (week, file) values ('2026-W45', $1)", [JSON.stringify({ week: '2026-W45', publishedAt: 'x', intakeOpen: true, areas: [] })])
+  await db.query("insert into settings (name, value) values ('intake', 'closed')")
+  const res = await published(req('/api/published'))
+  expect((await res.json()).intakeOpen).toBe(false)
+  expect(res.headers.get('cache-control')).toMatch(/max-age=60\b/)
+  expect((await (await key(req('/api/key'))).json()).intakeOpen).toBe(false)
 })

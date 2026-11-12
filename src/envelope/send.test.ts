@@ -12,6 +12,8 @@ let keys: CryptoKeyPair
 let jwk: JsonWebKey
 let posted: string[]
 let failPost: boolean
+let loseAnswer: boolean
+let intakeOpen: boolean | undefined
 
 beforeEach(async () => {
   wipePhone()
@@ -20,14 +22,17 @@ beforeEach(async () => {
   jwk = await crypto.subtle.exportKey('jwk', keys.publicKey)
   posted = []
   failPost = false
+  loseAnswer = false
+  intakeOpen = undefined
 })
 afterEach(() => vi.restoreAllMocks())
 
 const fakeFetch = (week = WEEK) =>
   (async (url: string, init?: RequestInit) => {
-    if (String(url).endsWith('/api/key')) return new Response(JSON.stringify({ week, bits: 8, jwk }))
+    if (String(url).endsWith('/api/key')) return new Response(JSON.stringify({ week, bits: 8, jwk, ...(intakeOpen === undefined ? {} : { intakeOpen }) }))
     if (failPost) throw new Error('offline')
     posted.push(String(init?.body))
+    if (loseAnswer) throw new Error('the answer was lost on the way back')
     return new Response(null, { status: 202 })
   }) as typeof fetch
 const deps = (rand = () => 0.5, week = WEEK) => ({ fetch: fakeFetch(week), rand, solve: async () => '0000000042' })
@@ -89,4 +94,52 @@ it('posts bodies of one length for an empty envelope, a test and a positive repo
   }
   expect(posted).toHaveLength(3)
   expect(new Set(posted.map((b) => b.length)).size).toBe(1)
+})
+
+const LATE = weekStart + 7 * 86_400_000 - 1
+it('posts the very same envelope again when the answer was lost, so the server counts it once', async () => {
+  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'north', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  loseAnswer = true
+  expect(await sendIfDue(LATE, deps())).toBe('failed')
+  loseAnswer = false
+  expect(await sendIfDue(LATE + 1, deps())).toBe('sent')
+  expect(posted).toHaveLength(2)
+  expect(posted[1]).toBe(posted[0])
+})
+it('clears the sent report even when the phone state was written again during the solve', async () => {
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'south', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  const solve = async () => {
+    phone.update((s) => ({ ...s, pending: s.pending && { ...s.pending } }))
+    return '0000000042'
+  }
+  expect(await sendIfDue(LATE, { ...deps(), solve })).toBe('sent')
+  expect(phone.get().pending).toBeNull()
+})
+it('does not post when another tab finished this week while this one was solving', async () => {
+  const solve = async () => {
+    phone.update((s) => ({ ...s, sentWeek: WEEK }))
+    return '0000000042'
+  }
+  expect(await sendIfDue(LATE, { ...deps(), solve })).toBe('already-sent')
+  expect(posted).toHaveLength(0)
+})
+it('keeps the waiting report and sends an empty envelope while intake is closed', async () => {
+  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'north', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  intakeOpen = false
+  expect(await sendIfDue(LATE, deps())).toBe('sent')
+  expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: null })
+  expect(phone.get().pending).not.toBeNull()
+  expect(phone.get().sentWeek).toBe(WEEK)
+})
+it('treats a key answer without a week as a failure, not a crash', async () => {
+  const fetch = (async () => new Response('{}')) as unknown as typeof globalThis.fetch
+  expect(await sendIfDue(LATE, { ...deps(), fetch })).toBe('failed')
+})
+it('leaves no sealed envelope behind when the phone is wiped', async () => {
+  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'north', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  failPost = true
+  await sendIfDue(LATE, deps())
+  expect(localStorage.getItem('cluster.envelope-outbox')).not.toBeNull()
+  wipePhone()
+  expect(localStorage.getItem('cluster.envelope-outbox')).toBeNull()
 })

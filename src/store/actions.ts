@@ -18,8 +18,16 @@ export function addReminder(date: string): void {
   phone.update((s) => ({ ...s, reminders: [...s.reminders, { date }] }))
 }
 
+/** Everything this app keeps on the phone outside the phone store: the sealed envelope waiting to go. */
+const ENVELOPE_KEYS = ['cluster.envelope-outbox']
+
 export function wipePhone(): void {
   phone.reset()
+  try {
+    for (const key of ENVELOPE_KEYS) localStorage.removeItem(key)
+  } catch {
+    // storage unavailable: nothing was kept there either
+  }
 }
 
 /** Puts a report on the phone to go with the next envelope. One at a time: a new one replaces the old. */

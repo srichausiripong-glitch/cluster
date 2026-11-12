@@ -7,6 +7,12 @@ export interface KeyInfo {
   week: string
   bits: number
   jwk: JsonWebKey
+  /** Live from the server: while a reviewer has intake closed, the report waits on the phone. */
+  intakeOpen?: boolean
+}
+const isKey = (k: unknown): k is KeyInfo => {
+  const v = k as Partial<KeyInfo> | null
+  return !!v && typeof v.week === 'string' && /^\d{4}-W\d{2}$/.test(v.week) && typeof v.bits === 'number' && typeof v.jwk === 'object' && v.jwk !== null
 }
 export interface SendDeps {
   fetch: typeof fetch
@@ -22,6 +28,33 @@ const weekStart = (week: string) => mondayDate(week).getTime() - 7 * 3600_000
 const CLAIM = 'cluster.envelope-claim'
 /** A claim younger than this belongs to a send still in progress, maybe in another tab. */
 const CLAIM_MS = 2 * 60_000
+
+/**
+ * The sealed envelope of this week, kept until the server has answered. A retry after a lost answer
+ * posts these same bytes, so the server's nonce check counts the report once.
+ */
+export const OUTBOX = 'cluster.envelope-outbox'
+interface Outbox {
+  week: string
+  /** The waiting report it carries, by its time, or null for an empty envelope. */
+  savedAt: string | null
+  body: string
+}
+function readOutbox(): Outbox | null {
+  try {
+    return JSON.parse(localStorage.getItem(OUTBOX) ?? 'null')
+  } catch {
+    return null
+  }
+}
+function writeOutbox(box: Outbox | null) {
+  try {
+    if (box) localStorage.setItem(OUTBOX, JSON.stringify(box))
+    else localStorage.removeItem(OUTBOX)
+  } catch {
+    // storage unavailable: a retry seals a new envelope
+  }
+}
 
 function readClaim(): { week: string; at: number } | null {
   try {
@@ -48,7 +81,9 @@ export async function sendIfDue(now: number, deps: SendDeps): Promise<SendResult
   try {
     const res = await deps.fetch('/api/key')
     if (!res.ok) return 'failed'
-    key = (await res.json()) as KeyInfo
+    const body: unknown = await res.json()
+    if (!isKey(body)) return 'failed'
+    key = body
   } catch {
     return 'failed'
   }
@@ -65,18 +100,33 @@ export async function sendIfDue(now: number, deps: SendDeps): Promise<SendResult
   const claim = readClaim()
   if (claim && claim.week === key.week && now - claim.at < CLAIM_MS) return 'already-sent'
   writeClaim({ week: key.week, at: now })
+  // Keep the claim fresh while a slow phone solves, so no other tab takes the week meanwhile.
+  const keepClaim = setInterval(() => writeClaim({ week: key.week, at: Date.now() }), CLAIM_MS / 4)
 
   try {
-    const pending = phone.get().pending
-    const plain = makePlain(pending, deps.rand, b64url(crypto.getRandomValues(new Uint8Array(16))))
-    const sealed = await seal(plain, key.jwk)
-    const pow = (await deps.solve(powInput(sealed.ct, key.week), key.bits)).padStart(POW_DIGITS, '0')
-    const res = await deps.fetch('/api/envelope', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...sealed, pow }) })
-    if (!res.ok) throw new Error(`envelope refused: ${res.status}`)
-    phone.update((s) => ({ ...s, sentWeek: key.week, pending: s.pending === pending ? null : s.pending }))
+    const pending = key.intakeOpen === false ? null : phone.get().pending
+    const savedAt = pending?.savedAt ?? null
+    let box = readOutbox()
+    if (!box || box.week !== key.week || box.savedAt !== savedAt) {
+      const plain = makePlain(pending, deps.rand, b64url(crypto.getRandomValues(new Uint8Array(16))))
+      const sealed = await seal(plain, key.jwk)
+      const pow = (await deps.solve(powInput(sealed.ct, key.week), key.bits)).padStart(POW_DIGITS, '0')
+      box = { week: key.week, savedAt, body: JSON.stringify({ ...sealed, pow }) }
+      writeOutbox(box)
+    }
+    if (phone.get().sentWeek === key.week) return 'already-sent'
+    const res = await deps.fetch('/api/envelope', { method: 'POST', headers: { 'content-type': 'application/json' }, body: box.body })
+    if (!res.ok) {
+      writeOutbox(null) // refused, not lost: the next try seals afresh
+      throw new Error(`envelope refused: ${res.status}`)
+    }
+    writeOutbox(null)
+    phone.update((s) => ({ ...s, sentWeek: key.week, pending: savedAt !== null && s.pending?.savedAt === savedAt ? null : s.pending }))
     return 'sent'
   } catch {
     writeClaim(null)
     return 'failed'
+  } finally {
+    clearInterval(keepClaim)
   }
 }
