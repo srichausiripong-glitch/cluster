@@ -42,3 +42,11 @@ it('links both pages from the help page and from the consent step of a report', 
   await user.click(screen.getByRole('button', { name: th.report.way.tested }))
   expect(screen.getByRole('link', { name: th.privacy.title })).toHaveAttribute('href', '/privacy')
 })
+it('offers a way back into the app and the quick exit on the privacy and terms pages', () => {
+  for (const path of ['/privacy', '/terms']) {
+    const view = open(path)
+    expect(screen.getByRole('link', { name: th.common.backToApp }), path).toHaveAttribute('href', '/app')
+    expect(screen.getByRole('button', { name: th.common.quickExit }), path).toBeInTheDocument()
+    view.unmount()
+  }
+})

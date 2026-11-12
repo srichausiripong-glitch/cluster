@@ -1,5 +1,5 @@
 import { th } from '../copy/th'
-import { Logo } from '../design/Logo'
+import { PageTop } from './PageTop'
 
 /** The privacy notice (v1 spec 2.7, 4.4): what leaves the phone, what is kept, and what Vercel keeps. */
 export function Privacy() {
@@ -7,7 +7,7 @@ export function Privacy() {
   const contact = import.meta.env.VITE_CONTACT_EMAIL as string | undefined
   return (
     <main className="mx-auto w-full max-w-2xl space-y-5 p-4 md:p-6">
-      <Logo size={18} />
+      <PageTop />
       <h1 className="text-[24px] font-bold">{th.privacy.title}</h1>
       <section className="box space-y-1 p-4">
         <p>

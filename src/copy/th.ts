@@ -5,7 +5,7 @@ export const BANNED_WORDS = ['ปลอดเชื้อ', 'สะอาด', '
 export const th = {
   draftClinical: 'ร่าง รอแพทย์ลงนาม',
   common: {
-    back: 'ย้อนกลับ', next: 'ไปต่อ', notNow: 'ไว้ก่อน', copy: 'คัดลอก', copied: 'คัดลอกแล้ว',
+    back: 'ย้อนกลับ', backToApp: 'กลับเข้าแอป', next: 'ไปต่อ', notNow: 'ไว้ก่อน', copy: 'คัดลอก', copied: 'คัดลอกแล้ว',
     sample: 'ข้อมูลตัวอย่าง', quickExit: 'ออกเร็ว', free: 'ฟรี', openList: 'ดูจุดบริการทั้งหมด',
   },
   group: { mpox: 'ฝีดาษวานร', gono_chlam: 'หนองในและคลามิเดีย', syphilis: 'ซิฟิลิส', hiv: 'เอชไอวี' },

@@ -184,3 +184,9 @@ it('does not say the phone holds nothing while an earlier card is still on it', 
   expect(screen.queryByText(th.report.receiptNoCard)).toBeNull()
   expect(screen.getByText(th.report.receiptOldCard)).toBeInTheDocument()
 })
+it('opens the privacy notice in a new tab, so the report being filled in stays put', async () => {
+  const user = userEvent.setup()
+  open()
+  await choose(user, th.report.way.tested)
+  expect(screen.getByRole('link', { name: th.privacy.title })).toHaveAttribute('target', '_blank')
+})
