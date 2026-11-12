@@ -1,5 +1,4 @@
 import { CalendarPlus, Trash2 } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
 import { buildIcs } from '../domain/ics'
 import { QUIET_LINK } from '../design/look'
@@ -9,6 +8,7 @@ import { ZONES } from '../map/areas'
 import { cancelPending, wipePhone } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
+import { Go } from './Go'
 
 /** How long a kept card stays on the phone, per disease group, in days (spec 7.3 bands; HIV and mpox use 28). */
 const CARD_DAYS = { gono_chlam: 28, syphilis: 84, mpox: 28, hiv: 28 } as const
@@ -73,12 +73,12 @@ export function SelfCare() {
       </Card>
 
       {/* "Later" in the telling flow promises a way back; this is it. */}
-      <Link to={'/app/notify'} className={QUIET_LINK}>
+      <Go to={'/app/notify'} className={QUIET_LINK}>
         {th.report.goNotify}
-      </Link>
-      <Link to={'/app/harm'} className={QUIET_LINK}>
+      </Go>
+      <Go to={'/app/harm'} className={QUIET_LINK}>
         {th.me.harm}
-      </Link>
+      </Go>
     </main>
   )
 }

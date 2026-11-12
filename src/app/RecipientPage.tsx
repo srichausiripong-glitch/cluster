@@ -1,6 +1,6 @@
 import { CalendarPlus, Check as Tick, Clock } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { formatThaiDate } from '../copy/format'
 import { clinical, isSigned } from '../copy/clinical'
 import { th } from '../copy/th'
@@ -15,6 +15,7 @@ import { CARE_POINTS, orderedCarePoints } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
 import { QuickExit } from './QuickExit'
+import { Go } from './Go'
 
 const HIV_BRANCHES = ['plhiv', 'prep', 'within72', 'later'] as const
 type Branch = (typeof HIV_BRANCHES)[number]
@@ -173,14 +174,14 @@ function RecipientView({ hash }: { hash: string }) {
                 </li>
               ))}
             </ul>
-            <Link to={'/app/list'} className={`mt-3 ${QUIET_LINK}`}>
+            <Go to={'/app/list'} className={`mt-3 ${QUIET_LINK}`}>
               {th.common.openList}
-            </Link>
+            </Go>
           </section>
 
-          <Link to={'/app/harm'} className={`flex min-h-11 items-center text-[13px] ${TEXT_LINK}`}>
+          <Go to={'/app/harm'} className={`flex min-h-11 items-center text-[13px] ${TEXT_LINK}`}>
             {th.recipient.harm}
-          </Link>
+          </Go>
           <CarePointSheet point={CARE_POINTS.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
         </>
       )}

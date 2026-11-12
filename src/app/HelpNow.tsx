@@ -49,6 +49,8 @@ export function HelpNow() {
         </p>
       </Card>
 
+      <p className="box p-3 text-[13px] text-muted">{th.help.historyNote}</p>
+
       <section>
         <h2 className="mb-2 text-[17px] font-bold">{th.help.hotlines}</h2>
         <div className="space-y-3">

@@ -1,6 +1,6 @@
 import { Check as Tick } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { th } from '../copy/th'
 import { buildLink } from '../domain/link'
 import { composeNotice } from '../domain/notify'
@@ -9,6 +9,7 @@ import { ALERT, NOTE, PRESS, PRIMARY_LINK, TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { currentWeek } from '../store/actions'
 import { Check, Choice, FlowHeader } from './FlowHeader'
+import { Go } from './Go'
 
 const GROUPS: DiseaseGroup[] = ['gono_chlam', 'syphilis', 'mpox', 'hiv']
 const BANDS: ExposureBand[] = ['h72', 'w2', 'w4', 'm3', 'older']
@@ -92,9 +93,9 @@ export function NotifyFlow() {
       {group && view === 'later' && (
         <section className="step-in space-y-3">
           <p className="box p-4">{th.notify.laterDone}</p>
-          <Link to={'/app'} className={PRIMARY_LINK}>
+          <Go to={'/app'} className={PRIMARY_LINK}>
             {th.report.backToMap}
-          </Link>
+          </Go>
         </section>
       )}
 
@@ -195,9 +196,9 @@ export function NotifyFlow() {
             <p className="mt-1">{th.notify.truthClinic}</p>
           </div>
           <p className="box p-4">{th.notify.clinicAdvice}</p>
-          <Link to="/app/list" className={PRIMARY_LINK}>
+          <Go to="/app/list" className={PRIMARY_LINK}>
             {th.common.openList}
-          </Link>
+          </Go>
         </section>
       )}
     </main>

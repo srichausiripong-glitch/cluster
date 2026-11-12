@@ -1,5 +1,5 @@
 import { LifeBuoy, List, Map as MapIcon, UserRound } from 'lucide-react'
-import { NavLink, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { th } from '../copy/th'
 import { Logo } from '../design/Logo'
 import { CareList } from './CareList'
@@ -10,6 +10,7 @@ import { NotifyFlow } from './NotifyFlow'
 import { QuickExit } from './QuickExit'
 import { ReportFlow } from './ReportFlow'
 import { SelfCare } from './SelfCare'
+import { GoNav } from './Go'
 
 const NAV = [
   { path: '/app', label: th.nav.map, icon: MapIcon, end: true },
@@ -40,7 +41,7 @@ export function AppShell() {
       </div>
       <nav aria-label="เมนูหลัก" className="grid h-[3.75rem] shrink-0 grid-cols-4 border-t-[2.5px] border-ink bg-surface">
         {NAV.map(({ path, label, icon: Icon, end }) => (
-          <NavLink key={path} to={path} end={end} className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 text-[12px] text-ink ${isActive ? 'font-bold' : 'font-medium'}`}>
+          <GoNav key={path} to={path} end={end} className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 text-[12px] text-ink ${isActive ? 'font-bold' : 'font-medium'}`}>
             {({ isActive }) => (
               <>
                 {/* The current tab is told by a filled shape round its icon, not by colour alone. */}
@@ -50,7 +51,7 @@ export function AppShell() {
                 {label}
               </>
             )}
-          </NavLink>
+          </GoNav>
         ))}
       </nav>
     </div>

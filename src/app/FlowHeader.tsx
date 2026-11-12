@@ -1,8 +1,8 @@
 import { ArrowLeft, Check as Tick } from 'lucide-react'
 import { useId } from 'react'
-import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
 import { PRESS } from '../design/look'
+import { Go } from './Go'
 
 /** Title row for a full-screen flow. `onBack` steps back inside the flow; otherwise it returns to `backTo`. */
 export function FlowHeader({ title, onBack, backTo }: { title: string; onBack?: () => void; backTo: string }) {
@@ -15,9 +15,9 @@ export function FlowHeader({ title, onBack, backTo }: { title: string; onBack?: 
           {icon}
         </button>
       ) : (
-        <Link to={backTo} aria-label={th.common.back} className={cls}>
+        <Go to={backTo} aria-label={th.common.back} className={cls}>
           {icon}
-        </Link>
+        </Go>
       )}
       <h1 className="text-[20px] font-bold">{title}</h1>
     </div>

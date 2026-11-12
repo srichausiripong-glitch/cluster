@@ -1,6 +1,5 @@
 import { Ban, CalendarPlus, Check as CheckIcon, Phone, Smartphone } from 'lucide-react'
 import { useId, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
 import { buildIcs } from '../domain/ics'
@@ -15,6 +14,7 @@ import { ZONE_IDS } from '../store/seed'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 import { Check, Choice, FlowHeader } from './FlowHeader'
+import { Go } from './Go'
 
 type Way = 'tested' | 'positive' | 'symptoms'
 type Outcome = 'queued' | 'kept' | 'nothing'
@@ -142,9 +142,9 @@ export function ReportFlow() {
               />
             ))}
           {group === 'syphilis' && <p className={`px-4 py-3 text-[13px] ${NOTE}`}>{th.report.noCodeSyphilis}</p>}
-          <Link to={'/app/list'} className={`inline-flex min-h-11 items-center ${TEXT_LINK}`}>
+          <Go to={'/app/list'} className={`inline-flex min-h-11 items-center ${TEXT_LINK}`}>
             {th.report.findCare}
-          </Link>
+          </Go>
         </section>
       )}
 
@@ -215,32 +215,32 @@ export function ReportFlow() {
 
           <h3 className="text-[13px] font-medium text-muted">{th.report.next}</h3>
           {source === 'symptoms' && (
-            <Link to={'/app/list'} className={PRIMARY_LINK}>
+            <Go to={'/app/list'} className={PRIMARY_LINK}>
               {th.report.nextTest}
-            </Link>
+            </Go>
           )}
           {source === 'hiv_self_test' && (
             <>
-              <Link to={'/app/list'} className={PRIMARY_LINK}>
+              <Go to={'/app/list'} className={PRIMARY_LINK}>
                 {th.report.nextConfirm}
-              </Link>
+              </Go>
               <a href="tel:1663" className={QUIET_LINK}>
                 <Phone size={18} strokeWidth={2} aria-hidden="true" />
                 {th.report.call1663}
               </a>
             </>
           )}
-          <Link to={'/app/notify'} state={{ group: way === 'tested' ? null : group, hasLabResult: source === 'lab_result' }} className={result.outcome === 'queued' ? PRIMARY_LINK : QUIET_LINK}>
+          <Go to={'/app/notify'} state={{ group: way === 'tested' ? null : group, hasLabResult: source === 'lab_result' }} className={result.outcome === 'queued' ? PRIMARY_LINK : QUIET_LINK}>
             {th.report.goNotify}
-          </Link>
+          </Go>
           {source !== 'symptoms' && (
-            <Link to={'/app/list'} className={QUIET_LINK}>
+            <Go to={'/app/list'} className={QUIET_LINK}>
               {th.report.nextTest}
-            </Link>
+            </Go>
           )}
-          <Link to={'/app'} className={QUIET_LINK}>
+          <Go to={'/app'} className={QUIET_LINK}>
             {th.report.backToMap}
-          </Link>
+          </Go>
         </section>
       )}
     </main>

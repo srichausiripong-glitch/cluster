@@ -47,3 +47,7 @@ it('keeps dots and motion out of the back office', () => {
   const office = app.filter(([path]) => /\/(clinic|operator|data)\//.test(path))
   expect(office.filter(([, text]) => /<canvas|pop-in|ripple/.test(text)).map(([path]) => path)).toEqual([])
 })
+it('moves inside the app only with links that replace the history entry', () => {
+  const offenders = app.filter(([path, text]) => /\/(app|pages)\//.test(path) && !path.endsWith('/Go.tsx') && /import \{[^}]*\b(Link|NavLink|useNavigate)\b[^}]*\} from 'react-router-dom'/.test(text))
+  expect(offenders.map(([path]) => path)).toEqual([])
+})
