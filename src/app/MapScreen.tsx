@@ -7,7 +7,7 @@ import type { Level } from '../map/geo'
 import { PinMark } from '../map/legend'
 import { useAreas } from '../map/published'
 import { RealMap } from '../map/RealMap'
-import { CARE_POINTS, orderedCarePoints } from '../store/seed'
+import { CARE_POINTS, orderedCarePoints } from '../data/carePoints'
 import { zoneName } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
 import { SendSignalLink } from './SendSignalLink'
@@ -30,7 +30,7 @@ export function MapScreen() {
   const place = zoneInView
     ? { id: zoneInView.id, name: zoneInView.name, state: byId(zoneInView.id).state }
     : { id: 'bkk', name: 'กรุงเทพฯ', state: city.state }
-  const first = orderedCarePoints()[0]
+  const first = orderedCarePoints().at(0)
   const toggle = `min-h-9 rounded-full border-2 border-ink px-3 text-[13px] font-bold ${PRESS}`
 
   return (
@@ -72,15 +72,19 @@ export function MapScreen() {
 
       <SendSignalLink className="absolute bottom-[5.25rem] right-3" />
 
-      <button type="button" onClick={() => setPointId(first.id)} className={`absolute inset-x-3 bottom-3 flex min-h-16 items-center gap-3 box px-3 text-left ${PRESS}`}>
-        <PinMark kind={first.kind} />
-        <span className="min-w-0 flex-1">
-          <span className="block text-[12px] text-muted">{th.map.nearest}</span>
-          <span className="block truncate font-semibold">{first.name}</span>
-          <span className="block truncate text-[12px] text-muted">{zoneName(first.zoneId)}</span>
-        </span>
-        <ChevronRight size={20} strokeWidth={1.75} className="shrink-0 text-muted" aria-hidden="true" />
-      </button>
+      {first ? (
+        <button type="button" onClick={() => setPointId(first.id)} className={`absolute inset-x-3 bottom-3 flex min-h-16 items-center gap-3 box px-3 text-left ${PRESS}`}>
+          <PinMark kind={first.kind} />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[12px] text-muted">{th.map.nearest}</span>
+            <span className="block truncate font-semibold">{first.name}</span>
+            <span className="block truncate text-[12px] text-muted">{zoneName(first.zoneId)}</span>
+          </span>
+          <ChevronRight size={20} strokeWidth={1.75} className="shrink-0 text-muted" aria-hidden="true" />
+        </button>
+      ) : (
+        <p className="absolute inset-x-3 bottom-3 box px-3 py-3 text-[13px]">{th.care.noneVerified}</p>
+      )}
 
       {selected && areaId && (
         <SignalSheet

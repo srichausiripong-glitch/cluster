@@ -1,4 +1,4 @@
-import type { CarePoint } from '../store/seed'
+import type { CarePoint } from '../data/carePoints'
 import type { Zone } from './areas'
 import { CITY_FRAME, LEVELS, PPM, toXY, type Level, type XY } from './geo'
 import type { Manifest } from './types'

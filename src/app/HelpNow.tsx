@@ -4,7 +4,7 @@ import { th } from '../copy/th'
 import { PRESS } from '../design/look'
 import { Banner } from '../design/primitives/Banner'
 import { Card } from '../design/primitives/Card'
-import { CARE_POINTS } from '../store/seed'
+import { CARE_POINTS } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
 

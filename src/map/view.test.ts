@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { CARE_POINTS } from '../store/seed'
+import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
 import { STUB_MANIFEST } from '../test/mapStub'
 import { ZONES, zoneAt } from './areas'
 import { CITY_FRAME, PPM, toXY } from './geo'

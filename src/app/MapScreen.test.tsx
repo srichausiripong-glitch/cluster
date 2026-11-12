@@ -6,8 +6,9 @@ import App from '../App'
 import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
 import type { PublishedArea } from '../domain/types'
+import { setCarePoints } from '../data/carePoints'
 import { setPublishedForTest } from '../map/published'
-import { CARE_POINTS } from '../store/seed'
+import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
 
 const openApp = (path: string) =>
   render(
@@ -197,11 +198,22 @@ it('writes the day a care point was last checked in Thai, not as a raw date', as
   expect(sheet.getByText(formatThaiDate(new Date('2026-11-03')))).toBeInTheDocument()
   expect(sheet.queryByText('2026-11-03')).toBeNull()
 })
-it('does not dress a private clinic\'s own page as a link that goes nowhere', async () => {
+it('says so, instead of breaking, while no care point has been confirmed', async () => {
+  const user = userEvent.setup()
+  setCarePoints([])
+  const view = openApp('/app')
+  expect(screen.getByText(th.care.noneVerified)).toBeInTheDocument()
+  const sheet = await openSignal(user)
+  expect(sheet.queryByText(th.map.pair)).toBeNull()
+  view.unmount()
+  openApp('/app/list')
+  expect(screen.getByText(th.care.noneVerified)).toBeInTheDocument()
+})
+it('links a private clinic to its own public page', async () => {
   const user = userEvent.setup()
   openApp('/app/list')
   await user.click(screen.getByRole('button', { name: /คลินิกชุมชนสีลมตัวอย่าง/ }))
-  const sheet = within(screen.getByRole('dialog'))
-  expect(sheet.getByText(th.care.linkOutSample)).toBeInTheDocument()
-  expect(sheet.queryByText('ดูรายละเอียดที่หน้าของคลินิก')).toBeNull()
+  const link = within(screen.getByRole('dialog')).getByRole('link', { name: th.care.linkOut })
+  expect(link).toHaveAttribute('href', 'https://example.org/care')
+  expect(link).toHaveAttribute('target', '_blank')
 })

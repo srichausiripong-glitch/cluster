@@ -1,7 +1,7 @@
 // The map's own marks, drawn the same way wherever they are explained or repeated: in the legend,
 // in lists, and on the map itself.
 import type { DensityBand } from '../domain/types'
-import type { CarePoint } from '../store/seed'
+import type { CarePoint } from '../data/carePoints'
 import { DOT_GAP, DOT_R, EDGE, HATCH, SAMPLE_PX } from './style'
 
 /** A care point pin. Its point is at 0, 0 and its round head is centred 26 px above. */

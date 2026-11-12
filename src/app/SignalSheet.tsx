@@ -5,7 +5,7 @@ import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
 import { DotSwatch, EdgeSample, PinMark, QuietSwatch } from '../map/legend'
 import { OFFICIAL } from '../data/official'
-import type { CarePoint } from '../store/seed'
+import type { CarePoint } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
 
 const DENSITIES = ['thin', 'medium', 'dense'] as const
@@ -36,7 +36,7 @@ function Value({ label, current }: { label: string; current: boolean }) {
   )
 }
 
-type Props = { area: PublishedArea; title: string; open: boolean; onClose: () => void; pair: CarePoint; onOpenCarePoint: (id: string) => void }
+type Props = { area: PublishedArea; title: string; open: boolean; onClose: () => void; pair: CarePoint | undefined; onOpenCarePoint: (id: string) => void }
 
 /** The signal for one area: level and age as words and marks, never a count (spec 7.2), always with a care point (spec 7.3). */
 export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint }: Props) {
@@ -86,8 +86,12 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
         </p>
       </div>
 
-      <h3 className="mb-2 mt-4 text-[13px] font-medium text-muted">{th.map.pair}</h3>
-      <CarePointRow point={pair} onOpen={() => onOpenCarePoint(pair.id)} />
+      {pair && (
+        <>
+          <h3 className="mb-2 mt-4 text-[13px] font-medium text-muted">{th.map.pair}</h3>
+          <CarePointRow point={pair} onOpen={() => onOpenCarePoint(pair.id)} />
+        </>
+      )}
 
       <h3 className="mb-2 mt-4 text-[13px] font-medium text-muted">{th.map.key}</h3>
       <ul className="grid grid-cols-2 gap-x-3 gap-y-2 text-[13px]">

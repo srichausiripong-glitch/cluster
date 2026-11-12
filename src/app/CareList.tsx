@@ -2,7 +2,7 @@ import { ChevronRight, Waves } from 'lucide-react'
 import { useState } from 'react'
 import { th } from '../copy/th'
 import { PRESS } from '../design/look'
-import { CARE_POINTS, orderedCarePoints } from '../store/seed'
+import { CARE_POINTS, orderedCarePoints } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
 import { SendSignalLink } from './SendSignalLink'
@@ -35,6 +35,7 @@ export function CareList() {
         <ChevronRight size={18} strokeWidth={2.25} className="shrink-0" aria-hidden="true" />
       </button>
 
+      {CARE_POINTS.length === 0 && <p className="box px-4 py-3 text-[13px]">{th.care.noneVerified}</p>}
       <ul className="space-y-3">
         {orderedCarePoints().map((point) => (
           <li key={point.id}>

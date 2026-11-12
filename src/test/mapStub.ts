@@ -1,6 +1,6 @@
 import type { MapSource } from '../map/source'
 import type { CityData, Manifest, TileData } from '../map/types'
-import { CARE_POINTS } from '../store/seed'
+import { FIXTURE_POINTS as CARE_POINTS } from './carePoints'
 
 /** A small manifest for tests: district-level data over the inner city, street-level data in one tile near Victory Monument. */
 export const STUB_MANIFEST: Manifest = {

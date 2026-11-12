@@ -3,7 +3,7 @@ import { th } from '../copy/th'
 import { PRESS } from '../design/look'
 import { ZONES } from '../map/areas'
 import { PinMark } from '../map/legend'
-import type { CarePoint } from '../store/seed'
+import type { CarePoint } from '../data/carePoints'
 
 export const zoneName = (zoneId: string): string => ZONES.find((zone) => zone.id === zoneId)?.name ?? ''
 

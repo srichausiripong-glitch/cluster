@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { expect, it } from 'vitest'
 import { pointInRings } from '../../scripts/map/geometry.ts'
-import { CARE_POINTS, ZONE_IDS } from '../store/seed'
+import { ZONE_IDS } from '../store/seed'
+import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
 import zones from './data/zones.json'
 import type { CityData, LabelKind, Manifest, TileData } from './types'
 
