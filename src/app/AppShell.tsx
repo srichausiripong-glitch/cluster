@@ -11,6 +11,7 @@ import { QuickExit } from './QuickExit'
 import { ReportFlow } from './ReportFlow'
 import { SelfCare } from './SelfCare'
 import { GoNav } from './Go'
+import { useEnvelope } from '../envelope/useEnvelope'
 
 const NAV = [
   { path: '/app', label: th.nav.map, icon: MapIcon, end: true },
@@ -20,6 +21,7 @@ const NAV = [
 ]
 
 export function AppShell() {
+  useEnvelope()
 
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col bg-bg">

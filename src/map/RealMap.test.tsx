@@ -60,7 +60,7 @@ it('writes the six zone names in white boxes with a black edge', () => {
     expect(b.querySelector('text')).toHaveAttribute('fill', 'var(--color-ink)')
   }
 })
-it('asks only for its own map files, never another site', async () => {
+it('asks only for its own map files and its own server, never another site', async () => {
   const asked: string[] = []
   vi.stubGlobal('fetch', (url: string) => {
     asked.push(String(url))
@@ -69,7 +69,8 @@ it('asks only for its own map files, never another site', async () => {
   setMapSource(fetchSource())
   openApp('/app')
   await waitFor(() => expect(asked.length).toBeGreaterThan(0))
-  expect(asked.filter((url) => !url.startsWith(`${import.meta.env.BASE_URL}map/`))).toEqual([])
+  // The map reads its own files; the app's only other requests go to its own server's /api/.
+  expect(asked.filter((url) => !url.startsWith(`${import.meta.env.BASE_URL}map/`) && !url.startsWith('/api/'))).toEqual([])
 })
 it('gathers care points that sit close together into one numbered marker, and separates them one level in', async () => {
   const user = userEvent.setup()
