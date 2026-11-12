@@ -209,7 +209,7 @@ it('keeps still for a person who asks for reduced motion', () => {
 it('lets the newest zone breathe and the markers pop in when motion is allowed', () => {
   const frames = vi.fn(() => 0)
   vi.stubGlobal('requestAnimationFrame', frames)
-  setPublishedForTest({ week: '2026-W46', areas: [{ areaId: 'south', state: 'shown', density: 'dense', step: 'new' }] })
+  setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: [{ areaId: 'south', state: 'shown', density: 'dense', step: 'new', testing: null }] })
   openApp('/app')
   expect(map()).not.toHaveAttribute('data-still')
   expect(frames).toHaveBeenCalled()

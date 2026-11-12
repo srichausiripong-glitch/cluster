@@ -96,15 +96,11 @@ export function EdgeSample({ step }: { step: keyof typeof EDGE }) {
 }
 
 /** How the map marks an area without a signal. `large` is the patch at the top of an area's sheet. */
-export function QuietSwatch({ state, large = false }: { state: 'below_threshold' | 'no_data' | 'no_partner'; large?: boolean }) {
+export function QuietSwatch({ state, large = false }: { state: 'below_threshold' | 'no_data' | 'suspended'; large?: boolean }) {
   const [w, h] = large ? [58, 40] : [34, 26]
   const id = `quiet-${state}-${large ? 'l' : 's'}`
   const lines: string[] = []
   if (state === 'below_threshold') for (let x = -h; x < w; x += HATCH.gap) lines.push(`M${x} 0L${x + h} ${h}`)
-  if (state === 'no_partner') {
-    for (let x = 6; x < w; x += 12) lines.push(`M${x} 0V${h}`)
-    for (let y = 6; y < h; y += 12) lines.push(`M0 ${y}H${w}`)
-  }
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" className="shrink-0">
       <clipPath id={id}>
@@ -123,7 +119,7 @@ export function QuietSwatch({ state, large = false }: { state: 'below_threshold'
         strokeWidth={state === 'below_threshold' ? 1.8 : 1.4}
         strokeDasharray={state === 'below_threshold' ? '4 5' : state === 'no_data' ? '0.1 5' : undefined}
         strokeLinecap={state === 'no_data' ? 'round' : 'butt'}
-        opacity={state === 'below_threshold' ? 0.75 : 0.5}
+        opacity={state === 'below_threshold' ? 0.75 : state === 'suspended' ? 0.6 : 0.5}
       />
     </svg>
   )

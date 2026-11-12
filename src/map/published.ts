@@ -14,7 +14,7 @@ export function setPublished(file: PublishedFile | null): void {
 /** Tests install a file the same way the fetch will. */
 export const setPublishedForTest = setPublished
 
-const empty = (areaId: string): PublishedArea => ({ areaId, state: 'no_data', density: null, step: null })
+const empty = (areaId: string): PublishedArea => ({ areaId, state: 'no_data', density: null, step: null, testing: null })
 
 export interface Areas {
   zones: PublishedArea[]

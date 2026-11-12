@@ -165,9 +165,9 @@ function onScreen(s: Scene, rings: number[][]): Box | null {
 }
 
 // ---- ground -----------------------------------------------------------------------------------
-/** An area without a signal is marked quietly: thin slanted lines below the threshold, a faint grid where no clinic reports, nothing where there is no data. */
+/** An area without a signal is marked quietly: thin slanted lines below the threshold, nothing where there is no data or the area is suspended. */
 function quiet(ctx: Ctx, s: Scene, rings: number[][], state: AreaState) {
-  if (state !== 'below_threshold' && state !== 'no_partner') return
+  if (state !== 'below_threshold') return
   const box = onScreen(s, rings)
   if (!box) return
   ctx.save()
@@ -175,28 +175,14 @@ function quiet(ctx: Ctx, s: Scene, rings: number[][], state: AreaState) {
   ctx.clip()
   screen(ctx, s)
   ctx.beginPath()
-  if (state === 'below_threshold') {
-    const reach = box[3] - box[1]
-    for (let x = Math.floor((box[0] - reach) / HATCH.gap) * HATCH.gap; x < box[2]; x += HATCH.gap) {
-      ctx.moveTo(x, box[1])
-      ctx.lineTo(x + reach, box[3])
-    }
-    ctx.strokeStyle = s.palette.signalSoft
-    ctx.globalAlpha = HATCH.alpha
-    ctx.lineWidth = HATCH.width
-  } else {
-    for (let x = Math.floor(box[0] / 12) * 12; x < box[2]; x += 12) {
-      ctx.moveTo(x, box[1])
-      ctx.lineTo(x, box[3])
-    }
-    for (let y = Math.floor(box[1] / 12) * 12; y < box[3]; y += 12) {
-      ctx.moveTo(box[0], y)
-      ctx.lineTo(box[2], y)
-    }
-    ctx.strokeStyle = s.palette.ink
-    ctx.globalAlpha = 0.22
-    ctx.lineWidth = 1
+  const reach = box[3] - box[1]
+  for (let x = Math.floor((box[0] - reach) / HATCH.gap) * HATCH.gap; x < box[2]; x += HATCH.gap) {
+    ctx.moveTo(x, box[1])
+    ctx.lineTo(x + reach, box[3])
   }
+  ctx.strokeStyle = s.palette.signalSoft
+  ctx.globalAlpha = HATCH.alpha
+  ctx.lineWidth = HATCH.width
   ctx.stroke()
   ctx.restore()
   world(ctx, s)
@@ -356,7 +342,7 @@ function areaEdges(ctx: Ctx, s: Scene) {
     if (!s.showSignal) line = { width: 1, dash: [2, 4], cap: 'butt', color: p.ink, alpha: 0.35 }
     else if (state === 'shown') line = { ...EDGE[area?.step ?? 'mixed'], color: p.signalEdge }
     else if (state === 'below_threshold') line = { width: 1.8, dash: [4, 5], cap: 'butt', color: p.signalEdge, alpha: 0.75 }
-    else if (state === 'no_partner') line = { width: 1.4, color: p.ink, alpha: 0.45 }
+    else if (state === 'suspended') line = { width: 1.4, color: p.ink, alpha: 0.6 }
     else line = { width: 1.4, dash: [0.1, 5], cap: 'round', color: p.ink, alpha: 0.5 }
     ctx.save()
     outline(ctx, rings)

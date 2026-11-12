@@ -1,4 +1,3 @@
-import type { PublishedArea } from '../domain/types'
 
 export interface CarePoint {
   id: string
@@ -45,14 +44,4 @@ export function orderedCarePoints(points: CarePoint[] = CARE_POINTS): CarePoint[
 export const OFFICIAL_FIGURES = [
   { label: 'ซิฟิลิส กรุงเทพฯ', period: 'สัปดาห์ล่าสุด', value: 'เพิ่มขึ้นเล็กน้อยจากสัปดาห์ก่อน' },
   { label: 'ฝีดาษวานร ทั้งประเทศ', period: 'เดือนนี้', value: 'ทรงตัว' },
-]
-
-/** Zone-level preview for the "ตัวอย่างเฟส 2" switch. Not produced by the demo's clinic flow. */
-export const PHASE2_AREAS: PublishedArea[] = [
-  { areaId: 'south', state: 'shown', density: 'dense', step: 'new' },
-  { areaId: 'central', state: 'shown', density: 'medium', step: 'followup' },
-  { areaId: 'north', state: 'shown', density: 'thin', step: 'expiring' },
-  { areaId: 'east', state: 'below_threshold', density: null, step: null },
-  { areaId: 'thon_north', state: 'no_data', density: null, step: null },
-  { areaId: 'thon_south', state: 'no_partner', density: null, step: null },
 ]

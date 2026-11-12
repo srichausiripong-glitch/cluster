@@ -17,7 +17,7 @@ export const EDGE: Record<'new' | 'followup' | 'expiring' | 'mixed', { width: nu
   mixed: { width: 3, dash: [8, 4, 0.1, 4], cap: 'round' },
 }
 /** How an area without a signal is marked. All three are quieter than any signal. */
-export const QUIET = { below_threshold: 'hatch', no_data: 'none', no_partner: 'grid' } as const
+export const QUIET = { below_threshold: 'hatch', no_data: 'none', suspended: 'none' } as const
 /**
  * The slanted lines of an area below the threshold: how far apart along the ground, how wide, and
  * how opaque, in screen pixels. A test keeps them lighter on the ground than the smallest dots.

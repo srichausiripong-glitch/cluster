@@ -10,7 +10,7 @@ import { CarePointRow } from './CarePointRow'
 
 const DENSITIES = ['thin', 'medium', 'dense'] as const
 const STEPS = ['new', 'followup', 'expiring', 'mixed'] as const
-const QUIET_STATES = ['below_threshold', 'no_data', 'no_partner'] as const
+const QUIET_STATES = ['below_threshold', 'no_data', 'suspended'] as const
 const PIN_KINDS = ['clinic', 'pharmacy', 'lab'] as const
 
 /** The area's own patch: the map's dots and edge when it has a signal, the map's quiet mark when it has none. */

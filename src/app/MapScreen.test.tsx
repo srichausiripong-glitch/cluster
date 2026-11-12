@@ -15,10 +15,10 @@ const openApp = (path: string) =>
       <App />
     </MemoryRouter>,
   )
-const area = (areaId: string, state: PublishedArea['state'], density: PublishedArea['density'] = null, step: PublishedArea['step'] = null): PublishedArea => ({ areaId, state, density, step })
+const area = (areaId: string, state: PublishedArea['state'], density: PublishedArea['density'] = null, step: PublishedArea['step'] = null): PublishedArea => ({ areaId, state, density, step, testing: null })
 /** What the weekly file says: the city thin and new, as twelve fresh reports would make it; the zones in every state. */
 const SHOWN = [area('bkk', 'shown', 'thin', 'new'), area('south', 'shown', 'dense', 'new'), area('central', 'shown', 'medium', 'followup'), area('north', 'shown', 'thin', 'expiring'), area('east', 'below_threshold'), area('thon_north', 'no_data'), area('thon_south', 'no_data')]
-const publish = (which: 'shown' | 'below') => setPublishedForTest({ week: '2026-W46', areas: which === 'shown' ? SHOWN : [area('bkk', 'below_threshold'), area('south', 'below_threshold')] })
+const publish = (which: 'shown' | 'below') => setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: which === 'shown' ? SHOWN : [area('bkk', 'below_threshold'), area('south', 'below_threshold')] })
 afterEach(() => setPublishedForTest(null))
 const openSignal = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole('button', { name: th.map.openSignal }))
@@ -47,7 +47,7 @@ it('teaches every mark in the legend: dot sizes, edges, quiet states and pin sha
   openApp('/app')
   const sheet = await openSignal(user)
   expect(sheet.getByText(th.map.key)).toBeInTheDocument()
-  for (const label of [th.map.state.below_threshold, th.map.state.no_data, th.map.state.no_partner, th.map.keyPins.clinic, th.map.keyPins.pharmacy, th.map.keyPins.lab]) expect(sheet.getAllByText(label).length).toBeGreaterThan(0)
+  for (const label of [th.map.state.below_threshold, th.map.state.no_data, th.map.state.suspended, th.map.keyPins.clinic, th.map.keyPins.pharmacy, th.map.keyPins.lab]) expect(sheet.getAllByText(label).length).toBeGreaterThan(0)
   expect(sheet.getAllByText(th.map.current).length).toBe(2)
   const dots = [...screen.getByRole('dialog').querySelectorAll('[data-dot-r]')].map((el) => Number(el.getAttribute('data-dot-r')))
   expect(dots.slice(0, 3)).toEqual([1.2, 2.1, 3.1])
