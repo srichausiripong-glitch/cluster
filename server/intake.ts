@@ -8,6 +8,11 @@ import { serverWeek } from './week.js'
 
 /** Reports counted from one network group in one week (amendment 6). */
 export const NETWORK_CAP = 30
+/**
+ * Envelopes counted from one network group in one week. Without it, a flood of empty envelopes
+ * would raise the expected random count and wash every real signal off the map.
+ */
+export const ENVELOPE_CAP = 500
 /** Base64url lengths of a P-256 coordinate, a 12-byte IV, and 256 padded bytes plus the 16-byte tag. */
 const LENGTHS = { coord: 43, iv: 16, ct: 363 }
 
@@ -17,6 +22,7 @@ export interface IntakeDeps {
   bits: number
   now: Date
   ip: string
+  envelopeCap?: number
 }
 
 function shaped(body: unknown): (Sealed & { pow: string }) | null {
@@ -57,23 +63,29 @@ export async function intake(body: unknown, deps: IntakeDeps): Promise<{ status:
   }
   if (!known(plain)) return { status: 400 }
 
-  const fresh = await deps.db.query('insert into seen_nonces (week, nonce) values ($1, $2) on conflict do nothing returning nonce', [week, plain.nonce])
-  if (fresh.length === 0) return { status: 202 }
-  await deps.db.query('insert into envelope_totals (week, n) values ($1, 1) on conflict (week) do update set n = envelope_totals.n + 1', [week])
-  if (!plain.report) return { status: 202 }
-
-  const [setting] = await deps.db.query<{ value: string }>("select value from settings where name = 'intake'")
-  if (setting?.value === 'closed') return { status: 202 }
-
+  // One statement for every envelope, empty or not, so neither the database work nor the time it
+  // takes tells an envelope with a report from one without (amendment 5).
   const grp = hiddenGroup(await weekKey(deps.db, week), deps.ip)
-  const [cap] = await deps.db.query<{ n: number }>(
-    'insert into network_caps (week, grp, n) values ($1, $2, 1) on conflict (week, grp) do update set n = network_caps.n + 1 returning n',
-    [week, grp],
-  )
-  if (cap.n > NETWORK_CAP) return { status: 202 }
+  const report = plain.report
   await deps.db.query(
-    'insert into counts (zone, kind, week, n) values ($1, $2, $3, 1) on conflict (zone, kind, week) do update set n = counts.n + 1',
-    [plain.report.zone, plain.report.kind, week],
+    `with fresh as (
+       insert into seen_nonces (week, nonce) values ($1, $2) on conflict do nothing returning 1
+     ), cap as (
+       insert into network_caps (week, grp, envelopes, n)
+       select $1, $3, 1, case when $4::text is null then 0 else 1 end from fresh
+       on conflict (week, grp) do update set envelopes = network_caps.envelopes + 1, n = network_caps.n + excluded.n
+       returning envelopes, n
+     ), open as (
+       select coalesce((select value from settings where name = 'intake'), 'open') <> 'closed' as ok
+     ), env as (
+       insert into envelope_totals (week, n) select $1, 1 from cap where cap.envelopes <= $7
+       on conflict (week) do update set n = envelope_totals.n + 1 returning 1
+     )
+     insert into counts (zone, kind, week, n)
+     select $4, $5, $1, 1 from cap, open
+     where $4::text is not null and open.ok and cap.envelopes <= $7 and cap.n <= $6
+     on conflict (zone, kind, week) do update set n = counts.n + 1`,
+    [week, plain.nonce, grp, report?.zone ?? null, report?.kind ?? null, NETWORK_CAP, deps.envelopeCap ?? ENVELOPE_CAP],
   )
   return { status: 202 }
 }

@@ -4,7 +4,10 @@ import { makePlain, powInput } from '../src/domain/envelope'
 import type { PendingReport } from '../src/domain/types'
 import { solvePow } from '../src/envelope/pow'
 import { seal } from '../src/envelope/seal'
+import { createHmac } from 'node:crypto'
 import { migrate, type Db } from './db'
+import { setEnvForTest } from './env'
+import { networkGroup } from './keys'
 import { intake } from './intake'
 import { testDb } from './testDb'
 import { serverWeek } from './week'
@@ -93,4 +96,33 @@ it('writes nothing about an envelope or an address to the logs', async () => {
     expect(line).not.toContain(env.ct.slice(0, 20))
   }
   vi.restoreAllMocks()
+})
+it('does the same database work for an empty envelope as for one carrying a report', async () => {
+  const calls: number[] = [0]
+  const counting: Db = { query: (text, params) => (calls[calls.length - 1]++, db.query(text, params)) }
+  await intake(await envelope(null), { ...deps(), db: counting }) // the first envelope of an instance also fetches the week key
+  calls.length = 0
+  for (const pending of [null, report('syphilis')]) {
+    calls.push(0)
+    await intake(await envelope(pending), { ...deps(), db: counting })
+  }
+  expect(calls[0]).toBe(calls[1])
+  expect(calls[0]).toBe(1)
+})
+it('marks the network for every envelope, so a row does not mean that network reported', async () => {
+  await intake(await envelope(null), deps('198.51.100.20'))
+  expect(await db.query('select grp from network_caps')).toHaveLength(1)
+})
+it('hides the network with a key the database alone does not hold', async () => {
+  setEnvForTest({ SESSION_SECRET: 'a-secret-only-vercel-holds' })
+  await intake(await envelope(report('syphilis')), deps('198.51.100.20'))
+  const [{ grp }] = await db.query<{ grp: string }>('select grp from network_caps')
+  const stored = await db.query<{ key: Uint8Array }>('select key from week_keys')
+  for (const { key } of stored) expect(createHmac('sha256', Buffer.from(key)).update(networkGroup('198.51.100.20')).digest('hex')).not.toBe(grp)
+  setEnvForTest(null)
+})
+it('stops counting envelopes from one network past the envelope cap, so empty envelopes cannot wash out the map', async () => {
+  for (let i = 0; i < 4; i++) await intake(await envelope(i === 3 ? report('syphilis') : null), { ...deps(), envelopeCap: 3 })
+  expect(await totals()).toBe(3)
+  expect(await count('south', 'syphilis')).toBe(0)
 })

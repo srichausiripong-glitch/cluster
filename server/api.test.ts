@@ -61,3 +61,10 @@ it('publishes only for the cron secret, and then serves the new file', async () 
   expect(file.week).toBe(shiftWeek(serverWeek(new Date()), -1))
   expect(file.areas).toHaveLength(7)
 })
+
+it('counts at most three harm reports from one network in a week', async () => {
+  const send = (ip: string) => harm(new Request('https://cluster.test/api/harm', { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': ip }, body: JSON.stringify({ kind: 'violence' }) }))
+  for (let i = 0; i < 10; i++) expect((await send('203.0.113.9')).status).toBe(202)
+  await send('198.51.100.4')
+  expect((await db.query<{ n: number }>("select n from harm_reports where kind = 'violence'"))[0].n).toBe(4)
+})
