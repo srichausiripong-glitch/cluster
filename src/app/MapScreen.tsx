@@ -6,11 +6,10 @@ import type { Level } from '../map/geo'
 import { useAreas } from '../map/published'
 import { RealMap } from '../map/RealMap'
 import { CARE_POINTS } from '../data/carePoints'
-import { districtLabel, districtName } from '../domain/districts'
+import { districtName } from '../domain/districts'
 import { CarePointSheet } from './CarePointSheet'
 import { SignalSheet } from './SignalSheet'
 import { StatusCard } from './StatusCard'
-import { carePointFor } from './useCity'
 import { LayerChips } from './LayerChips'
 import { layersOn, toggleLayer } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
@@ -24,8 +23,6 @@ export function MapScreen() {
   const [seen, setSeen] = useState<{ level: Level; areaId: string | null }>({ level: 'city', areaId: null })
 
   const selected = areaId === null ? null : byId(areaId)
-  const selectedLabel = areaId && areaId !== 'bkk' ? districtLabel(areaId) : ''
-  const selectedTitle = selectedLabel ? th.map.signalTitleOf.replace('{district}', selectedLabel) : th.map.signalTitle
   // Below city level, the state box speaks for the district in the middle of the map.
   const inView = seen.level !== 'city' && seen.areaId ? seen.areaId : null
   const place = inView
@@ -73,19 +70,7 @@ export function MapScreen() {
         </div>
       </div>
 
-      {selected && areaId && (
-        <SignalSheet
-          area={selected}
-          title={selectedTitle}
-          open
-          onClose={() => setAreaId(null)}
-          pair={carePointFor(areaId)}
-          onOpenCarePoint={(id) => {
-            setAreaId(null)
-            setPointId(id)
-          }}
-        />
-      )}
+      {selected && <SignalSheet area={selected} open onClose={() => setAreaId(null)} />}
       <CarePointSheet point={CARE_POINTS.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
     </div>
   )

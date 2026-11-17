@@ -8,7 +8,6 @@ import { CarePointSheet } from './CarePointSheet'
 import { SendSignalLink } from './SendSignalLink'
 import { SignalSheet } from './SignalSheet'
 import { useAreas } from '../map/published'
-import { carePointFor } from './useCity'
 
 /**
  * Everything the map says, as a list: the area's signal, the way to send one, and the same
@@ -48,19 +47,7 @@ export function CareList() {
         <SendSignalLink className="pointer-events-auto" />
       </div>
 
-      {signalOpen && (
-        <SignalSheet
-          area={city}
-          title={th.map.signalTitle}
-          open
-          onClose={() => setSignalOpen(false)}
-          pair={carePointFor('bkk')}
-          onOpenCarePoint={(id) => {
-            setSignalOpen(false)
-            setPointId(id)
-          }}
-        />
-      )}
+      {signalOpen && <SignalSheet area={city} open onClose={() => setSignalOpen(false)} />}
       <CarePointSheet point={CARE_POINTS.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
     </main>
   )

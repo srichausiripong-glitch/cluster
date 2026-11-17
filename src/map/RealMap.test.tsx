@@ -305,7 +305,7 @@ it('opens the sheet of an area on one click, after the short wait that tells it 
   const user = userEvent.setup()
   openApp('/app')
   await user.click(cityArea())
-  expect(await screen.findByRole('dialog')).toHaveAttribute('aria-label', th.map.signalTitle)
+  expect(await screen.findByRole('dialog')).toHaveAttribute('aria-label', th.map.city)
 })
 it('opens the sheet of an area from the keyboard at once', async () => {
   const user = userEvent.setup()

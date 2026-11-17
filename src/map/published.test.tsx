@@ -47,16 +47,17 @@ it('shows every zone as having no data, and no error, before any file exists', a
   for (const { name } of DISTRICTS) expect(zoneButton(name)).toHaveAccessibleName(`${name}: ${th.map.state.no_data}`)
   expect(screen.queryByRole('alert')).toBeNull()
 })
-it('labels every signal as unconfirmed user reports, and shows testing only in the zone sheet', async () => {
+it('labels every signal as user reports, not places of infection, and shows the testing level in the district sheet', async () => {
   const user = userEvent.setup()
   setPublishedForTest(FILE)
   open()
   await user.click(zoneButton('บางรัก'))
   const sheet = within(await screen.findByRole('dialog'))
-  expect(sheet.getByText(th.map.unconfirmed)).toBeInTheDocument()
+  // bang_rak: confirmed medium and testing medium, so two rows read ปานกลาง.
+  expect(sheet.getAllByRole('img', { name: 'ปานกลาง' })).toHaveLength(2)
+  await user.click(sheet.getByRole('button', { name: th.map.sheet.from }))
   expect(sheet.getByText(th.map.legendWhat)).toBeInTheDocument()
   expect(th.map.legendWhat).toBe('นับจากรายงานของผู้ใช้ที่เลือกเขตนี้เป็นเขตที่ใช้ชีวิต ไม่ใช่สถานที่ติดเชื้อ')
-  expect(sheet.getByText(`${th.map.testing}: ${th.map.testingLevel.medium}`)).toBeInTheDocument()
   expect(sheet.getByText(th.map.testingNotSafe)).toBeInTheDocument()
   expect(th.map.testingNotSafe).toBe('มีคนตรวจมากไม่ได้แปลว่าเขตนี้ปลอดภัย แปลว่ามีคนดูแลตัวเองมาก')
 })

@@ -29,42 +29,6 @@ const openSignal = async (user: ReturnType<typeof userEvent.setup>) => {
   return within(screen.getByRole('dialog'))
 }
 
-it('explains that a faded or empty area is not safe, and never shows the count behind the signal', async () => {
-  const user = userEvent.setup()
-  publish('shown')
-  openApp('/app')
-  const sheet = await openSignal(user)
-  expect(sheet.getByText(th.map.legendNotSafe)).toBeInTheDocument()
-  expect(sheet.getByText(th.map.density.thin)).toHaveAttribute('aria-current', 'true')
-  expect(document.body.textContent).not.toMatch(/(^|[^0-9:])12([^0-9:]|$)/)
-})
-it('shows the below-threshold state as its own visible state', async () => {
-  const user = userEvent.setup()
-  publish('below')
-  openApp('/app')
-  const sheet = await openSignal(user)
-  expect(sheet.getByRole('heading', { name: th.map.state.below_threshold })).toBeInTheDocument()
-})
-it('teaches every mark in the legend: dot sizes, edges, quiet states and pin shapes', async () => {
-  const user = userEvent.setup()
-  publish('shown')
-  openApp('/app')
-  const sheet = await openSignal(user)
-  expect(sheet.getByText(th.map.key)).toBeInTheDocument()
-  for (const label of [th.map.state.below_threshold, th.map.state.no_data, th.map.state.suspended, th.map.keyPins.clinic, th.map.keyPins.pharmacy, th.map.keyPins.lab]) expect(sheet.getAllByText(label).length).toBeGreaterThan(0)
-  expect(sheet.getAllByText(th.map.current).length).toBe(2)
-  const dots = [...screen.getByRole('dialog').querySelectorAll('[data-dot-r]')].map((el) => Number(el.getAttribute('data-dot-r')))
-  expect(dots.slice(0, 3)).toEqual([1.2, 2.1, 3.1])
-  expect(sheet.getByText(th.map.source, { exact: false })).toBeInTheDocument()
-})
-it('pairs the signal sheet with a care point', async () => {
-  const user = userEvent.setup()
-  publish('below')
-  openApp('/app')
-  const sheet = await openSignal(user)
-  expect(sheet.getByText(th.map.pair)).toBeInTheDocument()
-  expect(sheet.getByRole('button', { name: new RegExp(CARE_POINTS[0].name) })).toBeInTheDocument()
-})
 it('moves focus into a sheet, closes it on Escape and returns focus to what opened it', async () => {
   const user = userEvent.setup()
   openApp('/app')
@@ -105,7 +69,7 @@ it('carries the area signal and the send-signal button on the list, as on the ma
   openApp('/app/list')
   expect(screen.getByRole('link', { name: th.report.cta })).toHaveAttribute('href', '/app/report')
   const sheet = await openSignal(user)
-  expect(sheet.getByRole('heading', { name: th.map.state.below_threshold })).toBeInTheDocument()
+  expect(sheet.getAllByText(th.map.state.below_threshold).length).toBeGreaterThan(0)
 })
 it('never calls a pharmacy a state or Red Cross unit, and shows cost words only where they may be shown', () => {
   openApp('/app/list')
@@ -165,7 +129,7 @@ it('names the zone in view, in place of the city, once the map is below city lev
   expect(state.textContent).toMatch(new RegExp(DISTRICTS.map((d) => d.name).join('|')))
   expect(state).not.toHaveTextContent('กรุงเทพฯ')
   await user.click(state)
-  expect(screen.getByRole('dialog').getAttribute('aria-label')).toMatch(/^สัญญาณของเขต/)
+  expect(screen.getByRole('dialog').getAttribute('aria-label')).toMatch(/^เขต/)
   await user.click(screen.getByRole('button', { name: 'ปิดแผ่นนี้' }))
   await user.click(screen.getByRole('button', { name: th.map.zoomOut }))
   expect(state).toHaveTextContent('กรุงเทพฯ')
@@ -173,15 +137,6 @@ it('names the zone in view, in place of the city, once the map is below city lev
 it('shows the state of the city in a yellow box', () => {
   openApp('/app')
   expect(screen.getByRole('button', { name: th.map.openSignal }).className).toMatch(/\bbg-yellow\b/)
-})
-it('marks the value that applies now with a yellow tag', async () => {
-  const user = userEvent.setup()
-  publish('shown')
-  openApp('/app')
-  const sheet = await openSignal(user)
-  const tags = sheet.getAllByText(th.map.current)
-  expect(tags.length).toBeGreaterThan(0)
-  for (const tag of tags) expect(tag.className).toMatch(/\bbg-yellow\b/)
 })
 it('shows what a state care point costs as a green tag', async () => {
   const user = userEvent.setup()
@@ -214,7 +169,7 @@ it('says so, instead of breaking, while no care point has been confirmed', async
   setCarePoints([])
   const view = openApp('/app')
   const sheet = await openSignal(user)
-  expect(sheet.queryByText(th.map.pair)).toBeNull()
+  expect(sheet.getByRole('link', { name: th.map.sheet.findCare })).toHaveAttribute('href', '/app/list?find=test')
   view.unmount()
   openApp('/app/list')
   expect(screen.getByText(th.care.noneVerified)).toBeInTheDocument()
@@ -226,25 +181,6 @@ it('links a private clinic to its own public page', async () => {
   const link = within(screen.getByRole('dialog')).getByRole('link', { name: th.care.linkOut })
   expect(link).toHaveAttribute('href', 'https://example.org/care')
   expect(link).toHaveAttribute('target', '_blank')
-})
-
-it('shows the symptoms level of a district in its sheet, under the district name', async () => {
-  const user = userEvent.setup()
-  setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: [{ ...area('bang_rak', 'below_threshold'), symptoms: 'medium' }] })
-  openApp('/app')
-  await user.click(screen.getByRole('button', { name: /^บางรัก:/ }))
-  const sheet = within(await screen.findByRole('dialog'))
-  expect(sheet.getByText(`${th.map.symptoms}: ${th.map.symptomsLevel.medium}`)).toBeInTheDocument()
-  expect(sheet.getByRole('heading', { name: 'สัญญาณของเขตบางรัก' })).toBeInTheDocument()
-})
-
-it('keys "ยังไม่ถึงเกณฑ์" with the plain look the map draws for a district, not a hatch', async () => {
-  const user = userEvent.setup()
-  publish('shown')
-  openApp('/app')
-  const sheet = await openSignal(user)
-  const row = sheet.getAllByText(th.map.state.below_threshold).map((el) => el.closest('li')).find((li) => li !== null)!
-  expect(row.querySelector('path')?.getAttribute('d')).toBe('')
 })
 
 // ---- round 2: six layer switches over the map ---------------------------------------------------
@@ -282,4 +218,71 @@ it('keeps the six chips in one row that scrolls on its own, so a 320 px screen n
   const row = screen.getByRole('group', { name: th.home.layers })
   expect(row.className).toMatch(/\boverflow-x-auto\b/)
   for (const b of within(row).getAllByRole('button')) expect(b.className).toMatch(/\bshrink-0\b/)
+})
+
+// ---- round 2: the district sheet reads as three rows of dots ---------------------------------------
+const FILE = (areas: PublishedArea[]) => setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas })
+const openArea = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
+  await user.click(screen.getByRole('button', { name: new RegExp(`^${name}:`) }))
+  return within(await screen.findByRole('dialog'))
+}
+it('titles a district sheet with its name and shows three rows as dots and words, never a number', async () => {
+  const user = userEvent.setup()
+  FILE([{ areaId: 'bang_rak', state: 'shown', density: 'dense', step: 'new', testing: 'medium', symptoms: 'thin' }])
+  openApp('/app')
+  const sheet = await openArea(user, 'บางรัก')
+  expect(screen.getByRole('dialog')).toHaveAccessibleName('เขตบางรัก')
+  for (const word of ['มาก', 'น้อย', 'ปานกลาง']) expect(sheet.getByRole('img', { name: word })).toBeInTheDocument()
+  expect(screen.getByRole('dialog').textContent).not.toMatch(/\d/)
+})
+it('reads ยังไม่ถึงเกณฑ์ on each row below the threshold, the same whether the district had none or a few', async () => {
+  const user = userEvent.setup()
+  FILE([area('bang_rak', 'below_threshold')])
+  openApp('/app')
+  const sheet = await openArea(user, 'บางรัก')
+  expect(sheet.getAllByText(th.map.state.below_threshold)).toHaveLength(3)
+})
+it('shows a suspended district as suspended, with the reason behind ⓘ', async () => {
+  const user = userEvent.setup()
+  FILE([area('bang_rak', 'suspended')])
+  openApp('/app')
+  const sheet = await openArea(user, 'บางรัก')
+  expect(sheet.queryByText(th.map.sheet.confirmed)).toBeNull()
+  await user.click(sheet.getByRole('button', { name: th.map.sheet.suspended }))
+  expect(sheet.getByText(th.map.stateHint.suspended)).toBeInTheDocument()
+})
+it('explains the marks, the age of a signal and what a signal is not, behind ⓘ', async () => {
+  const user = userEvent.setup()
+  FILE([{ ...area('bkk', 'shown', 'thin', 'new'), symptoms: 'thin' }])
+  openApp('/app')
+  const sheet = await openSignal(user)
+  expect(sheet.queryByText(th.map.legendNotSafe)).toBeNull()
+  await user.click(sheet.getByRole('button', { name: th.map.sheet.from }))
+  expect(sheet.getByText(th.map.legendNotSafe)).toBeInTheDocument()
+  for (const word of [...Object.values(th.map.step), ...Object.values(th.map.keyPins)]) expect(sheet.getAllByText(word).length).toBeGreaterThan(0)
+  const dialog = screen.getByRole('dialog')
+  expect(dialog.querySelectorAll('[data-gap]')).toHaveLength(3)
+  expect([...dialog.querySelectorAll('[data-dot-r]')].map((el) => Number(el.getAttribute('data-dot-r')))).toEqual([1.2, 2.1, 3.1])
+  const tags = sheet.getAllByText(th.map.current)
+  expect(tags).toHaveLength(3)
+  for (const tag of tags) expect(tag.className).toMatch(/\bbg-yellow\b/)
+  // Keyed as drawn: a district below the threshold has no mark (redesign spec 5.7), so no hatch is taught for it.
+  const row = sheet.getAllByText(th.map.state.below_threshold).map((el) => el.closest('li')).find((li) => li !== null)!
+  expect(row.querySelector('path')?.getAttribute('d')).toBe('')
+})
+it('leads from a district to the places to test in it, or to every place when it has none', async () => {
+  const user = userEvent.setup()
+  const view = openApp('/app')
+  let sheet = await openArea(user, 'บางรัก')
+  expect(sheet.getByRole('link', { name: th.map.sheet.careHere })).toHaveAttribute('href', '/app/list?district=bang_rak')
+  view.unmount()
+  openApp('/app')
+  sheet = await openArea(user, 'หนองจอก')
+  expect(sheet.getByRole('link', { name: th.map.sheet.findCare })).toHaveAttribute('href', '/app/list?find=test')
+})
+it('opens the city sheet from the yellow box', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  await openSignal(user)
+  expect(screen.getByRole('dialog')).toHaveAccessibleName(th.map.city)
 })
