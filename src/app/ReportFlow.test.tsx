@@ -4,8 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import App from '../App'
 import { BANNED_WORDS, th } from '../copy/th'
-import { shiftWeek } from '../domain/weeks'
-import { currentWeek, saveCard, wipePhone } from '../store/actions'
+import { saveCard, wipePhone } from '../store/actions'
 import { phone } from '../store/stores'
 
 const open = (path = '/app/report') =>
@@ -15,6 +14,12 @@ const open = (path = '/app/report') =>
     </MemoryRouter>,
   )
 const choose = (user: UserEvent, name: string) => user.click(screen.getByRole('button', { name }))
+/** A positive syphilis result from a lab: the path that reaches the map box. */
+async function toConsent(user: UserEvent) {
+  await choose(user, th.report.way.positive)
+  await choose(user, th.group.syphilis)
+  await choose(user, th.source.lab_result)
+}
 /** Ticks the map box after choosing a zone and confirming the age. */
 async function toMap(user: UserEvent, zone = 'กรุงเทพใต้') {
   await user.click(screen.getByRole('radio', { name: zone }))
@@ -22,35 +27,39 @@ async function toMap(user: UserEvent, zone = 'กรุงเทพใต้') {
   await user.click(screen.getByLabelText(th.report.toMap))
 }
 
-it('offers exactly three ways in, and says what a signal is and who sees it', () => {
+it('offers two ways in, a found result and symptoms, and says what a signal is and who sees it', () => {
   open()
   for (const way of Object.values(th.report.way)) expect(screen.getByRole('button', { name: way })).toBeInTheDocument()
-  expect(screen.getAllByRole('button', { name: new RegExp(Object.values(th.report.way).join('|')) })).toHaveLength(3)
+  expect(Object.keys(th.report.way)).toEqual(['positive', 'symptoms'])
   expect(screen.getByText(th.report.privacy)).toBeInTheDocument()
 })
-it('names the tested choice in everyday words, the same on every screen that shows it (owner, 2026-11-16)', () => {
+it('sends someone whose check found nothing to the check-in on the map, which is the one place for it (owner, 2026-11-16)', () => {
   open()
-  expect(screen.getByRole('button', { name: 'ไปเช็กมา ไม่เจออะไร' })).toBeInTheDocument()
-  expect(screen.getByText('ผลออกมาไม่มีปฏิกิริยา ส่งให้ย่านรู้ว่ามีคนไปเช็กมา')).toBeInTheDocument()
-  expect(th.me.kind.tested).toBe(th.report.way.tested)
-  expect(th.report.testedAgainFrom).toContain(`"${th.report.way.tested}"`)
-  expect(th.privacy.leaves.join(' ')).toContain(th.report.way.tested)
+  expect(screen.queryByRole('button', { name: th.me.kind.tested })).toBeNull()
+  expect(screen.getByRole('link', { name: th.report.checkInInstead })).toHaveAttribute('href', '/app')
 })
-it('asks a person who was tested for no result and no disease, and queues the report for the envelope', async () => {
+it('names the tested report in everyday words wherever it shows (owner, 2026-11-16)', () => {
+  expect(th.me.kind.tested).toBe('ไปเช็กมา ไม่เจออะไร')
+  expect(th.checkIn.title).toContain(th.me.kind.tested)
+  expect(th.report.testedAgainFrom).toContain(`"${th.me.kind.tested}"`)
+  expect(th.privacy.leaves.join(' ')).toContain(th.me.kind.tested)
+})
+it('lets the report flow find the zone from a district too', async () => {
   const user = userEvent.setup()
   wipePhone()
   open()
-  await choose(user, th.report.way.tested)
-  for (const group of Object.values(th.group)) expect(screen.queryByRole('button', { name: group })).toBeNull()
-  await toMap(user)
+  await toConsent(user)
+  await user.selectOptions(screen.getByLabelText(th.report.byDistrict), 'ลาดพร้าว')
+  expect(screen.getByRole('radio', { name: 'กรุงเทพเหนือ' })).toBeChecked()
+  await user.click(screen.getByLabelText(th.report.age))
+  await user.click(screen.getByLabelText(th.report.toMap))
   await choose(user, th.report.finish.queue)
-  expect(phone.get().pending).toMatchObject({ kind: 'tested', zone: 'south' })
-  expect(phone.get().testedNextWeek).toBe(shiftWeek(currentWeek(), 4))
+  expect(phone.get().pending).toMatchObject({ kind: 'syphilis', zone: 'north' })
 })
 it('leaves the map box unticked, and lets it be ticked only after a zone and the age', async () => {
   const user = userEvent.setup()
   open()
-  await choose(user, th.report.way.tested)
+  await toConsent(user)
   const box = screen.getByLabelText(th.report.toMap)
   expect(box).not.toBeChecked()
   expect(box).toBeDisabled()
@@ -91,28 +100,15 @@ it('never offers the map for HIV, mpox or symptoms alone', async () => {
     view.unmount()
   }
 })
-it('does not offer "tested" for the map again within four weeks, and says when it can', async () => {
-  const user = userEvent.setup()
-  wipePhone()
-  phone.update((s) => ({ ...s, testedNextWeek: shiftWeek(currentWeek(), 2) }))
-  open()
-  await choose(user, th.report.way.tested)
-  expect(screen.queryByLabelText(th.report.toMap)).toBeNull()
-  expect(screen.getByText(new RegExp(th.report.testedAgainFrom.split('{date}')[0]))).toBeInTheDocument()
-})
-it('shows the same summary for "tested" and for a positive report, and never calls anyone clean or safe', async () => {
+it('shows the same summary for either mapped disease group, and never calls anyone clean or safe', async () => {
   const summaries: string[] = []
-  for (const positive of [false, true]) {
+  for (const group of [th.group.gono_chlam, th.group.syphilis]) {
     const user = userEvent.setup()
     wipePhone()
     const view = open()
-    if (positive) {
-      await choose(user, th.report.way.positive)
-      await choose(user, th.group.gono_chlam)
-      await choose(user, th.source.lab_result)
-    } else {
-      await choose(user, th.report.way.tested)
-    }
+    await choose(user, th.report.way.positive)
+    await choose(user, group)
+    await choose(user, th.source.lab_result)
     await toMap(user)
     await choose(user, th.report.finish.queue)
     const summary = screen.getByRole('region', { name: th.report.summary })
@@ -127,13 +123,13 @@ it('shows the same summary for "tested" and for a positive report, and never cal
 it('replaces a report still waiting on the phone only after saying so', async () => {
   const user = userEvent.setup()
   wipePhone()
-  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'north', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'north', savedAt: '2026-11-12T00:00:00.000Z' } }))
   open()
-  await choose(user, th.report.way.tested)
+  await toConsent(user)
   expect(screen.getByText(th.report.replacesPending)).toBeInTheDocument()
   await toMap(user)
   await choose(user, th.report.finish.queue)
-  expect(phone.get().pending).toMatchObject({ kind: 'tested', zone: 'south' })
+  expect(phone.get().pending).toMatchObject({ kind: 'syphilis', zone: 'south' })
 })
 it('shows the waiting report on the self-care screen, with a way to cancel it', async () => {
   const user = userEvent.setup()
@@ -195,6 +191,6 @@ it('does not say the phone holds nothing while an earlier card is still on it', 
 it('opens the privacy notice in a new tab, so the report being filled in stays put', async () => {
   const user = userEvent.setup()
   open()
-  await choose(user, th.report.way.tested)
+  await toConsent(user)
   expect(screen.getByRole('link', { name: th.privacy.title })).toHaveAttribute('target', '_blank')
 })

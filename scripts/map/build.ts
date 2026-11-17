@@ -8,6 +8,7 @@ import { PbfReader } from 'pbf'
 import type { CityData, Label, LabelKind, Line, Manifest, RoadClass, Shape, TileData, TileRef, ZoneData } from '../../src/map/types.ts'
 // The made-up points of the tests: the clearance check keeps them away from real clinics and hospitals.
 import { FIXTURE_POINTS as CARE_POINTS } from '../../src/test/carePoints.ts'
+import { DISTRICTS } from '../../src/map/districts.ts'
 import { labelKind, roadClass } from './classify.ts'
 import { isClosed, lengthOf, simplify, simplifyRing, stitch, type LatLon } from './geometry.ts'
 import { boundsOf, idOf, SETS, tileAt, type TileId } from './sets.ts'
@@ -209,16 +210,7 @@ city.labels = [
 ]
 
 // ---- districts and the six zones ---------------------------------------------------------------
-// The list of districts in each zone was written from memory. Check it against the Bangkok
-// Metropolitan Administration's announcement before real use.
-const GROUPS: Record<string, string[]> = {
-  central: ['พระนคร', 'ดุสิต', 'ป้อมปราบศัตรูพ่าย', 'สัมพันธวงศ์', 'ดินแดง', 'ห้วยขวาง', 'พญาไท', 'ราชเทวี', 'วังทองหลาง'],
-  south: ['ปทุมวัน', 'บางรัก', 'สาทร', 'บางคอแหลม', 'ยานนาวา', 'คลองเตย', 'วัฒนา', 'พระโขนง', 'สวนหลวง', 'บางนา'],
-  north: ['จตุจักร', 'บางซื่อ', 'ลาดพร้าว', 'หลักสี่', 'ดอนเมือง', 'สายไหม', 'บางเขน'],
-  east: ['บางกะปิ', 'สะพานสูง', 'บึงกุ่ม', 'คันนายาว', 'ลาดกระบัง', 'มีนบุรี', 'หนองจอก', 'คลองสามวา', 'ประเวศ'],
-  thon_north: ['ธนบุรี', 'คลองสาน', 'จอมทอง', 'บางกอกใหญ่', 'บางกอกน้อย', 'บางพลัด', 'ตลิ่งชัน', 'ทวีวัฒนา'],
-  thon_south: ['ภาษีเจริญ', 'บางแค', 'หนองแขม', 'บางขุนเทียน', 'บางบอน', 'ราษฎร์บูรณะ', 'ทุ่งครุ'],
-}
+const GROUPS = DISTRICTS
 const NAMES: Record<string, string> = { north: 'กรุงเทพเหนือ', central: 'กรุงเทพกลาง', east: 'กรุงเทพตะวันออก', south: 'กรุงเทพใต้', thon_north: 'กรุงธนเหนือ', thon_south: 'กรุงธนใต้' }
 /** Where each zone's name is written at city level, chosen so the names clear the care points. */
 const ANCHORS: Record<string, [number, number]> = { north: [13.94, 100.62], central: [13.797, 100.565], east: [13.845, 100.72], south: [13.688, 100.615], thon_north: [13.81, 100.415], thon_south: [13.63, 100.43] }

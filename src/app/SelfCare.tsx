@@ -5,7 +5,7 @@ import { QUIET_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
 import { ZONES } from '../map/areas'
-import { cancelPending, wipePhone } from '../store/actions'
+import { cancelPending, forgetCheckInZone, wipePhone } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 import { Go } from './Go'
@@ -24,7 +24,8 @@ function downloadReminder() {
 }
 
 export function SelfCare() {
-  const { card, pending } = usePartyStore(phone)
+  const { card, pending, checkInZone } = usePartyStore(phone)
+  const checkInName = ZONES.find((z) => z.id === checkInZone)?.name
   const days = card ? Math.max(0, Math.floor((Date.now() - new Date(card.sentAt).getTime()) / 86_400_000)) : 0
   const left = card ? Math.max(0, CARD_DAYS[card.group] - days) : 0
 
@@ -51,6 +52,15 @@ export function SelfCare() {
           <p className="mt-1">{th.me.pendingBody.replace('{kind}', th.me.kind[pending.kind]).replace('{zone}', ZONES.find((z) => z.id === pending.zone)?.name ?? '')}</p>
           <Button variant="secondary" className="mt-2" onClick={cancelPending}>
             {th.me.cancelPending}
+          </Button>
+        </Card>
+      )}
+
+      {checkInName && (
+        <Card>
+          <p>{th.me.checkInZone.replace('{zone}', checkInName)}</p>
+          <Button variant="secondary" className="mt-2" onClick={forgetCheckInZone}>
+            {th.me.forgetZone}
           </Button>
         </Card>
       )}

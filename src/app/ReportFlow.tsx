@@ -1,26 +1,24 @@
 import { Ban, CalendarPlus, Check as CheckIcon, Phone, Smartphone } from 'lucide-react'
-import { useId, useState } from 'react'
-import { formatThaiDate } from '../copy/format'
+import { useState } from 'react'
 import { th } from '../copy/th'
 import { buildIcs } from '../domain/ics'
 import type { DiseaseGroup, PendingReport, ReportKind, ReportSource } from '../domain/types'
-import { mondayDate } from '../domain/weeks'
 import { NOTE, PRIMARY_LINK, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Stepper } from '../design/primitives/Stepper'
-import { ZONES } from '../map/areas'
 import { useIntakeOpen } from '../map/published'
-import { currentWeek, queueReport, saveCard } from '../store/actions'
-import { ZONE_IDS } from '../store/seed'
+import { queueReport, saveCard } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 import { Check, Choice, FlowHeader } from './FlowHeader'
 import { Go } from './Go'
+import { ZonePicker } from './ZonePicker'
 
-type Way = 'tested' | 'positive' | 'symptoms'
+// "ไปเช็กมา ไม่เจออะไร" is the check-in on the map, its one place (owner, 2026-11-16); this flow is for a found result or symptoms.
+type Way = 'positive' | 'symptoms'
 type Outcome = 'queued' | 'kept' | 'nothing'
 /** What each way in asks about. Symptoms are accepted only where they mean something; a self-test only for HIV (amendment 4.1). */
-const GROUPS: Record<Exclude<Way, 'tested'>, DiseaseGroup[]> = {
+const GROUPS: Record<Way, DiseaseGroup[]> = {
   positive: ['gono_chlam', 'syphilis', 'mpox', 'hiv'],
   symptoms: ['gono_chlam', 'mpox'],
 }
@@ -30,14 +28,11 @@ const POSITIVE_SOURCES: Record<DiseaseGroup, ReportSource[]> = {
   mpox: ['lab_result'],
   hiv: ['lab_result', 'hiv_self_test'],
 }
-/** The zones in the order the rest of the app lists them: north to south, then across the river. */
-const PICK = ZONE_IDS.map((id) => ZONES.find((z) => z.id === id)!)
 const OUTCOME_ICON = { queued: CheckIcon, kept: Smartphone, nothing: Ban } as const
 const WEEK_MS = 7 * 86_400_000
 
 /** The report that may go to the map, or null. HIV never; mpox only from official figures; symptoms alone never (amendment 4.1). */
 function mapKind(way: Way | null, group: DiseaseGroup | null, source: ReportSource | null): ReportKind | null {
-  if (way === 'tested') return 'tested'
   if (way === 'positive' && source === 'lab_result' && (group === 'gono_chlam' || group === 'syphilis')) return group
   return null
 }
@@ -53,8 +48,7 @@ function downloadReminder() {
 }
 
 export function ReportFlow() {
-  const zoneName = useId()
-  const { card, pending, testedNextWeek } = usePartyStore(phone)
+  const { card, pending } = usePartyStore(phone)
   const [step, setStep] = useState(0)
   const [way, setWay] = useState<Way | null>(null)
   const [group, setGroup] = useState<DiseaseGroup | null>(null)
@@ -66,13 +60,10 @@ export function ReportFlow() {
   const [result, setResult] = useState<{ outcome: Outcome; kept: boolean; oldCard: boolean } | null>(null)
 
   const kind = mapKind(way, group, source)
-  const week = currentWeek()
-  // "Tested" may go to the map once in four weeks; the phone remembers only when it may again.
-  const testedWait = kind === 'tested' && testedNextWeek !== null && testedNextWeek > week
   const intakeOpen = useIntakeOpen()
-  const mapOffered = kind !== null && !testedWait && intakeOpen
+  const mapOffered = kind !== null && intakeOpen
   const willQueue = mapOffered && toMap && zone !== null && adult
-  const cardOffered = way !== 'tested' && group !== null
+  const cardOffered = group !== null
 
   const restart = (next: Way) => {
     setWay(next)
@@ -82,7 +73,7 @@ export function ReportFlow() {
     setAdult(false)
     setToMap(false)
     setKeepCard(false)
-    setStep(next === 'tested' ? 2 : 1)
+    setStep(1)
   }
   const finish = () => {
     if (willQueue && kind && zone) {
@@ -93,7 +84,7 @@ export function ReportFlow() {
     setResult({ outcome: willQueue ? 'queued' : keepCard ? 'kept' : 'nothing', kept: keepCard, oldCard: !keepCard && card !== null })
     setStep(3)
   }
-  const back = step > 0 && step < 3 ? () => setStep(way === 'tested' && step === 2 ? 0 : step - 1) : undefined
+  const back = step > 0 && step < 3 ? () => setStep(step - 1) : undefined
   const OutcomeIcon = result ? OUTCOME_ICON[result.outcome] : CheckIcon
   const finishLabel = willQueue ? (keepCard ? th.report.finish.queueCard : th.report.finish.queue) : keepCard ? th.report.finish.card : th.report.finish.none
 
@@ -106,13 +97,16 @@ export function ReportFlow() {
         <section className="step-in mt-5 space-y-2">
           <h2 className="text-[17px] font-bold">{th.report.askWay}</h2>
           <p className="pb-1 text-[13px] text-muted">{th.report.privacy}</p>
-          {(['tested', 'positive', 'symptoms'] as const).map((w) => (
+          {(['positive', 'symptoms'] as const).map((w) => (
             <Choice key={w} label={th.report.way[w]} hint={th.report.wayHint[w]} onClick={() => restart(w)} />
           ))}
+          <Go to={'/app'} className={`inline-flex min-h-11 items-center text-[13px] ${TEXT_LINK}`}>
+            {th.report.checkInInstead}
+          </Go>
         </section>
       )}
 
-      {step === 1 && way && way !== 'tested' && (
+      {step === 1 && way && (
         <section className="step-in mt-5 space-y-2">
           <h2 className="text-[17px] font-bold">{group ? th.report.askSource : th.report.askGroup}</h2>
           {!group &&
@@ -156,28 +150,12 @@ export function ReportFlow() {
           {group === 'hiv' && <p className={`px-4 py-3 text-[15px] ${SOFT}`}>{th.report.hivNoMap}</p>}
           {group === 'mpox' && <p className={`px-4 py-3 text-[15px] ${SOFT}`}>{th.report.mpoxNoMap}</p>}
           {kind === null && group !== 'hiv' && group !== 'mpox' && <p className="box px-4 py-3 text-[13px] text-muted">{th.report.noMapLocal}</p>}
-          {testedWait && testedNextWeek && (
-            <p className={`px-4 py-3 text-[13px] ${NOTE}`}>{th.report.testedAgainFrom.replace('{date}', formatThaiDate(mondayDate(testedNextWeek)))}</p>
-          )}
 
           {kind !== null && !intakeOpen && <p className={`px-4 py-3 text-[13px] ${NOTE}`}>{th.report.intakeClosed}</p>}
           {mapOffered && (
             <div className="box space-y-3 p-4">
               {pending && <p className={`px-3 py-2 text-[13px] font-semibold ${SOFT}`}>{th.report.replacesPending}</p>}
-              <fieldset>
-                <legend id={zoneName} className="mb-1 font-bold">
-                  {th.report.zone}
-                </legend>
-                <p className="mb-2 text-[13px] text-muted">{th.report.zoneHint}</p>
-                <div role="radiogroup" aria-labelledby={zoneName} className="grid grid-cols-2 gap-2">
-                  {PICK.map((z) => (
-                    <label key={z.id} className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-md border-2 border-ink px-3 text-[14px] font-semibold ${zone === z.id ? 'bg-care-soft' : 'bg-surface'}`}>
-                      <input type="radio" name="zone" className="size-4 shrink-0 accent-[var(--color-ink)]" checked={zone === z.id} onChange={() => setZone(z.id)} />
-                      {z.name}
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+              <ZonePicker zone={zone} onZone={setZone} name="zone" />
               <ul className="space-y-1 text-[13px]">
                 <li>{th.report.leaves}</li>
                 <li>{th.report.waits}</li>
@@ -237,7 +215,7 @@ export function ReportFlow() {
               </a>
             </>
           )}
-          <Go to={'/app/notify'} state={{ group: way === 'tested' ? null : group, hasLabResult: source === 'lab_result' }} className={result.outcome === 'queued' ? PRIMARY_LINK : QUIET_LINK}>
+          <Go to={'/app/notify'} state={{ group, hasLabResult: source === 'lab_result' }} className={result.outcome === 'queued' ? PRIMARY_LINK : QUIET_LINK}>
             {th.report.goNotify}
           </Go>
           {source !== 'symptoms' && (

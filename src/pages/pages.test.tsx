@@ -32,15 +32,21 @@ it('says in the terms that signals are user reports nobody checks', () => {
   open('/terms')
   expect(screen.getByText(th.terms.unverified)).toBeInTheDocument()
 })
-it('links both pages from the help page and from the consent step of a report', async () => {
+it('links both pages from the help page, the consent step of a report and the check-in', async () => {
   const user = userEvent.setup()
   const view = open('/app/help')
   expect(screen.getByRole('link', { name: th.privacy.title })).toHaveAttribute('href', '/privacy')
   expect(screen.getByRole('link', { name: th.terms.title })).toHaveAttribute('href', '/terms')
   view.unmount()
-  open('/app/report')
-  await user.click(screen.getByRole('button', { name: th.report.way.tested }))
+  const report = open('/app/report')
+  await user.click(screen.getByRole('button', { name: th.report.way.positive }))
+  await user.click(screen.getByRole('button', { name: th.group.syphilis }))
+  await user.click(screen.getByRole('button', { name: th.source.lab_result }))
   expect(screen.getByRole('link', { name: th.privacy.title })).toHaveAttribute('href', '/privacy')
+  report.unmount()
+  open('/app')
+  await user.click(screen.getByRole('button', { name: new RegExp(th.checkIn.cta) }))
+  expect(within(screen.getByRole('dialog')).getByRole('link', { name: th.privacy.title })).toHaveAttribute('href', '/privacy')
 })
 it('offers a way back into the app and the quick exit on the privacy and terms pages', () => {
   for (const path of ['/privacy', '/terms']) {

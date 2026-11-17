@@ -35,6 +35,21 @@ export function queueReport(report: PendingReport): void {
   phone.update((s) => ({ ...s, pending: report, testedNextWeek: report.kind === 'tested' ? shiftWeek(currentWeek(), 4) : s.testedNextWeek }))
 }
 
+/** Takes back the waiting report. A waiting "tested" report frees the next one at once: it never left the phone. */
 export function cancelPending(): void {
-  phone.update((s) => ({ ...s, pending: null }))
+  phone.update((s) => ({ ...s, pending: null, testedNextWeek: s.pending?.kind === 'tested' ? null : s.testedNextWeek }))
+}
+
+/** Queues a "tested" report for the zone and remembers the zone for the next check-in. */
+export function checkIn(zone: string): void {
+  queueReport({ kind: 'tested', zone, savedAt: new Date().toISOString() })
+  phone.update((s) => ({ ...s, checkInZone: zone }))
+}
+
+export function forgetCheckInZone(): void {
+  phone.update((s) => {
+    const next = { ...s }
+    delete next.checkInZone
+    return next
+  })
 }

@@ -10,6 +10,7 @@ import { RealMap } from '../map/RealMap'
 import { CARE_POINTS, orderedCarePoints } from '../data/carePoints'
 import { zoneName } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
+import { CheckIn } from './CheckIn'
 import { SendSignalLink } from './SendSignalLink'
 import { SignalSheet } from './SignalSheet'
 import { carePointFor } from './useCity'
@@ -70,7 +71,8 @@ export function MapScreen() {
         <ChevronRight size={16} strokeWidth={2.25} className="shrink-0" aria-hidden="true" />
       </button>
 
-      <SendSignalLink className="absolute bottom-[5.25rem] right-3" />
+      <CheckIn className="absolute bottom-[6.5rem] left-3" />
+      <SendSignalLink className="absolute bottom-[6.5rem] right-3" />
 
       {first ? (
         <button type="button" onClick={() => setPointId(first.id)} className={`absolute inset-x-3 bottom-3 flex min-h-16 items-center gap-3 box px-3 text-left ${PRESS}`}>
