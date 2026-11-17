@@ -11,6 +11,7 @@ import { setCarePoints } from '../data/carePoints'
 import { setPublishedForTest } from '../map/published'
 import type { MapLayer } from '../domain/types'
 import { MAP_LAYERS } from '../store/actions'
+import { phone } from '../store/stores'
 import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
 
 const openApp = (path: string) =>
@@ -63,11 +64,11 @@ it('offers a list view with every care point', () => {
   openApp('/app/list')
   expect(screen.getAllByRole('listitem').length).toBe(CARE_POINTS.length)
 })
-it('carries the area signal and the send-signal button on the list, as on the map', async () => {
+it('carries the city signal and the status card on the list, as on the map', async () => {
   const user = userEvent.setup()
   publish('below')
   openApp('/app/list')
-  expect(screen.getByRole('link', { name: th.report.cta })).toHaveAttribute('href', '/app/report')
+  expect(screen.getByRole('heading', { name: th.home.ask })).toBeInTheDocument()
   const sheet = await openSignal(user)
   expect(sheet.getAllByText(th.map.state.below_threshold).length).toBeGreaterThan(0)
 })
@@ -141,14 +142,14 @@ it('shows the state of the city in a yellow box', () => {
 it('shows what a state care point costs as a green tag', async () => {
   const user = userEvent.setup()
   openApp('/app/list')
-  await user.click(screen.getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
+  await user.click(within(screen.getByRole('list')).getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
   expect(within(screen.getByRole('dialog')).getByText('ฟรีตามสิทธิ').className).toMatch(/\bbg-leaf\b/)
 })
 it('keeps a sheet open when a second tap lands on the veil in the instant after it opened', async () => {
   const user = userEvent.setup()
   // The map no longer carries the nearest care point (it moved to the list), so the point opens from the list.
   openApp('/app/list')
-  await user.click(screen.getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
+  await user.click(within(screen.getByRole('list')).getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
   const veil = screen.getByRole('dialog').previousElementSibling as HTMLElement
   await user.click(veil)
   expect(screen.getByRole('dialog')).toBeInTheDocument()
@@ -159,7 +160,7 @@ it('keeps a sheet open when a second tap lands on the veil in the instant after 
 it('writes the day a care point was last checked in Thai, not as a raw date', async () => {
   const user = userEvent.setup()
   openApp('/app/list')
-  await user.click(screen.getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
+  await user.click(within(screen.getByRole('list')).getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
   const sheet = within(screen.getByRole('dialog'))
   expect(sheet.getByText(formatThaiDate(new Date('2026-11-03')))).toBeInTheDocument()
   expect(sheet.queryByText('2026-11-03')).toBeNull()
@@ -285,4 +286,39 @@ it('opens the city sheet from the yellow box', async () => {
   openApp('/app')
   await openSignal(user)
   expect(screen.getByRole('dialog')).toHaveAccessibleName(th.map.city)
+})
+
+// ---- round 2: the list tab ----------------------------------------------------------------------
+it('puts the status card and the nearest place at the top of the list, and no send-signal button', () => {
+  openApp('/app/list')
+  expect(screen.getByRole('heading', { name: th.home.ask })).toBeInTheDocument()
+  expect(screen.getByText(th.care.nearest)).toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: /ส่งสัญญาณ/ })).toBeNull()
+})
+it('says anyone of any age can test', () => {
+  openApp('/app/list')
+  expect(screen.getByText(th.care.anyAge)).toBeInTheDocument()
+})
+it('shows only places that test when asked from "ยังไม่ได้ตรวจ?", with a way back to every place', () => {
+  openApp('/app/list?find=test')
+  expect(screen.queryByRole('button', { name: /ร้านยาชุมชนตัวอย่าง/ })).toBeNull()
+  expect(screen.queryByRole('button', { name: /ร้านยาบางแคตัวอย่าง/ })).toBeNull()
+  expect(screen.getAllByRole('listitem')).toHaveLength(CARE_POINTS.length - 2)
+  expect(screen.getByRole('link', { name: `${th.care.filterTest} ${th.care.showAll}` })).toHaveAttribute('href', '/app/list')
+})
+it('shows only the places in a district when asked from its sheet', () => {
+  openApp('/app/list?district=bang_rak')
+  const items = screen.getAllByRole('listitem')
+  expect(items.length).toBeGreaterThan(0)
+  for (const item of items) expect(item).toHaveTextContent('เขตบางรัก')
+  expect(screen.getByRole('link', { name: `เขตบางรัก ${th.care.showAll}` })).toHaveAttribute('href', '/app/list')
+})
+it('ignores a district that is not one of the 50 and lists every place', () => {
+  openApp('/app/list?district=central')
+  expect(screen.getAllByRole('listitem')).toHaveLength(CARE_POINTS.length)
+})
+it('names the nearest place as in your district when the phone remembers one with a place in it', () => {
+  phone.update((s) => ({ ...s, myDistrict: 'bang_rak' }))
+  openApp('/app/list')
+  expect(screen.getByText(th.care.inMyDistrict)).toBeInTheDocument()
 })

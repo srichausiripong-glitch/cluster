@@ -70,25 +70,3 @@
   transform-origin: 50% 100%;
   animation: pop-in 550ms cubic-bezier(0.2, 1.7, 0.4, 1) both;
 }
-
-/* The send-signal button sends out two slow rings, like a signal. */
-@keyframes ring {
-  0% { transform: scale(1); opacity: 0.5; }
-  60%, 100% { transform: scale(1.22, 1.55); opacity: 0; }
-}
-@layer components {
-  /* In a layer, so that a position utility on the same element still wins. */
-  .ripple { position: relative; }
-}
-.ripple::before,
-.ripple::after {
-  content: "";
-  position: absolute;
-  inset: -2.5px;
-  border: 2.5px solid var(--color-ink);
-  border-radius: inherit;
-  opacity: 0;
-  pointer-events: none;
-  animation: ring 3s ease-out infinite;
-}
-.ripple::after { animation-delay: 1.5s; }
