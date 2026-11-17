@@ -3,7 +3,7 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/((?!map/|care/|assets/|api/).*)",
+      "source": "/((?!map/|care/|assets/|api/|sw\\.js).*)",
       "destination": "/index.html"
     }
   ],

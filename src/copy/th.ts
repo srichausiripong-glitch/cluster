@@ -248,6 +248,8 @@ export const th = {
     forgetDistrict: 'ลืมเขตนี้',
     kind: { tested: 'ไปเช็กมา ไม่เจออะไร', gono_chlam: 'หนองในและคลามิเดีย', syphilis: 'ซิฟิลิส', symptoms: 'มีอาการ' },
   },
+  /** The weekly notification of a followed district: no district or disease name (redesign spec 5.11). public/sw.js holds the same lines. */
+  weekly: { title: 'Cluster', changed: 'เขตที่คุณติดตามมีอัปเดต', same: 'แผนที่สัปดาห์นี้อัปเดตแล้ว' },
   privacy: {
     title: 'นโยบายความเป็นส่วนตัว',
     controller: 'ผู้ควบคุมข้อมูลตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล',
