@@ -3,6 +3,7 @@ import { cleanup } from '@testing-library/react'
 import { afterEach, beforeEach } from 'vitest'
 import { setMapSource } from '../map/source'
 import { setCarePoints } from '../data/carePoints'
+import { resetPharmaciesForTest, setPharmacySource } from '../data/pharmacies'
 import { FIXTURE_POINTS } from './carePoints'
 import { stubSource } from './mapStub'
 
@@ -16,6 +17,9 @@ beforeEach(() => {
   setMapSource(stubSource())
   // Tests run on made-up care points; the real registry is checked on its own in src/data/carePoints.test.ts.
   setCarePoints(FIXTURE_POINTS)
+  // No test reads the real pharmacy file; one that wants pharmacies hands in its own.
+  resetPharmaciesForTest()
+  setPharmacySource(() => Promise.resolve([]))
 })
 afterEach(() => {
   if (!browser) return

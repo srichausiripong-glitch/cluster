@@ -123,14 +123,19 @@ export function inView(manifest: Manifest, level: Level, view: View, size: Size)
 
 export type Marker = { kind: 'one'; point: CarePoint; x: number; y: number } | { kind: 'many'; points: CarePoint[]; x: number; y: number }
 
-/** Care points nearer than `gap` pixels on screen share one marker, placed at their mean. */
+/**
+ * Care points nearer than `gap` pixels on screen share one marker, placed at their mean. Only the
+ * points on screen, or within `gap` of its edge, are grouped: at district level the pharmacies
+ * alone are hundreds (plan decision 12).
+ */
 export function markers(points: CarePoint[], view: View, size: Size, gap = MARKER_GAP): Marker[] {
-  const groups = [...points]
-    .sort((a, b) => a.id.localeCompare(b.id))
+  const groups = points
     .map((point) => {
       const [x, y] = toScreen(view, size, toXY(point.lat, point.lon))
       return { points: [point], spots: [[x, y]] as XY[], x, y }
     })
+    .filter((g) => g.x >= -gap && g.x <= size.w + gap && g.y >= -gap && g.y <= size.h + gap)
+    .sort((a, b) => a.points[0].id.localeCompare(b.points[0].id))
   // Merging moves a marker, which can bring it within reach of another: repeat until nothing moves.
   for (let merged = true; merged; ) {
     merged = false

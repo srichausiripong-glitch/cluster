@@ -1,18 +1,19 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { afterEach, expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { formatThaiDate } from '../copy/format'
 import { DISTRICTS } from '../domain/districts'
 import { th } from '../copy/th'
 import type { PublishedArea } from '../domain/types'
 import { setCarePoints } from '../data/carePoints'
+import { setPharmacySource } from '../data/pharmacies'
 import { setPublishedForTest } from '../map/published'
 import type { MapLayer } from '../domain/types'
 import { MAP_LAYERS } from '../store/actions'
 import { phone } from '../store/stores'
-import { FIXTURE_POINTS as CARE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
+import { FIXTURE_PHARMACIES, FIXTURE_POINTS as CARE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
 
 const openApp = (path: string) =>
   render(
@@ -216,6 +217,20 @@ it('hides the places of a care layer that is off, and pharmacies until asked', a
   expect(screen.getByRole('button', { name: 'โรงพยาบาลรัฐตัวอย่าง' })).toBeInTheDocument()
   await user.click(chip('hospital'))
   expect(screen.queryByRole('button', { name: 'โรงพยาบาลรัฐตัวอย่าง' })).toBeNull()
+})
+it('shows pharmacies only when 💊 is on and only below city level, each opening its own sheet', async () => {
+  const user = userEvent.setup()
+  const load = vi.fn(() => Promise.resolve(FIXTURE_PHARMACIES))
+  setPharmacySource(load)
+  const { container } = openApp('/app')
+  await user.click(chip('pharmacy'))
+  await waitFor(() => expect(load).toHaveBeenCalledTimes(1))
+  // At city level no pharmacy shows, from the file or from the bundled list (cp9 stands alone).
+  expect(screen.queryByRole('button', { name: FIXTURE_PHARMACIES[0].name })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'ร้านยาบางแคตัวอย่าง' })).toBeNull()
+  await user.click(container.querySelector('[data-many]') as HTMLElement)
+  await user.click(await screen.findByRole('button', { name: FIXTURE_PHARMACIES[0].name }))
+  expect(screen.getByRole('dialog', { name: FIXTURE_PHARMACIES[0].name })).toBeInTheDocument()
 })
 it('switches the confirmed signal and the symptoms hatch from their own chips', async () => {
   const user = userEvent.setup()

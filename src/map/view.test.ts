@@ -120,3 +120,9 @@ it('keeps at least a quarter of a short map free for the city, and the full spac
   expect(y0).toBeGreaterThanOrEqual(short.top - 0.01)
   expect(y1).toBeLessThanOrEqual(348 - short.bottom + 0.01)
 })
+
+it('leaves points far off the screen out of the markers', () => {
+  const far = { ...CARE_POINTS[0], id: 'far', lat: 14.5, lon: 101.5 }
+  expect(markers([...CARE_POINTS, far], cityView(phone), phone).some((m) => m.kind === 'one' && m.point.id === 'far')).toBe(false)
+  expect(markers([...CARE_POINTS, far], cityView(phone), phone).flatMap((m) => (m.kind === 'one' ? [m.point] : m.points))).toHaveLength(CARE_POINTS.length)
+})

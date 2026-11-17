@@ -19,6 +19,7 @@ import { cityView, MAP_INSET, toScreen, viewAt } from './view'
 import { toggleLayer } from '../store/actions'
 
 // These tests count and open markers, so every fixture point is shown: pharmacies are off by default (redesign spec 5.1).
+// Even switched on, a pharmacy shows only below city level (5.8), so cp5 is not in the city's numbered marker.
 beforeEach(() => toggleLayer('pharmacy'))
 
 afterEach(() => {
@@ -41,7 +42,8 @@ const doubleClickInside = (el: Element) => {
   fireEvent.click(el, { detail: 2, clientX, clientY })
   fireEvent.doubleClick(el, { clientX, clientY })
 }
-const many = () => screen.getByRole('button', { name: th.map.many.replace('{n}', '4') })
+/** The numbered marker over the centre: cp1, cp2 and cp4 in the app, and cp5 too on a bare map, which draws pharmacies at every level. */
+const many = (n = 3) => screen.getByRole('button', { name: th.map.many.replace('{n}', String(n)) })
 const zoomIn = () => screen.getByRole('button', { name: th.map.zoomIn })
 /** Where a marker or a name box sits: the first two numbers of its transform. */
 const spot = (el: Element) => {
@@ -84,11 +86,12 @@ it('asks only for its own map files and its own server, never another site', asy
 it('gathers care points that sit close together into one numbered marker, and separates them one level in', async () => {
   const user = userEvent.setup()
   openApp('/app')
-  expect(many()).toHaveAttribute('data-many', '4')
+  expect(many()).toHaveAttribute('data-many', '3')
   expect(screen.queryByRole('button', { name: CARE_POINTS[0].name })).toBeNull()
   await user.click(many())
   expect(map()).toHaveAttribute('data-level', 'district')
   expect(screen.getByRole('button', { name: CARE_POINTS[0].name })).toBeInTheDocument()
+  expect(await screen.findByRole('button', { name: CARE_POINTS[4].name })).toBeInTheDocument()
   expect(screen.getByRole('status', { name: th.map.levelNow })).toHaveTextContent(th.map.level.district)
 })
 it('opens a grouped marker from the keyboard, and keeps every marker a named button at each level', async () => {
@@ -356,7 +359,7 @@ it('still separates a grouped marker when the list of map files cannot be loaded
   const user = userEvent.setup()
   bare()
   await screen.findByText(th.map.loadFailed)
-  await user.click(many())
+  await user.click(many(4))
   expect(map()).toHaveAttribute('data-level', 'district')
 })
 it('goes one level, not two, on a double click on a grouped marker', async () => {

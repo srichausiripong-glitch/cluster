@@ -1,11 +1,13 @@
 import { ChevronRight, Waves } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { th } from '../copy/th'
 import { PRESS } from '../design/look'
 import type { Level } from '../map/geo'
 import { useAreas } from '../map/published'
 import { RealMap } from '../map/RealMap'
 import { CARE_POINTS } from '../data/carePoints'
+import { usePharmacies } from '../data/pharmacies'
+import type { CareLayer } from '../domain/types'
 import { districtName } from '../domain/districts'
 import { CarePointSheet } from './CarePointSheet'
 import { SignalSheet } from './SignalSheet'
@@ -21,6 +23,15 @@ export function MapScreen() {
   const [areaId, setAreaId] = useState<string | null>(null)
   const [pointId, setPointId] = useState<string | null>(null)
   const [seen, setSeen] = useState<{ level: Level; areaId: string | null }>({ level: 'city', areaId: null })
+  const { sti, health_centre, hospital, pharmacy } = on
+  const pharmacies = usePharmacies(pharmacy)
+  const atCity = seen.level === 'city'
+  // The places on the map, kept between renders so the map groups them again only when they change.
+  // Pharmacies show below city level only (redesign spec 5.8), whether bundled or from their file.
+  const points = useMemo(() => {
+    const shown: Record<CareLayer, boolean> = { sti, health_centre, hospital, pharmacy: pharmacy && !atCity }
+    return [...CARE_POINTS, ...pharmacies.points].filter((p) => shown[p.layer])
+  }, [sti, health_centre, hospital, pharmacy, atCity, pharmacies.points])
 
   const selected = areaId === null ? null : byId(areaId)
   // Below city level, the state box speaks for the district in the middle of the map.
@@ -34,7 +45,7 @@ export function MapScreen() {
       <RealMap
         areas={districts}
         cityState={city.state}
-        carePoints={CARE_POINTS.filter((p) => on[p.layer])}
+        carePoints={points}
         phase={2}
         showSignal={on.confirmed}
         showSymptoms={on.symptoms}
@@ -71,7 +82,7 @@ export function MapScreen() {
       </div>
 
       {selected && <SignalSheet area={selected} open onClose={() => setAreaId(null)} />}
-      <CarePointSheet point={CARE_POINTS.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
+      <CarePointSheet point={points.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
     </div>
   )
 }

@@ -25,3 +25,9 @@ export const FIXTURE_UNVERIFIED: CarePointData[] = [
   { id: 'cu1', name: 'ศูนย์บริการสาธารณสุขทดสอบตัวอย่าง', kind: 'clinic', layer: 'health_centre', klass: 'A', lat: 13.62, lon: 100.44, phone: '020000000', address: 'ที่อยู่สำหรับทดสอบ', source: 'https://example.org/care', fetched: '2026-11-17', free: false, community: false, services: ['ตรวจเอชไอวี'], hours: 'จันทร์-ศุกร์', pep: true, verified: null },
   { id: 'cu2', name: 'โรงพยาบาลทดสอบตัวอย่าง', kind: 'hospital', layer: 'hospital', klass: 'A', lat: 13.88, lon: 100.72, address: '', source: 'https://example.org/care', fetched: '2026-11-17', free: false, community: false, verified: null },
 ]
+
+/** Made-up pharmacies as the pharmacy file gives them: not confirmed, read only when 💊 is on. */
+export const FIXTURE_PHARMACIES: CarePointData[] = [
+  { id: 'ph1', name: 'ร้านยาราชเทวีตัวอย่าง', kind: 'pharmacy', layer: 'pharmacy', klass: 'B', lat: 13.7545, lon: 100.5395, address: '', source: 'https://www.openstreetmap.org/node/1', fetched: '2026-11-17', free: false, community: false, verified: null },
+  { id: 'ph2', name: 'ร้านยาบางกะปิตัวอย่าง', kind: 'pharmacy', layer: 'pharmacy', klass: 'B', lat: 13.779, lon: 100.638, phone: '021112222', address: '', source: 'https://www.openstreetmap.org/node/2', fetched: '2026-11-17', free: false, community: false, verified: null },
+]
