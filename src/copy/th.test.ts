@@ -90,3 +90,12 @@ it('says on the privacy page that the pharmacy list comes from our server and th
 it('says on the privacy page that a place’s source link opens that site, such as OpenStreetMap, only when pressed', () => {
   expect(th.privacy.leaves.some((line) => line.includes(`"${th.care.source}"`) && line.includes('OpenStreetMap'))).toBe(true)
 })
+
+// Following a district (redesign spec 5.11): /privacy says what it keeps, where, and that the push carries nothing.
+it('says on the privacy page what following a district keeps, where, and that the weekly push carries nothing', () => {
+  expect(th.privacy.phone).toContain('เขตที่ติดตาม')
+  expect(th.privacy.kept.join(' ')).toContain('ที่อยู่สำหรับส่งแจ้งเตือน')
+  const leaves = th.privacy.leaves.join(' ')
+  for (const word of ['Apple', 'Google', 'Mozilla', 'ไม่ส่งเขต']) expect(leaves, word).toContain(word)
+  expect(th.privacy.leaves.at(-1)).toContain(th.care.directions)
+})
