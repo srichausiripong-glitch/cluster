@@ -13,4 +13,6 @@ create table if not exists harm_reports (week text not null, kind text not null,
 create table if not exists settings (name text primary key, value text not null);
 create table if not exists admin_log (id serial primary key, week text not null, day date not null, reviewer text not null, action text not null, detail text not null);
 create table if not exists login_failures (name text primary key, n int not null default 0, until timestamptz);
+-- Following a district (redesign spec 5.11): a push address and the day it came. No district, no IP address.
+create table if not exists push_subscriptions (endpoint text primary key, created_on date not null);
 `

@@ -26,6 +26,12 @@ export function privateJwk(): JsonWebKey {
   if (!raw) throw new Error('ENVELOPE_PRIVATE_JWK is not set')
   return JSON.parse(raw) as JsonWebKey
 }
+/** The private key that signs the weekly push (redesign spec 5.11). Never sent anywhere; its public half is derived from it. */
+export function vapidJwk(): JsonWebKey {
+  const raw = env('VAPID_PRIVATE_JWK')
+  if (!raw) throw new Error('VAPID_PRIVATE_JWK is not set')
+  return JSON.parse(raw) as JsonWebKey
+}
 /** Leading zero bits of the proof of work: 19 takes about ten seconds on a mid-range phone (amendment 6). */
 export const powBits = () => Number(env('POW_BITS') ?? 19)
 

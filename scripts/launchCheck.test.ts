@@ -10,6 +10,8 @@ const ENV = {
   SESSION_SECRET: 's',
   DATABASE_URL: 'postgres://x',
   CRON_SECRET: 'c',
+  VAPID_PRIVATE_JWK: '{"kty":"EC"}',
+  VAPID_SUBJECT: 'mailto:ops@example.org',
 }
 const point = (verified: boolean) => ({ id: 'p', source: 'https://example.org/care', fetched: '2026-11-17', verified: verified ? { date: '2026-11-20', by: 'x', method: 'phone' } : null })
 const DATA = { carePoints: [point(true)], clinical: [{ id: 'a', status: 'signed' }] }
@@ -59,4 +61,13 @@ it('refuses a PEP point verified other than by phone', () => {
   const pep = (method: string) => reasonsFor([{ id: 'a', pep: true, source: 'https://x.org', fetched: '2026-11-17', verified: { date: '2026-11-20', by: 'x', method } }]).join()
   expect(pep('visit')).toMatch(/care point a\b/)
   expect(pep('phone')).toBe('')
+})
+
+// Following a district needs the push key and a contact for the push services (redesign spec 5.11).
+it('needs the push key and its contact in production, but lets a preview build through without them', () => {
+  const withoutPush = Object.fromEntries(Object.entries(ENV).filter(([name]) => !name.startsWith('VAPID_')))
+  const text = launchCheck(withoutPush, DATA).join('\n')
+  expect(text).toContain('VAPID_PRIVATE_JWK')
+  expect(text).toContain('VAPID_SUBJECT')
+  expect(launchCheck({ ...withoutPush, LAUNCH_CHECK_PREVIEW: '1', VERCEL_ENV: 'preview' }, DATA)).toEqual([])
 })
