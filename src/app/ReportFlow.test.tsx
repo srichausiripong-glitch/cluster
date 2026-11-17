@@ -4,7 +4,9 @@ import { MemoryRouter } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import App from '../App'
 import { BANNED_WORDS, th } from '../copy/th'
-import { saveCard, wipePhone } from '../store/actions'
+import { DISTRICTS } from '../domain/districts'
+import { shiftWeek } from '../domain/weeks'
+import { cancelPending, currentWeek, dropStaleAreas, queueReport, saveCard, wipePhone } from '../store/actions'
 import { phone } from '../store/stores'
 
 const open = (path = '/app/report') =>
@@ -20,9 +22,9 @@ async function toConsent(user: UserEvent) {
   await choose(user, th.group.syphilis)
   await choose(user, th.source.lab_result)
 }
-/** Ticks the map box after choosing a zone and confirming the age. */
-async function toMap(user: UserEvent, zone = 'กรุงเทพใต้') {
-  await user.click(screen.getByRole('radio', { name: zone }))
+/** Ticks the map box after choosing a district and confirming the age. */
+async function toMap(user: UserEvent, district = 'bang_rak') {
+  await user.selectOptions(screen.getByLabelText(th.report.pickDistrict), district)
   await user.click(screen.getByLabelText(th.report.age))
   await user.click(screen.getByLabelText(th.report.toMap))
 }
@@ -44,31 +46,57 @@ it('names the tested report in everyday words wherever it shows (owner, 2026-11-
   expect(th.report.testedAgainFrom).toContain(`"${th.me.kind.tested}"`)
   expect(th.privacy.leaves.join(' ')).toContain(th.me.kind.tested)
 })
-it('lets the report flow find the zone from a district too', async () => {
+it('sends symptoms to the map for the chosen district', async () => {
   const user = userEvent.setup()
   wipePhone()
   open()
-  await toConsent(user)
-  await user.selectOptions(screen.getByLabelText(th.report.byDistrict), 'ลาดพร้าว')
-  expect(screen.getByRole('radio', { name: 'กรุงเทพเหนือ' })).toBeChecked()
-  await user.click(screen.getByLabelText(th.report.age))
-  await user.click(screen.getByLabelText(th.report.toMap))
+  await choose(user, th.report.way.symptoms)
+  await choose(user, th.group.gono_chlam)
+  await toMap(user)
   await choose(user, th.report.finish.queue)
-  expect(phone.get().pending).toMatchObject({ kind: 'syphilis', zone: 'north' })
+  expect(phone.get().pending).toMatchObject({ kind: 'symptoms', zone: 'bang_rak' })
+  expect(phone.get().symptomsNextWeek).toBe(shiftWeek(currentWeek(), 4))
 })
-it('leaves the map box unticked, and lets it be ticked only after a zone and the age', async () => {
+it('does not offer the map for symptoms again within four weeks, and says when it can', async () => {
+  const user = userEvent.setup()
+  wipePhone()
+  phone.update((s) => ({ ...s, symptomsNextWeek: shiftWeek(currentWeek(), 2) }))
+  open()
+  await choose(user, th.report.way.symptoms)
+  await choose(user, th.group.gono_chlam)
+  expect(screen.queryByLabelText(th.report.toMap)).toBeNull()
+  expect(screen.getByText(new RegExp(th.report.symptomsAgainFrom.split('{date}')[0]))).toBeInTheDocument()
+})
+it('frees the next symptoms report when the waiting one is cancelled', () => {
+  wipePhone()
+  queueReport({ kind: 'symptoms', zone: 'bang_rak', savedAt: new Date().toISOString() })
+  cancelPending()
+  expect(phone.get().symptomsNextWeek).toBeNull()
+})
+it('drops a waiting report and a remembered area that are not districts', () => {
+  wipePhone()
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'central', savedAt: 'x' }, myDistrict: 'south' }))
+  dropStaleAreas()
+  expect(phone.get().pending).toBeNull()
+  expect(phone.get().myDistrict).toBeUndefined()
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: 'x' }, myDistrict: 'bang_rak' }))
+  dropStaleAreas()
+  expect(phone.get().pending).toMatchObject({ zone: 'bang_rak' })
+  expect(phone.get().myDistrict).toBe('bang_rak')
+})
+it('leaves the map box unticked, and lets it be ticked only after a district and the age', async () => {
   const user = userEvent.setup()
   open()
   await toConsent(user)
   const box = screen.getByLabelText(th.report.toMap)
   expect(box).not.toBeChecked()
   expect(box).toBeDisabled()
-  await user.click(screen.getByRole('radio', { name: 'กรุงเทพใต้' }))
+  await user.selectOptions(screen.getByLabelText(th.report.pickDistrict), 'bang_rak')
   expect(box).toBeDisabled()
   await user.click(screen.getByLabelText(th.report.age))
   expect(box).toBeEnabled()
-  const zones = screen.getAllByRole('radio').map((r) => r.getAttribute('aria-label') ?? (r as HTMLInputElement).labels?.[0]?.textContent)
-  expect(zones).toEqual(['กรุงเทพเหนือ', 'กรุงเทพกลาง', 'กรุงเทพตะวันออก', 'กรุงเทพใต้', 'กรุงธนเหนือ', 'กรุงธนใต้'])
+  const options = within(screen.getByLabelText(th.report.pickDistrict)).getAllByRole('option').map((o) => o.textContent)
+  expect(options).toEqual([th.report.districtPlaceholder, ...DISTRICTS.map((d) => d.name)])
   // No control asks for the phone's position; the hint says the app never uses it.
   expect(screen.queryAllByRole('button', { name: /ตำแหน่ง/ })).toEqual([])
   expect(screen.queryAllByRole('checkbox', { name: /ตำแหน่ง/ })).toEqual([])
@@ -82,13 +110,11 @@ it('says before the box what leaves the phone, that it waits and can be cancelle
   await choose(user, th.source.lab_result)
   for (const line of [th.report.leaves, th.report.waits, th.report.noTakeBack]) expect(screen.getByText(line)).toBeInTheDocument()
 })
-it('never offers the map for HIV, mpox or symptoms alone', async () => {
+it('never offers the map for HIV or mpox', async () => {
   const paths: [string, string, string][] = [
     [th.report.way.positive, th.group.hiv, th.source.lab_result],
     [th.report.way.positive, th.group.hiv, th.source.hiv_self_test],
     [th.report.way.positive, th.group.mpox, th.source.lab_result],
-    [th.report.way.symptoms, th.group.gono_chlam, ''],
-    [th.report.way.symptoms, th.group.mpox, ''],
   ]
   for (const [way, group, source] of paths) {
     const user = userEvent.setup()
@@ -123,18 +149,18 @@ it('shows the same summary for either mapped disease group, and never calls anyo
 it('replaces a report still waiting on the phone only after saying so', async () => {
   const user = userEvent.setup()
   wipePhone()
-  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'north', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'chatuchak', savedAt: '2026-11-12T00:00:00.000Z' } }))
   open()
   await toConsent(user)
   expect(screen.getByText(th.report.replacesPending)).toBeInTheDocument()
   await toMap(user)
   await choose(user, th.report.finish.queue)
-  expect(phone.get().pending).toMatchObject({ kind: 'syphilis', zone: 'south' })
+  expect(phone.get().pending).toMatchObject({ kind: 'syphilis', zone: 'bang_rak' })
 })
 it('shows the waiting report on the self-care screen, with a way to cancel it', async () => {
   const user = userEvent.setup()
   wipePhone()
-  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'south', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: '2026-11-12T00:00:00.000Z' } }))
   open('/app/me')
   expect(screen.getByText(th.me.pendingTitle)).toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: th.me.cancelPending }))

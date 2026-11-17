@@ -2,45 +2,43 @@ import { CircleCheck } from 'lucide-react'
 import { useState } from 'react'
 import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
+import { districtName } from '../domain/districts'
 import { mondayDate } from '../domain/weeks'
 import { NOTE, SOFT, TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Sheet } from '../design/primitives/Sheet'
-import { ZONES } from '../map/areas'
 import { useIntakeOpen } from '../map/published'
 import { checkIn, currentWeek } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 import { Check } from './FlowHeader'
-import { ZonePicker } from './ZonePicker'
-
-const zoneLabel = (id: string | undefined) => ZONES.find((z) => z.id === id)?.name
+import { DistrictPicker } from './DistrictPicker'
 
 /**
  * "ไปเช็กมา ไม่เจออะไร" as a check-in on the home screen (owner, 2026-11-16): one sheet, the same
  * "tested" report the report flow sends, at most once in four weeks. After the first check-in the
- * phone remembers the zone (and that the age was confirmed), so the next one is one press.
+ * phone remembers the district (and that the age was confirmed), so the next one is one press.
  */
 export function CheckIn({ className = '' }: { className?: string }) {
-  const { pending, testedNextWeek, checkInZone } = usePartyStore(phone)
+  const { pending, testedNextWeek, myDistrict } = usePartyStore(phone)
   const intakeOpen = useIntakeOpen()
   const [open, setOpen] = useState(false)
   const [done, setDone] = useState(false)
   const [picking, setPicking] = useState(false)
-  const [zone, setZone] = useState<string | null>(null)
+  const [district, setDistrict] = useState<string | null>(null)
   const [adult, setAdult] = useState(false)
 
   const waiting = testedNextWeek !== null && testedNextWeek > currentWeek()
-  const remembered = zoneLabel(checkInZone)
+  const remembered = (myDistrict && districtName(myDistrict)) || undefined
   const useRemembered = remembered !== undefined && !picking
-  const chosen = useRemembered ? checkInZone! : zone
+  const chosen = useRemembered ? myDistrict! : district
   const ready = chosen !== null && (remembered !== undefined || adult)
   const againDate = waiting ? formatThaiDate(mondayDate(testedNextWeek)) : ''
 
   const show = () => {
     setDone(false)
     setPicking(false)
-    setZone(null)
+    setDistrict(null)
     setAdult(false)
     setOpen(true)
   }
@@ -98,13 +96,13 @@ export function CheckIn({ className = '' }: { className?: string }) {
             <p className="text-[14px] text-muted">{th.checkIn.hint}</p>
             {useRemembered ? (
               <div className={`flex items-center justify-between gap-2 px-3 py-2 ${SOFT}`}>
-                <span className="font-bold">{th.checkIn.at.replace('{zone}', remembered)}</span>
+                <span className="font-bold">{th.checkIn.at.replace('{district}', remembered)}</span>
                 <Button variant="ghost" className="shrink-0" onClick={() => setPicking(true)}>
                   {th.checkIn.changeZone}
                 </Button>
               </div>
             ) : (
-              <ZonePicker zone={zone} onZone={setZone} name="checkin-zone" />
+              <DistrictPicker district={district} onDistrict={setDistrict} name="checkin-district" />
             )}
             {remembered === undefined && <Check id="checkin-adult" label={th.report.age} checked={adult} onChange={setAdult} />}
             <ul className="space-y-1 text-[13px]">

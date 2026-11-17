@@ -22,8 +22,10 @@ export interface PhoneState {
   sentWeek: string | null
   /** When in the server week this phone sends its envelope, as a time in ms. */
   sendAt: { week: string; at: number } | null
-  /** The zone of the last check-in, so the next one is one press. Absent until the first; optional so stores kept before it stay valid. */
-  checkInZone?: string
+  /** The first week "symptoms" may go to the map again: four weeks after the last one. Optional so stores kept before it stay valid. */
+  symptomsNextWeek?: string | null
+  /** The district this phone checks in for, so the next check-in is one press. Absent until the first; optional for the same reason. */
+  myDistrict?: string
 }
 /** The key carries a version: a change of stored shape starts from empty instead of breaking the page. */
 export const STORE_KEYS = {

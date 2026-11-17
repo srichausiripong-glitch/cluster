@@ -6,13 +6,15 @@ import type { DiseaseGroup, PendingReport, ReportKind, ReportSource } from '../d
 import { NOTE, PRIMARY_LINK, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Stepper } from '../design/primitives/Stepper'
+import { formatThaiDate } from '../copy/format'
+import { mondayDate } from '../domain/weeks'
 import { useIntakeOpen } from '../map/published'
-import { queueReport, saveCard } from '../store/actions'
+import { currentWeek, queueReport, saveCard } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 import { Check, Choice, FlowHeader } from './FlowHeader'
 import { Go } from './Go'
-import { ZonePicker } from './ZonePicker'
+import { DistrictPicker } from './DistrictPicker'
 
 // "ไปเช็กมา ไม่เจออะไร" is the check-in on the map, its one place (owner, 2026-11-16); this flow is for a found result or symptoms.
 type Way = 'positive' | 'symptoms'
@@ -31,9 +33,13 @@ const POSITIVE_SOURCES: Record<DiseaseGroup, ReportSource[]> = {
 const OUTCOME_ICON = { queued: CheckIcon, kept: Smartphone, nothing: Ban } as const
 const WEEK_MS = 7 * 86_400_000
 
-/** The report that may go to the map, or null. HIV never; mpox only from official figures; symptoms alone never (amendment 4.1). */
+/**
+ * The report that may go to the map, or null. HIV never; mpox only from official figures (amendment 4.1);
+ * symptoms without a test as their own kind, whatever they look like (redesign spec 5.4).
+ */
 function mapKind(way: Way | null, group: DiseaseGroup | null, source: ReportSource | null): ReportKind | null {
   if (way === 'positive' && source === 'lab_result' && (group === 'gono_chlam' || group === 'syphilis')) return group
+  if (way === 'symptoms' && group !== null) return 'symptoms'
   return null
 }
 
@@ -48,7 +54,7 @@ function downloadReminder() {
 }
 
 export function ReportFlow() {
-  const { card, pending } = usePartyStore(phone)
+  const { card, pending, symptomsNextWeek } = usePartyStore(phone)
   const [step, setStep] = useState(0)
   const [way, setWay] = useState<Way | null>(null)
   const [group, setGroup] = useState<DiseaseGroup | null>(null)
@@ -60,8 +66,10 @@ export function ReportFlow() {
   const [result, setResult] = useState<{ outcome: Outcome; kept: boolean; oldCard: boolean } | null>(null)
 
   const kind = mapKind(way, group, source)
+  // "Symptoms" may go to the map once in four weeks, like a check-in; the phone remembers only when it may again.
+  const symptomsWait = kind === 'symptoms' && symptomsNextWeek != null && symptomsNextWeek > currentWeek()
   const intakeOpen = useIntakeOpen()
-  const mapOffered = kind !== null && intakeOpen
+  const mapOffered = kind !== null && intakeOpen && !symptomsWait
   const willQueue = mapOffered && toMap && zone !== null && adult
   const cardOffered = group !== null
 
@@ -148,14 +156,17 @@ export function ReportFlow() {
         <section className="step-in mt-5 space-y-3">
           <h2 className="text-[17px] font-bold">{th.report.askActions}</h2>
           {group === 'hiv' && <p className={`px-4 py-3 text-[15px] ${SOFT}`}>{th.report.hivNoMap}</p>}
-          {group === 'mpox' && <p className={`px-4 py-3 text-[15px] ${SOFT}`}>{th.report.mpoxNoMap}</p>}
+          {kind === null && group === 'mpox' && <p className={`px-4 py-3 text-[15px] ${SOFT}`}>{th.report.mpoxNoMap}</p>}
           {kind === null && group !== 'hiv' && group !== 'mpox' && <p className="box px-4 py-3 text-[13px] text-muted">{th.report.noMapLocal}</p>}
+          {symptomsWait && symptomsNextWeek && (
+            <p className={`px-4 py-3 text-[13px] ${NOTE}`}>{th.report.symptomsAgainFrom.replace('{date}', formatThaiDate(mondayDate(symptomsNextWeek)))}</p>
+          )}
 
           {kind !== null && !intakeOpen && <p className={`px-4 py-3 text-[13px] ${NOTE}`}>{th.report.intakeClosed}</p>}
           {mapOffered && (
             <div className="box space-y-3 p-4">
               {pending && <p className={`px-3 py-2 text-[13px] font-semibold ${SOFT}`}>{th.report.replacesPending}</p>}
-              <ZonePicker zone={zone} onZone={setZone} name="zone" />
+              <DistrictPicker district={zone} onDistrict={setZone} name="district" />
               <ul className="space-y-1 text-[13px]">
                 <li>{th.report.leaves}</li>
                 <li>{th.report.waits}</li>

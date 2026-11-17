@@ -4,8 +4,8 @@ import { buildIcs } from '../domain/ics'
 import { QUIET_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
-import { ZONES } from '../map/areas'
-import { cancelPending, forgetCheckInZone, wipePhone } from '../store/actions'
+import { districtName } from '../domain/districts'
+import { cancelPending, forgetMyDistrict, wipePhone } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 import { Go } from './Go'
@@ -24,8 +24,8 @@ function downloadReminder() {
 }
 
 export function SelfCare() {
-  const { card, pending, checkInZone } = usePartyStore(phone)
-  const checkInName = ZONES.find((z) => z.id === checkInZone)?.name
+  const { card, pending, myDistrict } = usePartyStore(phone)
+  const myDistrictName = myDistrict ? districtName(myDistrict) : ''
   const days = card ? Math.max(0, Math.floor((Date.now() - new Date(card.sentAt).getTime()) / 86_400_000)) : 0
   const left = card ? Math.max(0, CARD_DAYS[card.group] - days) : 0
 
@@ -49,18 +49,18 @@ export function SelfCare() {
       {pending && (
         <Card>
           <h2 className="font-bold">{th.me.pendingTitle}</h2>
-          <p className="mt-1">{th.me.pendingBody.replace('{kind}', th.me.kind[pending.kind]).replace('{zone}', ZONES.find((z) => z.id === pending.zone)?.name ?? '')}</p>
+          <p className="mt-1">{th.me.pendingBody.replace('{kind}', th.me.kind[pending.kind]).replace('{zone}', districtName(pending.zone))}</p>
           <Button variant="secondary" className="mt-2" onClick={cancelPending}>
             {th.me.cancelPending}
           </Button>
         </Card>
       )}
 
-      {checkInName && (
+      {myDistrictName && (
         <Card>
-          <p>{th.me.checkInZone.replace('{zone}', checkInName)}</p>
-          <Button variant="secondary" className="mt-2" onClick={forgetCheckInZone}>
-            {th.me.forgetZone}
+          <p>{th.me.myDistrict.replace('{district}', myDistrictName)}</p>
+          <Button variant="secondary" className="mt-2" onClick={forgetMyDistrict}>
+            {th.me.forgetDistrict}
           </Button>
         </Card>
       )}
