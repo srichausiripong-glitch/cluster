@@ -72,11 +72,6 @@ export function SelfCare() {
     setFollowResult(null)
     void unfollow()
   }
-  // A wipe stops the weekly notification too; the quick exit does not (redesign spec 5.11).
-  const wipe = () => {
-    void unfollow()
-    wipePhone()
-  }
 
   return (
     <main className="space-y-4 p-4">
@@ -183,7 +178,7 @@ export function SelfCare() {
       </Card>
 
       <Card>
-        <Button variant="secondary" onClick={wipe}>
+        <Button variant="secondary" onClick={wipePhone}>
           <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
           {th.me.wipe}
         </Button>

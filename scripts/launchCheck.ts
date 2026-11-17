@@ -25,6 +25,16 @@ function carePointReasons(p: LaunchData['carePoints'][number]): string[] {
 const REQUIRED = ['VITE_CONTROLLER_NAME', 'VITE_CONTACT_EMAIL', 'ENVELOPE_PRIVATE_JWK', 'SESSION_SECRET', 'DATABASE_URL', 'CRON_SECRET'] as const
 /** Needed by a real deploy only: a preview may try everything else without the push key (round 4 plan, decision 2). */
 const PRODUCTION_ONLY = ['VAPID_PRIVATE_JWK', 'VAPID_SUBJECT'] as const
+/** A push service turns away a contact that is not mailto: or https:, and a key that is not P-256 signs nothing. */
+const SUBJECT = /^(mailto:\S+@\S+|https:\/\/\S+)$/
+function p256Key(raw: string): boolean {
+  try {
+    const key = JSON.parse(raw) as Record<string, unknown>
+    return key.kty === 'EC' && key.crv === 'P-256' && [key.x, key.y, key.d].every((part) => typeof part === 'string' && part.length > 0)
+  } catch {
+    return false
+  }
+}
 
 /** Every reason the app is not ready for real users (v1 spec 7.4). An empty list means ready. */
 export function launchCheck(env: Record<string, string | undefined>, data: LaunchData): string[] {
@@ -36,7 +46,13 @@ export function launchCheck(env: Record<string, string | undefined>, data: Launc
   for (const p of data.carePoints) reasons.push(...carePointReasons(p))
   for (const t of data.clinical) if (t.status !== 'signed') reasons.push(`clinical text ${t.id} is not signed by a physician`)
   for (const name of REQUIRED) if (!env[name]?.trim()) reasons.push(`${name} is not set`)
-  if (!preview) for (const name of PRODUCTION_ONLY) if (!env[name]?.trim()) reasons.push(`${name} is not set`)
+  if (!preview) {
+    for (const name of PRODUCTION_ONLY) if (!env[name]?.trim()) reasons.push(`${name} is not set`)
+    const subject = env.VAPID_SUBJECT?.trim()
+    if (subject && !SUBJECT.test(subject)) reasons.push('VAPID_SUBJECT must be mailto:… or https://… for the push services')
+    const key = env.VAPID_PRIVATE_JWK?.trim()
+    if (key && !p256Key(key)) reasons.push('VAPID_PRIVATE_JWK is not a P-256 private key (make one with npm run make-vapid)')
+  }
   let reviewers = 0
   try {
     const list: unknown = JSON.parse(env.ADMIN_USERS ?? '[]')

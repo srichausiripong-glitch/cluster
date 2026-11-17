@@ -38,7 +38,8 @@ export async function POST(request: Request): Promise<Response> {
   if (!key()) return new Response(null, { status: 503 })
   const endpoint = await endpointOf(request)
   if (!endpoint) return new Response(null, { status: 400 })
-  await subscribe(getDb(), endpoint, bangkokDay(new Date()))
+  // A full list takes no new address (server/push.ts, MAX_SUBSCRIPTIONS).
+  if ((await subscribe(getDb(), endpoint, bangkokDay(new Date()))) === 'full') return new Response(null, { status: 503 })
   return new Response(null, { status: 204 })
 }
 

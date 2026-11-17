@@ -9,7 +9,7 @@ import { DISTRICTS } from '../domain/districts'
 
 const CODE = readFileSync('public/sw.js', 'utf8')
 type Row = { state: string; density: string | null; symptoms: string | null; testing: string | null }
-type Window = { navigate: ReturnType<typeof vi.fn>; focus: ReturnType<typeof vi.fn> }
+type Window = { navigate: ReturnType<typeof vi.fn>; focus: ReturnType<typeof vi.fn>; postMessage: ReturnType<typeof vi.fn> }
 
 function worker(opts: { state?: { district: string; seen: Row | null }; published?: unknown; windows?: Window[] } = {}) {
   const listeners = new Map<string, (event: object) => void>()
@@ -82,14 +82,16 @@ it('shows the plain weekly line when the phone follows no district, or saw nothi
   expect(fresh.shown.map((s) => s.options.body)).toEqual([th.weekly.same])
   expect(fresh.saved().seen).toEqual({ ...ROW, density: 'medium' })
 })
-it('opens the app at /app#follow when the notification is tapped, in a window already open if there is one', async () => {
-  const open: Window = { navigate: vi.fn(async () => open), focus: vi.fn() }
+it('opens the app at /app#follow when the notification is tapped, telling a window already open instead of moving it', async () => {
+  // Moving an open window would add to its history, and Back after the quick exit would lead into the app (v1 spec 5.3).
+  const open: Window = { navigate: vi.fn(async () => open), focus: vi.fn(), postMessage: vi.fn() }
   const withWindow = worker({ windows: [open] })
   const close = vi.fn()
   await withWindow.fire('notificationclick', { notification: { close } })
   expect(close).toHaveBeenCalled()
-  expect(open.navigate).toHaveBeenCalledWith('/app#follow')
+  expect(open.postMessage).toHaveBeenCalledWith('cluster-follow')
   expect(open.focus).toHaveBeenCalled()
+  expect(open.navigate).not.toHaveBeenCalled()
   expect(withWindow.self.clients.openWindow).not.toHaveBeenCalled()
   const without = worker()
   await without.fire('notificationclick', { notification: { close: vi.fn() } })

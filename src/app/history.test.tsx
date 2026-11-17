@@ -45,3 +45,24 @@ it('says on the help page, behind ⓘ, what the quick exit cannot erase', async 
   await user.click(screen.getByRole('button', { name: th.help.exitMore }))
   expect(screen.getByText(th.help.historyNote)).toBeInTheDocument()
 })
+
+it('opens the followed district when the weekly notification is tapped, without adding to the history', async () => {
+  const { phone } = await import('../store/stores')
+  phone.update((s) => ({ ...s, follow: 'bang_rak' }))
+  const worker = new EventTarget()
+  Object.defineProperty(navigator, 'serviceWorker', { value: worker, configurable: true })
+  try {
+    window.history.replaceState(null, '', '/app/list')
+    const start = window.history.length
+    render(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>,
+    )
+    worker.dispatchEvent(new MessageEvent('message', { data: 'cluster-follow' }))
+    expect(await screen.findByRole('dialog', { name: 'เขตบางรัก' })).toBeInTheDocument()
+    expect(window.history.length).toBe(start)
+  } finally {
+    Reflect.deleteProperty(navigator, 'serviceWorker')
+  }
+})

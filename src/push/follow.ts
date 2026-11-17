@@ -79,8 +79,9 @@ export async function follow(district: string, seen: Seen | null): Promise<Follo
       phone.update((s) => ({ ...s, follow: district }))
       return 'following'
     }
-    await p.register()
+    // Asked first, while the press still counts: Safari and Firefox prompt only close to it.
     if ((await p.permission()) !== 'granted') return 'denied'
+    await p.register()
     const key = await fetch(API)
     if (!key.ok) return 'failed'
     const subscription = await p.subscribe(((await key.json()) as { key: string }).key)

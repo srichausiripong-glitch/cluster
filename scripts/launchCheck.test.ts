@@ -10,7 +10,7 @@ const ENV = {
   SESSION_SECRET: 's',
   DATABASE_URL: 'postgres://x',
   CRON_SECRET: 'c',
-  VAPID_PRIVATE_JWK: '{"kty":"EC"}',
+  VAPID_PRIVATE_JWK: '{"kty":"EC","crv":"P-256","x":"x","y":"y","d":"d"}',
   VAPID_SUBJECT: 'mailto:ops@example.org',
 }
 const point = (verified: boolean) => ({ id: 'p', source: 'https://example.org/care', fetched: '2026-11-17', verified: verified ? { date: '2026-11-20', by: 'x', method: 'phone' } : null })
@@ -70,4 +70,12 @@ it('needs the push key and its contact in production, but lets a preview build t
   expect(text).toContain('VAPID_PRIVATE_JWK')
   expect(text).toContain('VAPID_SUBJECT')
   expect(launchCheck({ ...withoutPush, LAUNCH_CHECK_PREVIEW: '1', VERCEL_ENV: 'preview' }, DATA)).toEqual([])
+})
+it('refuses a push key or contact the push services would turn away', () => {
+  const reasons = (vapid: Record<string, string>) => launchCheck({ ...ENV, ...vapid }, DATA).join('\n')
+  expect(reasons({ VAPID_SUBJECT: 'ops@example.org' })).toContain('VAPID_SUBJECT')
+  expect(reasons({ VAPID_SUBJECT: 'http://example.org' })).toContain('VAPID_SUBJECT')
+  expect(reasons({ VAPID_PRIVATE_JWK: '{"kty":"EC"}' })).toContain('VAPID_PRIVATE_JWK')
+  expect(reasons({ VAPID_PRIVATE_JWK: 'not json' })).toContain('VAPID_PRIVATE_JWK')
+  expect(reasons({})).toBe('')
 })

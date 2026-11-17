@@ -96,6 +96,8 @@ it('says on the privacy page what following a district keeps, where, and that th
   expect(th.privacy.phone).toContain('เขตที่ติดตาม')
   expect(th.privacy.kept.join(' ')).toContain('ที่อยู่สำหรับส่งแจ้งเตือน')
   const leaves = th.privacy.leaves.join(' ')
-  for (const word of ['Apple', 'Google', 'Mozilla', 'ไม่ส่งเขต']) expect(leaves, word).toContain(word)
+  for (const word of ['Apple', 'Google', 'Microsoft', 'Mozilla', 'ไม่ส่งเขต']) expect(leaves, word).toContain(word)
+  // A logged path now also tells starting or stopping to follow, never which district.
+  expect(th.privacy.vercelLogs).toContain('ติดตามเขต')
   expect(th.privacy.leaves.at(-1)).toContain(th.care.directions)
 })

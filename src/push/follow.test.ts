@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi, type Mock } from 'vitest'
+import { wipePhone } from '../store/actions'
 import { phone } from '../store/stores'
 import { follow, setPushPlatformForTest, unfollow, type PushPlatform, type Seen } from './follow'
 
@@ -104,4 +105,30 @@ it('stops following on the phone at once, and on the server when it can', async 
   vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new Error('offline'))))
   await expect(unfollow()).resolves.toBeUndefined()
   expect(phone.get().follow).toBeUndefined()
+})
+it('stops following on every wipe, the error screen’s too', async () => {
+  const p = platform()
+  await follow('bang_rak', SEEN)
+  const sub = (await p.subscription()) as Sub
+  calls.length = 0
+  wipePhone()
+  await vi.waitFor(() => expect(sub.unsubscribe).toHaveBeenCalled())
+  expect(calls).toEqual([{ url: '/api/push', method: 'DELETE', body: { endpoint: ENDPOINT } }])
+  expect(p.save).toHaveBeenLastCalledWith(null)
+})
+it('asks for permission first, while the press still counts, and sets up nothing when refused', async () => {
+  // Safari and Firefox prompt only close to the press; any wait before the question can lose it.
+  const order: string[] = []
+  const p = platform({
+    permission: vi.fn(async () => (order.push('permission'), 'granted' as const)),
+    register: vi.fn(async () => void order.push('register')),
+  })
+  await follow('bang_rak', SEEN)
+  expect(order).toEqual(['permission', 'register'])
+  order.length = 0
+  phone.update((s) => ({ ...s, follow: undefined }))
+  const refused = platform({ permission: vi.fn(async () => (order.push('permission'), 'denied' as const)) })
+  expect(await follow('bang_rak', SEEN)).toBe('denied')
+  expect(refused.register).not.toHaveBeenCalled()
+  void p
 })

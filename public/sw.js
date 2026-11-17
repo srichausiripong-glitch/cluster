@@ -63,19 +63,18 @@ async function weekly() {
   await self.registration.showNotification(TITLE, { body, tag: 'cluster-weekly', icon: '/icon-192.png' })
 }
 
-/** The app opens the followed district's sheet from its own store: no district travels in the address. */
+/**
+ * The app opens the followed district's sheet from its own store: no district travels in the address.
+ * A window already open is told, never moved: moving it would add to its history, and Back after the
+ * quick exit would lead into the app (v1 spec 5.3).
+ */
 async function openFollowed() {
-  const url = '/app#follow'
   const [open] = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
   if (open) {
-    try {
-      const moved = await open.navigate(url)
-      return await (moved || open).focus()
-    } catch {
-      // a window this worker does not control cannot be moved: open another
-    }
+    open.postMessage('cluster-follow')
+    return open.focus()
   }
-  return self.clients.openWindow(url)
+  return self.clients.openWindow('/app#follow')
 }
 
 const tell = (method, endpoint) => fetch('/api/push', { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ endpoint }) })

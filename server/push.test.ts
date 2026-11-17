@@ -7,7 +7,7 @@ import { DELETE as unsubscribeRoute, GET as keyRoute, POST as subscribeRoute } f
 import { shiftWeek } from '../src/domain/weeks'
 import { migrate, type Db } from './db'
 import { setDbForTest, setEnvForTest } from './env'
-import { bangkokDay, sendWeekly, subscribe, vapidAuthorization, vapidPublicKey } from './push'
+import { bangkokDay, MAX_SUBSCRIPTIONS, sendWeekly, subscribe, vapidAuthorization, vapidPublicKey } from './push'
 import { testDb } from './testDb'
 import { serverWeek } from './week'
 
@@ -142,3 +142,22 @@ it('answers only Vercel Cron, with what the send did', async () => {
 it('runs the weekly send at noon on Monday in Bangkok', () => {
   expect(JSON.parse(readFileSync('vercel.json', 'utf8')).crons).toContainEqual({ path: '/api/cron/notify', schedule: '0 5 * * 1' })
 })
+it('gives each push service ten seconds and no redirect, and sends to the oldest followers first', async () => {
+  await publishedWeek(shiftWeek(serverWeek(NOON), -1))
+  await subscribe(db, 'https://fcm.googleapis.com/fcm/send/aaa-newest', '2026-11-22')
+  await subscribe(db, 'https://web.push.apple.com/zzz-oldest', '2026-10-01')
+  const calls: Call[] = []
+  await sendWeekly({ db, jwk, subject: 'mailto:ops@example.org', now: NOON, post: answering(() => 201, calls) })
+  expect(calls.map((c) => c.url)).toEqual(['https://web.push.apple.com/zzz-oldest', 'https://fcm.googleapis.com/fcm/send/aaa-newest'])
+  for (const { init } of calls) {
+    expect(init.signal).toBeInstanceOf(AbortSignal)
+    expect(init.redirect).toBe('error')
+  }
+})
+it('takes no new address once the list is full, but still takes one it already has', async () => {
+  await db.query("insert into push_subscriptions select 'https://fcm.googleapis.com/fcm/send/x' || g, '2026-11-01' from generate_series(1, $1::int) g", [MAX_SUBSCRIPTIONS])
+  expect((await subscribeRoute(send('POST', { endpoint: FCM }))).status).toBe(503)
+  expect((await subscribeRoute(send('POST', { endpoint: 'https://fcm.googleapis.com/fcm/send/x1' }))).status).toBe(204)
+  const [{ n }] = await db.query<{ n: number }>('select count(*)::int as n from push_subscriptions')
+  expect(n).toBe(MAX_SUBSCRIPTIONS)
+}, 30_000)

@@ -1,3 +1,4 @@
+import { unfollow } from '../push/follow'
 import type { DiseaseGroup, MapLayer, PendingReport } from '../domain/types'
 import { DISTRICT_IDS } from '../domain/districts'
 import { takingNow } from '../envelope/send'
@@ -24,6 +25,8 @@ export function addReminder(date: string): void {
 const ENVELOPE_KEYS = ['cluster.envelope-outbox', 'cluster.envelope-claim']
 
 export function wipePhone(): void {
+  // Any wipe stops the weekly notification too, the error screen's included (redesign spec 5.11).
+  void unfollow()
   phone.reset()
   try {
     for (const key of ENVELOPE_KEYS) localStorage.removeItem(key)

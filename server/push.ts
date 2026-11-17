@@ -10,6 +10,8 @@ import { serverWeek } from './week.js'
 /** The push services browsers use. An address anywhere else is refused, so the server never sends to a place someone chose. */
 const PUSH_HOSTS = [/^fcm\.googleapis\.com$/, /\.push\.services\.mozilla\.com$/, /\.push\.apple\.com$/, /\.notify\.windows\.com$/]
 const MAX_ENDPOINT = 2048
+/** The most addresses kept: anyone may subscribe, so the list, and the weekly send, stay bounded. */
+export const MAX_SUBSCRIPTIONS = 10_000
 
 /** Whether a value is a push address from one of the push services. */
 export function isPushEndpoint(url: unknown): url is string {
@@ -28,8 +30,15 @@ export function bangkokDay(now: Date): string {
   return new Date(now.getTime() + 7 * 3_600_000).toISOString().slice(0, 10)
 }
 
-export async function subscribe(db: Db, endpoint: string, day: string): Promise<void> {
+/** Keeps an address, unless the list is full and the address is new. */
+export async function subscribe(db: Db, endpoint: string, day: string): Promise<'kept' | 'full'> {
+  const [{ n }] = await db.query<{ n: number }>('select count(*)::int as n from push_subscriptions')
+  if (n >= MAX_SUBSCRIPTIONS) {
+    const known = await db.query('select 1 from push_subscriptions where endpoint = $1', [endpoint])
+    return known.length > 0 ? 'kept' : 'full'
+  }
   await db.query('insert into push_subscriptions (endpoint, created_on) values ($1, $2) on conflict (endpoint) do nothing', [endpoint, day])
+  return 'kept'
 }
 
 export async function unsubscribe(db: Db, endpoint: string): Promise<void> {
@@ -44,7 +53,9 @@ export function vapidPublicKey(jwk: JsonWebKey): string {
 /** How long a push service may hold the weekly push for a phone that is off: half a day, then it is news no longer. */
 const TTL_S = 12 * 3600
 /** Pushes in flight at once. */
-const BATCH = 8
+const BATCH = 32
+/** How long one push service may take to answer. */
+const PUSH_WAIT_MS = 10_000
 
 const part = (value: object) => Buffer.from(JSON.stringify(value)).toString('base64url')
 
@@ -67,15 +78,22 @@ export async function sendWeekly(deps: { db: Db; jwk: JsonWebKey; subject: strin
   const { db, jwk, subject, now, post = fetch } = deps
   const result = { sent: 0, gone: 0, failed: 0, skipped: false }
   if ((await latestPublished(db))?.week !== shiftWeek(serverWeek(now), -1)) return { ...result, skipped: true }
-  const rows = await db.query<{ endpoint: string }>('select endpoint from push_subscriptions order by endpoint')
+  // The oldest followers first, so a flood of new addresses never pushes them out of a run cut short.
+  const rows = await db.query<{ endpoint: string }>('select endpoint from push_subscriptions order by created_on, endpoint')
   for (let i = 0; i < rows.length; i += BATCH) {
     const batch = rows.slice(i, i + BATCH)
     const outcomes = await Promise.allSettled(
       batch.map(({ endpoint }) =>
-        post(endpoint, { method: 'POST', headers: { TTL: String(TTL_S), Urgency: 'normal', Topic: 'cluster-weekly', Authorization: vapidAuthorization(endpoint, jwk, subject, now) } }),
+        post(endpoint, {
+          method: 'POST',
+          headers: { TTL: String(TTL_S), Urgency: 'normal', Topic: 'cluster-weekly', Authorization: vapidAuthorization(endpoint, jwk, subject, now) },
+          signal: AbortSignal.timeout(PUSH_WAIT_MS),
+          redirect: 'error',
+        }),
       ),
     )
     for (const [j, outcome] of outcomes.entries()) {
+      if (outcome.status === 'fulfilled') void outcome.value.body?.cancel().catch(() => undefined)
       const status = outcome.status === 'fulfilled' ? outcome.value.status : 0
       if (status >= 200 && status < 300) result.sent++
       else if (status === 404 || status === 410) {

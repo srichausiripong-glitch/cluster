@@ -10,7 +10,7 @@ import { NotifyFlow } from './NotifyFlow'
 import { QuickExit } from './QuickExit'
 import { ReportFlow } from './ReportFlow'
 import { SelfCare } from './SelfCare'
-import { GoNav } from './Go'
+import { GoNav, useGo } from './Go'
 import { useEnvelope } from '../envelope/useEnvelope'
 import { loadPublished } from '../map/published'
 import { useEffect } from 'react'
@@ -27,6 +27,17 @@ export function AppShell() {
   useEffect(() => {
     void loadPublished()
   }, [])
+  // The weekly notification, tapped while the app is open: the followed district's sheet, in place of this page (redesign spec 5.11).
+  const go = useGo()
+  useEffect(() => {
+    const worker = typeof navigator === 'undefined' ? undefined : navigator.serviceWorker
+    if (!worker) return
+    const open = (event: MessageEvent) => {
+      if (event.data === 'cluster-follow') go('/app#follow')
+    }
+    worker.addEventListener('message', open)
+    return () => worker.removeEventListener('message', open)
+  }, [go])
 
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col bg-bg">
