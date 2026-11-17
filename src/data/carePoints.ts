@@ -1,6 +1,8 @@
 import { areaAt, NEIGHBOURS } from '../map/areas'
 import { toXY } from '../map/geo'
 import type { CareLayer } from '../domain/types'
+import healthCentres from './bma-health-centres.json'
+import hospitals from './bma-hospitals.json'
 import registry from './care-points.json'
 
 /** A care point as the registry and the tests write it. Its district comes from where it stands. */
@@ -44,8 +46,12 @@ export const withDistrict = (p: CarePointData): CarePoint => ({ ...p, districtId
 /** Whether somebody has confirmed the point. Only a confirmed point is a big pin with its full detail (redesign spec 5.8). */
 export const isVerified = (p: CarePointData): boolean => p.verified !== null
 
-/** Every point that ships, confirmed or not: the registry. */
-export const ALL_CARE_POINTS: CarePoint[] = (registry as CarePointData[]).map(withDistrict)
+/**
+ * Every point that ships with the app, confirmed or not: the registry, then the BMA's health
+ * centres and hospitals that the registry does not already list (scripts/care/fetch.ts). The
+ * pharmacies are a file of their own, read only when 💊 is on (src/data/pharmacies.ts).
+ */
+export const ALL_CARE_POINTS: CarePoint[] = [...registry, ...healthCentres, ...hospitals].map((p) => withDistrict(p as CarePointData))
 
 /**
  * The points the app shows: every point, at two levels of trust (redesign spec 5.8). One array

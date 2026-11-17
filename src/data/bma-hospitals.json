@@ -1,0 +1,50 @@
+[
+  {
+    "id": "bma-hos-10",
+    "name": "โรงพยาบาลคลองสามวา",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.91065197,
+    "lon": 100.7534621,
+    "address": "22/3 ถนน ไมตรีจิต แขวง สามวาตะวันออก เขตคลองสามวา กรุงเทพมหานคร 10510",
+    "phone": "021501300",
+    "free": false,
+    "community": false,
+    "source": "https://data.bangkok.go.th/dataset/bmahospital",
+    "fetched": "2026-11-17",
+    "verified": null
+  },
+  {
+    "id": "bma-hos-11",
+    "name": "โรงพยาบาลบางนา",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.66636636,
+    "lon": 100.6352298,
+    "address": "1302 ซอย บางนา-ตราด 42บางนา กรุงเทพ",
+    "phone": "027468630",
+    "free": false,
+    "community": false,
+    "source": "https://data.bangkok.go.th/dataset/bmahospital",
+    "fetched": "2026-11-17",
+    "verified": null
+  },
+  {
+    "id": "bma-hos-9",
+    "name": "โรงพยาบาลผู้สูงอายุบางขุนเทียน",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.57219323,
+    "lon": 100.4236924,
+    "address": "1075/1 พระราม 2 ซอย 44 แขวง ท่าข้าม เขต บางขุนเทียน กรุงเทพมหานคร 10150",
+    "phone": "024050900",
+    "free": false,
+    "community": false,
+    "source": "https://data.bangkok.go.th/dataset/bmahospital",
+    "fetched": "2026-11-17",
+    "verified": null
+  }
+]

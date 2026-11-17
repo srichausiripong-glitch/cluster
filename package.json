@@ -12,6 +12,7 @@
     "map:fetch": "node scripts/map/fetch.ts",
     "map:build": "node scripts/map/build.ts",
     "map:neighbours": "node scripts/map/neighbours.ts",
+    "care:fetch": "node scripts/care/fetch.ts",
     "emoji:fetch": "node scripts/emoji/fetch.ts",
     "admin:hash": "node scripts/admin-hash.ts",
     "launch-check": "node scripts/launch-check.ts",
