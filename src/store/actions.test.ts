@@ -45,26 +45,33 @@ it('remembers a district only when it is one of the 50', () => {
   setMyDistrict('central')
   expect(phone.get().myDistrict).toBe('bang_rak')
 })
-it('will not cancel a report the weekly envelope is taking, and frees it otherwise', () => {
+it('will not cancel a report the weekly envelope has sealed, and frees it otherwise', () => {
   wipePhone()
   queueReport({ kind: 'tested', zone: 'bang_rak', savedAt: 's1' })
-  localStorage.setItem('cluster.envelope-claim', JSON.stringify({ week: '2026-W47', at: Date.now(), savedAt: 's1' }))
-  expect(cancelPending()).toBe('sending')
-  expect(phone.get().pending).toMatchObject({ savedAt: 's1' })
-  localStorage.removeItem('cluster.envelope-claim')
   localStorage.setItem('cluster.envelope-outbox', JSON.stringify({ week: '2026-W47', savedAt: 's1', body: '{}' }))
   expect(cancelPending()).toBe('sending')
+  expect(phone.get().pending).toMatchObject({ savedAt: 's1' })
   localStorage.removeItem('cluster.envelope-outbox')
   expect(cancelPending()).toBe('cancelled')
   expect(phone.get()).toMatchObject({ pending: null, testedNextWeek: null })
   expect(cancelPending()).toBe('none')
 })
-it('cancels when the claim is for another report or is more than two minutes old', () => {
+it('cancels a report whose envelope is only being solved: the send then drops it', () => {
   wipePhone()
   queueReport({ kind: 'tested', zone: 'bang_rak', savedAt: 's1' })
-  localStorage.setItem('cluster.envelope-claim', JSON.stringify({ week: '2026-W47', at: Date.now(), savedAt: 'other' }))
+  localStorage.setItem('cluster.envelope-claim', JSON.stringify({ week: '2026-W47', at: Date.now() }))
   expect(cancelPending()).toBe('cancelled')
+})
+it('wipes the envelope claim with everything else', () => {
+  localStorage.setItem('cluster.envelope-claim', JSON.stringify({ week: '2026-W47', at: Date.now() }))
+  wipePhone()
+  expect(localStorage.getItem('cluster.envelope-claim')).toBeNull()
+})
+it('keeps the four-week wait of a replaced report the envelope has sealed', () => {
+  wipePhone()
   queueReport({ kind: 'tested', zone: 'bang_rak', savedAt: 's1' })
-  localStorage.setItem('cluster.envelope-claim', JSON.stringify({ week: '2026-W47', at: Date.now() - 3 * 60_000, savedAt: 's1' }))
-  expect(cancelPending()).toBe('cancelled')
+  const wait = phone.get().testedNextWeek
+  localStorage.setItem('cluster.envelope-outbox', JSON.stringify({ week: '2026-W47', savedAt: 's1', body: '{}' }))
+  queueReport({ kind: 'syphilis', zone: 'bang_rak', savedAt: 's2' })
+  expect(phone.get().testedNextWeek).toBe(wait)
 })

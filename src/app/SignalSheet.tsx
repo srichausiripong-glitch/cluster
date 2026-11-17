@@ -149,7 +149,7 @@ export function SignalSheet({ area, open, onClose }: Props) {
         </More>
       </div>
 
-      <Go to={hasPlace ? `/app/list?district=${area.areaId}` : '/app/list?find=test'} className={`mt-3 ${QUIET_LINK}`}>
+      <Go to={hasPlace ? `/app/list?district=${area.areaId}` : '/app/list?find=test'} onClick={onClose} className={`mt-3 ${QUIET_LINK}`}>
         <Emoji name={hasPlace ? 'testTube' : 'pin'} />
         {hasPlace ? th.map.sheet.careHere : th.map.sheet.findCare}
         <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />

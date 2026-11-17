@@ -11,6 +11,7 @@ import { districtName } from '../domain/districts'
 import { buildIcs } from '../domain/ics'
 import type { DiseaseGroup, ReportKind, ReportSource } from '../domain/types'
 import { mondayDate } from '../domain/weeks'
+import { takingNow } from '../envelope/send'
 import { useIntakeOpen } from '../map/published'
 import { currentWeek, queueReport, saveCard, setMyDistrict } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
@@ -160,7 +161,7 @@ export function ReportFlow() {
               {pending && (
                 <p className={`flex items-center gap-2 px-3 py-2 text-[14px] font-semibold ${SOFT}`}>
                   <Emoji name="envelope" />
-                  {th.report.replaces}
+                  {takingNow(pending.savedAt) ? th.report.replacesTaken : th.report.replaces}
                 </p>
               )}
               {remembered && !changing ? (

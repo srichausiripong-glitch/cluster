@@ -40,7 +40,7 @@ it('changes the remembered district without sending anything', async () => {
 it('will not cancel a report the envelope is taking, and says so', async () => {
   const user = userEvent.setup()
   queueReport({ kind: 'tested', zone: 'bang_rak', savedAt: 's1' })
-  localStorage.setItem('cluster.envelope-claim', JSON.stringify({ week: 'x', at: Date.now(), savedAt: 's1' }))
+  localStorage.setItem('cluster.envelope-outbox', JSON.stringify({ week: 'x', savedAt: 's1', body: '{}' }))
   open()
   await user.click(screen.getByRole('button', { name: th.me.cancelPending }))
   expect(screen.getByText(th.home.tooLate)).toBeInTheDocument()
@@ -54,4 +54,12 @@ it('keeps the notes about wiping behind ⓘ', async () => {
   await user.click(screen.getByRole('button', { name: th.me.wipeMore }))
   expect(screen.getByText(th.me.wipeNote)).toBeInTheDocument()
   expect(screen.getByText(th.me.iosNote)).toBeInTheDocument()
+})
+
+it('gives the district sheet most of a short screen, so the list shows above its press', async () => {
+  const user = userEvent.setup()
+  phone.update((s) => ({ ...s, myDistrict: 'bang_kapi' }))
+  open()
+  await user.click(screen.getByRole('button', { name: th.picker.change }))
+  expect(screen.getByRole('dialog').className).toMatch(/max-h-\[85dvh\]/)
 })

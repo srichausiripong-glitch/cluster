@@ -11,6 +11,13 @@ export interface Inset {
 }
 /** Space the map screen's own controls take: the layer chips and the state box at the top; the status card and the map credit at the bottom. */
 export const MAP_INSET: Inset = { top: 108, right: 10, bottom: 200, left: 10 }
+/**
+ * The space the controls take on a map `height` px tall. On a short phone they still cover what they
+ * cover, but the city is fitted into at least a quarter of the map rather than a sliver (round 2 review).
+ */
+export function insetFor(height: number): Inset {
+  return { ...MAP_INSET, top: Math.min(MAP_INSET.top, Math.round(height * 0.3)), bottom: Math.min(MAP_INSET.bottom, Math.round(height * 0.42)) }
+}
 export interface Size {
   w: number
   h: number

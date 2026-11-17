@@ -6,7 +6,7 @@ const CARE_POINTS = FIXTURE_POINTS.map(withDistrict)
 import { STUB_MANIFEST } from '../test/mapStub'
 import { areaAt, AREAS, CITY_BOX } from './areas'
 import { CITY_FRAME, PPM, toXY } from './geo'
-import { cityView, clampView, deepestAt, MAP_INSET, MARKER_GAP, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Size } from './view'
+import { cityView, clampView, deepestAt, insetFor, MAP_INSET, MARKER_GAP, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Size } from './view'
 
 const SIZES: [number, number][] = [[320, 480], [360, 606], [375, 678], [390, 714], [448, 760], [370, 436]]
 const size = (w: number, h: number): Size => ({ w, h, inset: MAP_INSET })
@@ -107,4 +107,16 @@ it('keeps every district name box on the screen at district level', () => {
     expect(b.y - b.h / 2).toBeGreaterThanOrEqual(2)
     expect(b.y + b.h / 2).toBeLessThanOrEqual(phone.h - 2)
   }
+})
+it('keeps at least a quarter of a short map free for the city, and the full space on a tall one', () => {
+  // A 320 × 568 phone in Safari shows about 460 px: 348 px of map between the header and the tabs.
+  const short = insetFor(348)
+  expect(348 - short.top - short.bottom).toBeGreaterThanOrEqual(87)
+  expect(short.top).toBeGreaterThanOrEqual(100)
+  expect(insetFor(732)).toEqual(MAP_INSET)
+  const s = { w: 320, h: 348, inset: short }
+  const [, y0] = toScreen(cityView(s), s, toXY(CITY_FRAME.north, CITY_FRAME.west))
+  const [, y1] = toScreen(cityView(s), s, toXY(CITY_FRAME.south, CITY_FRAME.east))
+  expect(y0).toBeGreaterThanOrEqual(short.top - 0.01)
+  expect(y1).toBeLessThanOrEqual(348 - short.bottom + 0.01)
 })

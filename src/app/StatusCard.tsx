@@ -23,7 +23,7 @@ const TOO_LATE_MS = 2500
 type Toast = { district: string; savedAt: string; late: boolean }
 
 /** On a screen under 360 px the picture goes above the words, so "เจอ / มีอาการ" stays on one line instead of breaking inside มีอาการ. */
-const ANSWER = `flex min-h-14 items-center justify-center gap-1.5 rounded-md border-2 border-ink bg-surface px-2 text-center font-bold leading-tight max-[359px]:flex-col max-[359px]:gap-0.5 ${PRESS}`
+const ANSWER = `flex min-h-14 items-center justify-center gap-1.5 rounded-md border-2 border-ink bg-surface px-2 text-center font-bold leading-tight max-[359px]:flex-col max-[359px]:gap-0.5 [@media(max-height:560px)]:min-h-11 ${PRESS}`
 
 /**
  * "ตรวจล่าสุดเป็นไง?" with its two answers, in place of the check-in and send-signal buttons (redesign
@@ -91,48 +91,57 @@ export function StatusCard() {
     setOpen(false)
     send(chosen)
   }
-  /** Undoes only the report this toast announced, and never one this week's envelope is taking. */
+  const tooLate = () => {
+    refocus.current = true
+    setToast((t) => t && { ...t, late: true })
+  }
+  /**
+   * Undoes only the report this toast announced, and never says so of one that went: one this week's
+   * envelope has sealed, or one already sent (it is gone, but its four-week wait is still there).
+   */
   const undo = () => {
     if (!toast) return
-    if (phone.get().pending?.savedAt !== toast.savedAt) return hide()
-    if (cancelPending() === 'sending') {
-      refocus.current = true
-      setToast({ ...toast, late: true })
-      return
+    const now = phone.get()
+    if (now.pending?.savedAt !== toast.savedAt) {
+      if (now.pending === null && now.testedNextWeek !== null) return tooLate()
+      return hide()
     }
+    if (cancelPending() === 'sending') return tooLate()
     hide()
   }
 
   return (
-    <div ref={card} className="space-y-1.5">
-      {toast && (
-        <div ref={toastBox} role="status" className={`flex min-h-11 items-center gap-2 px-3 py-1 text-[14px] font-semibold ${SOFT}`}>
-          {toast.late ? (
-            <span>{th.home.tooLate}</span>
-          ) : (
-            <>
-              <Emoji name="check" />
-              <span className="min-w-0 flex-1">{th.home.toast.replace('{district}', toast.district)}</span>
-              <Button ref={undoButton} variant="ghost" className="shrink-0" onClick={undo}>
-                {th.home.undo}
-              </Button>
-            </>
-          )}
-        </div>
-      )}
-
-      <section aria-labelledby={headingId} className="box p-3">
-        <div className="flex flex-wrap items-center justify-between gap-x-2">
-          <h2 id={headingId} className="text-[17px] font-bold">
-            {th.home.ask}
-          </h2>
-          {pending && (
-            <Go to="/app/me" aria-label={th.home.pendingLabel} className="inline-flex min-h-8 items-center gap-1 text-[12px] font-semibold underline underline-offset-4">
-              <Emoji name="envelope" size={16} /> {th.home.pending} <Emoji name="smile" size={16} />
-            </Go>
-          )}
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
+    <div ref={card}>
+      {/* On a short screen (under 560 px tall) the card tightens, so the map keeps room above it. */}
+      <section aria-labelledby={toast ? undefined : headingId} aria-label={toast ? th.home.ask : undefined} className="box p-3 [@media(max-height:560px)]:p-2">
+        {toast ? (
+          // The toast takes the question's place for a few seconds, so the card does not grow over the map.
+          <div ref={toastBox} role="status" className={`flex min-h-9 items-center gap-2 px-2 text-[14px] font-semibold ${SOFT}`}>
+            {toast.late ? (
+              <span>{th.home.tooLate}</span>
+            ) : (
+              <>
+                <Emoji name="check" />
+                <span className="min-w-0 flex-1">{th.home.toast.replace('{district}', toast.district)}</span>
+                <button ref={undoButton} type="button" onClick={undo} className="inline-flex min-h-9 shrink-0 items-center px-2 font-bold underline underline-offset-4">
+                  {th.home.undo}
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-2">
+            <h2 id={headingId} className="text-[17px] font-bold [@media(max-height:560px)]:text-[15px]">
+              {th.home.ask}
+            </h2>
+            {pending && (
+              <Go to="/app/me" aria-label={th.home.pendingLabel} className="inline-flex min-h-8 items-center gap-1 text-[12px] font-semibold underline underline-offset-4">
+                <Emoji name="envelope" size={16} /> {th.home.pending} <Emoji name="smile" size={16} />
+              </Go>
+            )}
+          </div>
+        )}
+        <div className="mt-2 grid grid-cols-2 gap-2 [@media(max-height:560px)]:mt-1">
           <button ref={clearButton} type="button" disabled={waiting} onClick={press} className={`${ANSWER} flex-col gap-0 disabled:cursor-not-allowed disabled:bg-veil disabled:shadow-none`}>
             <span className="inline-flex items-center gap-1.5 max-[359px]:flex-col max-[359px]:gap-0.5">
               <Emoji name="check" size={22} />
@@ -145,12 +154,12 @@ export function StatusCard() {
             {th.home.found}
           </Go>
         </div>
-        <Go to="/app/list?find=test" className="mt-1 flex min-h-11 items-center justify-center gap-1 text-[14px]">
+        <Go to="/app/list?find=test" className="mt-1 flex min-h-11 items-center justify-center gap-1 text-[14px] [@media(max-height:560px)]:mt-0 [@media(max-height:560px)]:min-h-9">
           {th.home.notTested} <Emoji name="pin" size={18} /> <span className="font-bold underline underline-offset-4">{th.home.findTest}</span>
         </Go>
       </section>
 
-      <Sheet open={open} onClose={() => setOpen(false)} title={th.tested.title}>
+      <Sheet open={open} onClose={() => setOpen(false)} title={th.tested.title} tall>
         {!intakeOpen ? (
           <p className={`flex items-center gap-2 px-3 py-2 text-[14px] ${NOTE}`}>
             <Emoji name="pause" />

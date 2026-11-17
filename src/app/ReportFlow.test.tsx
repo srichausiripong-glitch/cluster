@@ -124,6 +124,15 @@ it('replaces a waiting ✅ only after saying so', async () => {
   expect(phone.get().pending).toMatchObject({ kind: 'syphilis', zone: 'bang_rak' })
 })
 
+it('says the old report may already have gone when the envelope has sealed it, instead of replacing it', async () => {
+  const user = userEvent.setup()
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'chatuchak', savedAt: 's1' } }))
+  localStorage.setItem('cluster.envelope-outbox', JSON.stringify({ week: '2026-W47', savedAt: 's1', body: '{}' }))
+  open()
+  await toDistrict(user)
+  expect(screen.getByText(th.report.replacesTaken)).toBeInTheDocument()
+  expect(screen.queryByText(th.report.replaces)).toBeNull()
+})
 it('lets a person skip the map and still find care', async () => {
   const user = userEvent.setup()
   open()

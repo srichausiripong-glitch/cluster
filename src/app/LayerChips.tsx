@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react'
 import { th } from '../copy/th'
 import { Emoji } from '../design/Emoji'
 import type { EmojiName } from '../design/emojiCodes'
@@ -31,6 +32,8 @@ export function LayerChips({ on, onToggle }: { on: Record<MapLayer, boolean>; on
           onClick={() => onToggle(layer)}
           className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-ink px-3 text-[13px] font-bold ${PRESS} ${on[layer] ? ON[layer] : 'bg-surface text-muted'}`}
         >
+          {/* On is told by a tick as well as by the fill (plan, Global Constraints). */}
+          {on[layer] && <Check data-tick size={14} strokeWidth={3} className="shrink-0" aria-hidden="true" />}
           <Emoji name={EMOJI[layer]} size={18} />
           {th.layers[layer]}
         </button>

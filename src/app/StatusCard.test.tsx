@@ -97,7 +97,7 @@ it('will not undo a report the weekly envelope is already taking, and says so', 
   remember('bang_kapi')
   open()
   await user.click(clear())
-  localStorage.setItem('cluster.envelope-claim', JSON.stringify({ week: 'x', at: Date.now(), savedAt: phone.get().pending!.savedAt }))
+  localStorage.setItem('cluster.envelope-outbox', JSON.stringify({ week: 'x', savedAt: phone.get().pending!.savedAt, body: '{}' }))
   await user.click(screen.getByRole('button', { name: th.home.undo }))
   expect(screen.getByText(th.home.tooLate)).toBeInTheDocument()
   expect(phone.get().pending).toMatchObject({ kind: 'tested' })
@@ -113,6 +113,30 @@ it('leaves alone a report that replaced the one the toast announced', async () =
   expect(phone.get().pending).toMatchObject({ kind: 'syphilis' })
 })
 
+it('shows the undo in place of the question, so the card keeps its height on a short screen', async () => {
+  const user = userEvent.setup()
+  remember('bang_kapi')
+  open()
+  await user.click(clear())
+  const card = screen.getByRole('button', { name: th.home.undo }).closest('section')!
+  expect(within(card).getByRole('status')).toHaveTextContent(th.home.toast.replace('{district}', 'บางกะปิ'))
+  expect(screen.queryByRole('heading', { name: th.home.ask })).toBeNull()
+})
+it('says it is too late when the report has already gone with the envelope', async () => {
+  const user = userEvent.setup()
+  remember('bang_kapi')
+  open()
+  await user.click(clear())
+  act(() => phone.update((s) => ({ ...s, pending: null, sentWeek: currentWeek() })))
+  await user.click(screen.getByRole('button', { name: th.home.undo }))
+  expect(screen.getByText(th.home.tooLate)).toBeInTheDocument()
+})
+it('gives the district sheet most of a short screen, so the list shows above the send press', async () => {
+  const user = userEvent.setup()
+  open()
+  await user.click(clear())
+  expect(screen.getByRole('dialog').className).toMatch(/max-h-\[85dvh\]/)
+})
 it('shows ✅ as sent, with the date it can be sent again, while 🩺 stays open', () => {
   const next = shiftWeek(currentWeek(), 2)
   phone.update((s) => ({ ...s, testedNextWeek: next }))

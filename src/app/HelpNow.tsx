@@ -61,9 +61,15 @@ export function HelpNow() {
         <Go to="/terms" className={TEXT_LINK}>
           {th.terms.title}
         </Go>
-        <a href="https://openmoji.org" target="_blank" rel="noreferrer" className={TEXT_LINK}>
-          {th.help.emojiCredit}
-        </a>
+        <span>
+          <a href="https://openmoji.org" target="_blank" rel="noreferrer" className={TEXT_LINK}>
+            {th.help.emojiCredit}
+          </a>
+          {' · '}
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer" className={TEXT_LINK}>
+            {th.help.emojiLicense}
+          </a>
+        </span>
       </p>
 
       <section>

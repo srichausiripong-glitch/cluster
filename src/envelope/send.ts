@@ -56,14 +56,14 @@ function writeOutbox(box: Outbox | null) {
   }
 }
 
-function readClaim(): { week: string; at: number; savedAt?: string | null } | null {
+function readClaim(): { week: string; at: number } | null {
   try {
     return JSON.parse(localStorage.getItem(CLAIM) ?? 'null')
   } catch {
     return null
   }
 }
-function writeClaim(claim: { week: string; at: number; savedAt: string | null } | null) {
+function writeClaim(claim: { week: string; at: number } | null) {
   try {
     if (claim) localStorage.setItem(CLAIM, JSON.stringify(claim))
     else localStorage.removeItem(CLAIM)
@@ -99,23 +99,32 @@ export async function sendIfDue(now: number, deps: SendDeps): Promise<SendResult
   // No await between reading the claim and writing it: another tab cannot slip in between.
   const claim = readClaim()
   if (claim && claim.week === key.week && now - claim.at < CLAIM_MS) return 'already-sent'
-  // The claim names the waiting report it takes, so a cancel meanwhile can see it is too late.
-  const pending = key.intakeOpen === false ? null : phone.get().pending
-  const savedAt = pending?.savedAt ?? null
-  writeClaim({ week: key.week, at: now, savedAt })
+  writeClaim({ week: key.week, at: now })
   // Keep the claim fresh while a slow phone solves, so no other tab takes the week meanwhile.
-  const keepClaim = setInterval(() => writeClaim({ week: key.week, at: Date.now(), savedAt }), CLAIM_MS / 4)
+  const keepClaim = setInterval(() => writeClaim({ week: key.week, at: Date.now() }), CLAIM_MS / 4)
 
   try {
+    const pending = key.intakeOpen === false ? null : phone.get().pending
+    const savedAt = pending?.savedAt ?? null
     let box = readOutbox()
     if (!box || box.week !== key.week || box.savedAt !== savedAt) {
       const plain = makePlain(pending, deps.rand, b64url(crypto.getRandomValues(new Uint8Array(16))))
       const sealed = await seal(plain, key.jwk)
       const pow = (await deps.solve(powInput(sealed.ct, key.week), key.bits)).padStart(POW_DIGITS, '0')
+      // A report cancelled or replaced while this envelope was solved is not sent: it never leaves the
+      // phone, and the next try seals what is waiting then (round 2 plan, decision 10).
+      if (savedAt !== null && phone.get().pending?.savedAt !== savedAt) {
+        writeClaim(null)
+        return 'failed'
+      }
       box = { week: key.week, savedAt, body: JSON.stringify({ ...sealed, pow }) }
       writeOutbox(box)
     }
-    if (phone.get().sentWeek === key.week) return 'already-sent'
+    if (phone.get().sentWeek === key.week) {
+      // Another tab sent this week's envelope meanwhile; this one is never posted.
+      writeOutbox(null)
+      return 'already-sent'
+    }
     const res = await deps.fetch('/api/envelope', { method: 'POST', headers: { 'content-type': 'application/json' }, body: box.body })
     if (!res.ok) {
       writeOutbox(null) // refused, not lost: the next try seals afresh
@@ -133,12 +142,11 @@ export async function sendIfDue(now: number, deps: SendDeps): Promise<SendResult
 }
 
 /**
- * Whether this week's envelope is taking the waiting report saved at `savedAt`: a send in progress
- * claimed it, or it is sealed and waiting for the server's answer. Saying it was cancelled would
- * then be untrue (round 2 plan, decision 10).
+ * Whether the waiting report saved at `savedAt` is sealed in an envelope that is being posted, or
+ * whose answer never came: it may have reached the server, so saying it was cancelled would be
+ * untrue (round 2 plan, decision 10). While an envelope is only being solved, a cancel still holds:
+ * the send drops a report that is no longer waiting before it seals.
  */
-export function takingNow(savedAt: string, now = Date.now()): boolean {
-  const claim = readClaim()
-  if (claim && claim.savedAt === savedAt && now - claim.at < CLAIM_MS) return true
+export function takingNow(savedAt: string): boolean {
   return readOutbox()?.savedAt === savedAt
 }

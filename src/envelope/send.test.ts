@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { mondayDate } from '../domain/weeks'
 import { phone } from '../store/stores'
-import { wipePhone } from '../store/actions'
+import { cancelPending, queueReport, wipePhone } from '../store/actions'
 import { sendIfDue } from './send'
 import { unseal } from './seal'
 
@@ -122,6 +122,8 @@ it('does not post when another tab finished this week while this one was solving
   }
   expect(await sendIfDue(LATE, { ...deps(), solve })).toBe('already-sent')
   expect(posted).toHaveLength(0)
+  // The envelope it sealed is never posted, so it must not hold back a cancel.
+  expect(localStorage.getItem('cluster.envelope-outbox')).toBeNull()
 })
 it('keeps the waiting report and sends an empty envelope while intake is closed', async () => {
   phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'chatuchak', savedAt: '2026-11-12T00:00:00.000Z' } }))
@@ -144,13 +146,50 @@ it('leaves no sealed envelope behind when the phone is wiped', async () => {
   expect(localStorage.getItem('cluster.envelope-outbox')).toBeNull()
 })
 
-it('records in its claim which waiting report it is taking', async () => {
+it('keeps no trace of the report in its claim, during or after the send', async () => {
   phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: 's-claim' } }))
-  let claimed: unknown = null
+  let during = ''
   const solve = async () => {
-    claimed = JSON.parse(localStorage.getItem('cluster.envelope-claim') ?? 'null')
+    during = localStorage.getItem('cluster.envelope-claim') ?? ''
     return '0000000042'
   }
   expect(await sendIfDue(LATE, { ...deps(), solve })).toBe('sent')
-  expect(claimed).toMatchObject({ week: WEEK, savedAt: 's-claim' })
+  expect(during).not.toContain('s-claim')
+  expect(localStorage.getItem('cluster.envelope-claim') ?? '').not.toContain('s-claim')
+})
+it('drops a report cancelled while its envelope was being solved, and sends an empty envelope after', async () => {
+  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'bang_rak', savedAt: 's-cancel' } }))
+  let cancelled = ''
+  const solve = async () => {
+    cancelled = cancelPending()
+    return '0000000042'
+  }
+  expect(await sendIfDue(LATE, { ...deps(), solve })).toBe('failed')
+  expect(cancelled).toBe('cancelled')
+  expect(posted).toHaveLength(0)
+  expect(await sendIfDue(LATE, deps())).toBe('sent')
+  expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: null })
+})
+it('sends the replacement, not the replaced report, when a report is replaced during the solve', async () => {
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: 's-old' } }))
+  const solve = async () => {
+    queueReport({ kind: 'syphilis', zone: 'chatuchak', savedAt: 's-new' })
+    return '0000000042'
+  }
+  expect(await sendIfDue(LATE, { ...deps(), solve })).toBe('failed')
+  expect(posted).toHaveLength(0)
+  expect(await sendIfDue(LATE, deps())).toBe('sent')
+  expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: { kind: 'syphilis', zone: 'chatuchak' } })
+})
+it('refuses a cancel once the envelope is sealed, until the server answers', async () => {
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: 's-sealed' } }))
+  let answer = ''
+  const inner = fakeFetch()
+  const fetch = (async (url: string, init?: RequestInit) => {
+    if (String(url).endsWith('/api/envelope')) answer = cancelPending()
+    return inner(url, init)
+  }) as typeof globalThis.fetch
+  expect(await sendIfDue(LATE, { ...deps(), fetch })).toBe('sent')
+  expect(answer).toBe('sending')
+  expect(phone.get().pending).toBeNull()
 })

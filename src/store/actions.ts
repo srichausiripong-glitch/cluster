@@ -20,8 +20,8 @@ export function addReminder(date: string): void {
   phone.update((s) => ({ ...s, reminders: [...s.reminders, { date }] }))
 }
 
-/** Everything this app keeps on the phone outside the phone store: the sealed envelope waiting to go. */
-const ENVELOPE_KEYS = ['cluster.envelope-outbox']
+/** Everything this app keeps on the phone outside the phone store: the sealed envelope waiting to go, and the week's send claim. */
+const ENVELOPE_KEYS = ['cluster.envelope-outbox', 'cluster.envelope-claim']
 
 export function wipePhone(): void {
   phone.reset()
@@ -43,7 +43,8 @@ const freeWait = (s: PhoneState, kind: PendingReport['kind'] | undefined): Phone
 export function queueReport(report: PendingReport): void {
   const later = shiftWeek(currentWeek(), 4)
   phone.update((s) => {
-    const freed = s.pending && s.pending.kind !== report.kind ? freeWait(s, s.pending.kind) : s
+    // A replaced report frees its wait, unless this week's envelope has sealed it: then it may have gone.
+    const freed = s.pending && s.pending.kind !== report.kind && !takingNow(s.pending.savedAt) ? freeWait(s, s.pending.kind) : s
     return {
       ...freed,
       pending: report,

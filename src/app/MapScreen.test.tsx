@@ -110,9 +110,10 @@ it('draws each tab with its emoji above its word', () => {
   openApp('/app')
   for (const label of Object.values(th.nav)) expect(screen.getByRole('link', { name: label }).querySelector('img')).not.toBeNull()
 })
-it('credits the emoji set on the help page', () => {
+it('credits the emoji set on the help page, with a link to its licence', () => {
   openApp('/app/help')
   expect(screen.getByRole('link', { name: th.help.emojiCredit })).toHaveAttribute('href', 'https://openmoji.org')
+  expect(screen.getByRole('link', { name: th.help.emojiLicense })).toHaveAttribute('href', 'https://creativecommons.org/licenses/by-sa/4.0/')
 })
 it('marks the current tab by a filled shape, not by colour alone', () => {
   openApp('/app/list')
@@ -321,4 +322,20 @@ it('names the nearest place as in your district when the phone remembers one wit
   phone.update((s) => ({ ...s, myDistrict: 'bang_rak' }))
   openApp('/app/list')
   expect(screen.getByText(th.care.inMyDistrict)).toBeInTheDocument()
+})
+it('closes the city sheet on the list when it leads to the places to test', async () => {
+  const user = userEvent.setup()
+  openApp('/app/list')
+  const sheet = await openSignal(user)
+  await user.click(sheet.getByRole('link', { name: th.map.sheet.findCare }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByRole('link', { name: `${th.care.filterTest} ${th.care.showAll}` })).toBeInTheDocument()
+})
+it('marks a layer that is on with a tick, not by colour alone', () => {
+  openApp('/app')
+  for (const layer of MAP_LAYERS) {
+    const tick = chip(layer).querySelector('[data-tick]')
+    if (layer === 'pharmacy') expect(tick, layer).toBeNull()
+    else expect(tick, layer).not.toBeNull()
+  }
 })

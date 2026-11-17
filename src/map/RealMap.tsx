@@ -10,7 +10,7 @@ import { paintDots, paintGround, paintLines, type Scene } from './paint'
 import { mapSource } from './source'
 import { PALETTE } from './style'
 import type { CityData, Manifest, TileData } from './types'
-import { advances, cityView, clampCity, deepestAt, fromScreen, MAP_INSET, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Box, type Size, type View } from './view'
+import { advances, cityView, clampCity, deepestAt, fromScreen, insetFor, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Box, type Size, type View } from './view'
 
 export interface RealMapProps {
   areas: PublishedArea[]
@@ -105,7 +105,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
   const [, redraw] = useReducer((n: number) => n + 1, 0)
   const lastLevel = useRef<{ level: Level; ppm: number } | null>(null)
 
-  const size = useMemo<Size>(() => ({ w: box.w, h: box.h, inset: MAP_INSET }), [box.w, box.h])
+  const size = useMemo<Size>(() => ({ w: box.w, h: box.h, inset: insetFor(box.h) }), [box.w, box.h])
   const view = useMemo<View>(() => {
     if (!stored) return cityView(size)
     if (stored.level === 'city') return clampCity(size, stored)
