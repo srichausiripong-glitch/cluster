@@ -40,8 +40,10 @@ it('names the below-threshold state without saying that anyone reported', () => 
   expect(BANNED_WORDS).toContain('เขตปลอดภัย')
 })
 
-it('says the symptoms way can go to the map, apart from confirmed results', () => {
-  expect(th.report.wayHint.symptoms).toBe('ส่งขึ้นแผนที่ของเขตได้ แยกจากผลยืนยัน และพาไปหาที่ตรวจ')
+it('names symptoms as their own answer and their own layer on the map, apart from confirmed results', () => {
+  expect(th.report.found.symptoms).toBe('มีอาการ ยังไม่ตรวจ')
+  expect(th.layers.symptoms).toBe('มีอาการ')
+  expect(th.layers.confirmed).toBe('ผลยืนยัน')
 })
 it('never calls an area a โซน either', () => {
   expect(JSON.stringify(th)).not.toContain('โซน')
