@@ -291,6 +291,9 @@ it('explains the marks, the age of a signal and what a signal is not, behind ⓘ
   expect(sheet.getByText(th.map.legendNotSafe)).toBeInTheDocument()
   for (const word of [...Object.values(th.map.step), ...Object.values(th.map.keyPins)]) expect(sheet.getAllByText(word).length).toBeGreaterThan(0)
   const dialog = screen.getByRole('dialog')
+  // The two levels of trust, each by its mark (redesign spec 5.8).
+  expect(sheet.getByText(th.map.keyPins.verified).closest('li')?.querySelector('[data-pin-body]')).not.toBeNull()
+  expect(sheet.getByText(th.map.keyPins.unverified).closest('li')?.querySelector('[data-dot]')).not.toBeNull()
   expect(dialog.querySelectorAll('[data-gap]')).toHaveLength(3)
   expect([...dialog.querySelectorAll('[data-dot-r]')].map((el) => Number(el.getAttribute('data-dot-r')))).toEqual([1.2, 2.1, 3.1])
   const tags = sheet.getAllByText(th.map.current)

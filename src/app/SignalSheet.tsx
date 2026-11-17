@@ -10,7 +10,7 @@ import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
 import { districtLabel } from '../domain/districts'
 import type { DensityBand, PublishedArea, TestingLevel } from '../domain/types'
-import { DotSwatch, EdgeSample, HatchSwatch, PinMark, QuietSwatch } from '../map/legend'
+import { DotMark, DotSwatch, EdgeSample, HatchSwatch, PinMark, QuietSwatch } from '../map/legend'
 import { Go } from './Go'
 import { levelOf } from './level'
 import { LevelDots } from './LevelDots'
@@ -19,7 +19,6 @@ import { More } from './More'
 const DENSITIES = ['thin', 'medium', 'dense'] as const
 const STEPS = ['new', 'followup', 'expiring', 'mixed'] as const
 const QUIET_STATES = ['below_threshold', 'no_data', 'suspended'] as const
-const PIN_KINDS = ['clinic', 'pharmacy', 'lab'] as const
 
 /** The value that applies now is marked with a tick and the word "ตอนนี้", never by weight or colour alone. */
 function Value({ label, current }: { label: string; current: boolean }) {
@@ -137,14 +136,19 @@ export function SignalSheet({ area, open, onClose }: Props) {
                 <span>{th.map.state[state]}</span>
               </li>
             ))}
-            {PIN_KINDS.map((kind) => (
-              <li key={kind} className="flex items-center gap-2">
-                <span className="grid w-[34px] shrink-0 place-items-center">
-                  <PinMark kind={kind} size={22} />
-                </span>
-                <span>{th.map.keyPins[kind]}</span>
-              </li>
-            ))}
+            {/* The two levels of trust of a care point (redesign spec 5.8): a confirmed place's pin, any other's dot. */}
+            <li className="flex items-center gap-2">
+              <span className="grid w-[34px] shrink-0 place-items-center">
+                <PinMark layer="sti" size={22} />
+              </span>
+              <span>{th.map.keyPins.verified}</span>
+            </li>
+            <li className="col-span-2 flex items-center gap-2">
+              <span className="grid w-[34px] shrink-0 place-items-center">
+                <DotMark layer="sti" size={22} />
+              </span>
+              <span>{th.map.keyPins.unverified}</span>
+            </li>
           </ul>
         </More>
       </div>

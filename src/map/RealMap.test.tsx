@@ -5,8 +5,9 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { th } from '../copy/th'
 import { DISTRICTS } from '../domain/districts'
-import { withDistrict } from '../data/carePoints'
-import { FIXTURE_POINTS } from '../test/carePoints'
+import { setCarePoints, withDistrict } from '../data/carePoints'
+import { emojiUrl } from '../design/emojiUrl'
+import { FIXTURE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
 
 const CARE_POINTS = FIXTURE_POINTS.map(withDistrict)
 import { fakeCtx } from '../test/fakeCtx'
@@ -117,15 +118,34 @@ it('goes one level in and out with the two buttons', async () => {
   expect(map()).toHaveAttribute('data-level', 'city')
   expect(screen.getByRole('button', { name: th.map.zoomOut })).toBeDisabled()
 })
-it('draws a pin in pink with a black outline and a black mark, and names the selected one above it', async () => {
+it('draws a pin in pink with a black outline, and names the selected one above it', async () => {
   const user = userEvent.setup()
   openApp('/app')
   const pin = screen.getByRole('button', { name: CARE_POINTS[2].name })
   expect(pin.querySelector('[data-pin-body]')).toHaveAttribute('fill', 'var(--color-care)')
   expect(pin.querySelector('[data-pin-body]')).toHaveAttribute('stroke', 'var(--color-ink)')
-  expect(pin.querySelector('[data-glyph]')?.getAttribute('stroke') ?? pin.querySelector('[data-glyph]')?.getAttribute('fill')).toBe('var(--color-ink)')
   await user.click(pin)
   expect(document.querySelector('[data-bubble]')).toHaveTextContent(CARE_POINTS[2].name)
+})
+// Two levels of trust (redesign spec 5.8): a confirmed place is a big pin with its layer's emoji, any
+// other place a small white dot with it, never a pin.
+it('draws a verified place as a pink pin with its layer’s emoji', () => {
+  openApp('/app')
+  const pin = screen.getByRole('button', { name: CARE_POINTS[2].name })
+  expect(pin.querySelector('[data-pin-body]')).toHaveAttribute('fill', 'var(--color-care)')
+  expect(pin.querySelector('image[data-emoji]')).toHaveAttribute('href', emojiUrl('hospital'))
+  expect(pin.querySelector('[data-dot]')).toBeNull()
+})
+it('draws an unverified place as a small dot with its emoji, never as a pin', () => {
+  setCarePoints([...FIXTURE_POINTS, ...FIXTURE_UNVERIFIED])
+  openApp('/app')
+  const dot = screen.getByRole('button', { name: 'โรงพยาบาลทดสอบตัวอย่าง' })
+  expect(dot.querySelector('[data-dot]')).not.toBeNull()
+  expect(dot.querySelector('image[data-emoji]')).toHaveAttribute('href', emojiUrl('hospital'))
+  expect(dot.querySelector('[data-pin-body]')).toBeNull()
+  const hit = dot.querySelector('[data-hit]')!
+  expect(Number(hit.getAttribute('r'))).toBeGreaterThanOrEqual(22)
+  expect(Number(hit.getAttribute('cy') ?? 0)).toBe(0)
 })
 
 it('goes one level in on a double click, at the place that was clicked', async () => {

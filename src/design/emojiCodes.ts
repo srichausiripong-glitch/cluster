@@ -1,3 +1,5 @@
+import type { MapLayer } from '../domain/types'
+
 /**
  * The emoji the app shows, by name, with the OpenMoji file each is drawn from (decision 1 of the
  * round 2 plan). Every emoji is a picture bundled with the app, so every phone shows the same one.
@@ -11,5 +13,8 @@ export const CODES = {
 } as const
 
 export type EmojiName = keyof typeof CODES
+
+/** The emoji of each layer of the map, on its switch and on its marks (redesign spec 5.8). */
+export const LAYER_EMOJI: Record<MapLayer, EmojiName> = { confirmed: 'confirmed', symptoms: 'feverish', sti: 'testTube', health_centre: 'stethoscope', hospital: 'hospital', pharmacy: 'pill' }
 
 export const EMOJI_NAMES = Object.keys(CODES) as EmojiName[]

@@ -2,10 +2,10 @@ import { Minus, Plus } from 'lucide-react'
 import { useEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 import { th } from '../copy/th'
 import type { AreaState, PublishedArea } from '../domain/types'
-import type { CarePoint } from '../data/carePoints'
+import { isVerified, type CarePoint } from '../data/carePoints'
 import { areaAt, AREAS, CITY_EDGES, pathOf } from './areas'
 import { LEVELS, PPM, toXY, type Level, type XY } from './geo'
-import { ManyBody, PinBody } from './legend'
+import { DotBody, ManyBody, PinBody } from './legend'
 import { paintDots, paintGround, paintLines, type Scene } from './paint'
 import { mapSource } from './source'
 import { PALETTE } from './style'
@@ -430,6 +430,8 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
           ))}
           {marks.map((m, i) => {
             const one = m.kind === 'one'
+            // A place nobody has confirmed is a dot centred on its point, never a pin (redesign spec 5.8).
+            const pin = one && isVerified(m.point)
             const open = one ? () => onSelectCarePoint(m.point.id) : () => go(1, fromScreen(shown, size, [m.x, m.y]))
             return (
               <g
@@ -444,16 +446,16 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
                 onClick={open}
                 onKeyDown={press(open)}
               >
-                <circle data-hit cy={one ? -22 : 0} r={one ? 24 : 22} fill="transparent" />
-                <circle className="map-pin-ring" cy={one ? -26 : 0} r={one ? 20 : 22} fill="none" stroke="var(--color-ink)" strokeWidth="2.5" />
+                <circle data-hit cy={pin ? -22 : 0} r={pin ? 24 : 22} fill="transparent" />
+                <circle className="map-pin-ring" cy={pin ? -26 : 0} r={pin ? 20 : one ? 14 : 22} fill="none" stroke="var(--color-ink)" strokeWidth="2.5" />
                 <g className={fresh ? 'pop-in' : undefined} style={fresh ? { animationDelay: `${150 + i * 60}ms` } : undefined}>
-                  {one ? <PinBody kind={m.point.kind} /> : <ManyBody count={m.points.length} />}
+                  {one ? pin ? <PinBody layer={m.point.layer} /> : <DotBody layer={m.point.layer} /> : <ManyBody count={m.points.length} />}
                 </g>
               </g>
             )
           })}
           {picked && pickedName && (
-            <g data-bubble transform={`translate(${round(Math.min(size.w - bubbleW / 2 - 6, Math.max(bubbleW / 2 + 6, picked.x)))} ${round(picked.y - (picked.kind === 'one' ? 62 : 38))})`} aria-hidden="true" style={{ pointerEvents: 'none' }}>
+            <g data-bubble transform={`translate(${round(Math.min(size.w - bubbleW / 2 - 6, Math.max(bubbleW / 2 + 6, picked.x)))} ${round(picked.y - (picked.kind === 'many' ? 38 : isVerified(picked.point) ? 62 : 30))})`} aria-hidden="true" style={{ pointerEvents: 'none' }}>
               <rect x={-bubbleW / 2 + 3} y={-13 + 3} width={bubbleW} height="26" rx="9" fill="var(--color-ink)" />
               <rect x={-bubbleW / 2} y="-13" width={bubbleW} height="26" rx="9" fill="var(--color-surface)" stroke="var(--color-ink)" strokeWidth="2" />
               <text y="4.8" textAnchor="middle" fontSize="13.5" fontWeight="700" fill="var(--color-ink)">

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { withDistrict } from '../data/carePoints'
-import { FIXTURE_POINTS } from '../test/carePoints'
+import { FIXTURE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
 
 const CARE_POINTS = FIXTURE_POINTS.map(withDistrict)
 import { STUB_MANIFEST } from '../test/mapStub'
@@ -125,4 +125,20 @@ it('leaves points far off the screen out of the markers', () => {
   const far = { ...CARE_POINTS[0], id: 'far', lat: 14.5, lon: 101.5 }
   expect(markers([...CARE_POINTS, far], cityView(phone), phone).some((m) => m.kind === 'one' && m.point.id === 'far')).toBe(false)
   expect(markers([...CARE_POINTS, far], cityView(phone), phone).flatMap((m) => (m.kind === 'one' ? [m.point] : m.points))).toHaveLength(CARE_POINTS.length)
+})
+
+// A district name never peeks out from under the chips, the state box or the status card (plan decision 13).
+it('keeps every district name box inside the window the controls leave free', () => {
+  const s = { w: 390, h: 714, inset: insetFor(714) }
+  const boxes = nameBoxes(AREAS, viewAt(STUB_MANIFEST, s, 'district', [0, 0]), s, [])
+  expect(boxes.length).toBeGreaterThan(0)
+  for (const b of boxes) {
+    expect(b.y - b.h / 2, b.id).toBeGreaterThanOrEqual(s.inset.top)
+    expect(b.y + b.h / 2, b.id).toBeLessThanOrEqual(s.h - s.inset.bottom)
+  }
+})
+it('gives an unverified dot a small box round its point, and a verified pin its tall one', () => {
+  const [dot, pin] = [withDistrict(FIXTURE_UNVERIFIED[0]), CARE_POINTS[0]]
+  expect(markerBox({ kind: 'one', point: dot, x: 100, y: 100 })).toEqual([89, 89, 111, 111])
+  expect(markerBox({ kind: 'one', point: pin, x: 100, y: 100 })).toEqual([81, 54, 119, 100])
 })

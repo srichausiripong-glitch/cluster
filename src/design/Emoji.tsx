@@ -1,7 +1,5 @@
-import { CODES, type EmojiName } from './emojiCodes'
-
-/** Every bundled picture, by its file, as a URL on the app's own origin. */
-const FILES = import.meta.glob<string>('./emoji/*.svg', { eager: true, query: '?url', import: 'default' })
+import type { EmojiName } from './emojiCodes'
+import { emojiUrl } from './emojiUrl'
 
 /**
  * An emoji as a picture bundled with the app, so every phone shows the same one (round 2 plan,
@@ -10,7 +8,7 @@ const FILES = import.meta.glob<string>('./emoji/*.svg', { eager: true, query: '?
 export function Emoji({ name, size = 20, label }: { name: EmojiName; size?: number; label?: string }) {
   return (
     <img
-      src={FILES[`./emoji/${CODES[name]}.svg`]}
+      src={emojiUrl(name)}
       width={size}
       height={size}
       alt={label ?? ''}

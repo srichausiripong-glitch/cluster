@@ -1,26 +1,37 @@
 // The map's own marks, drawn the same way wherever they are explained or repeated: in the legend,
 // in lists, and on the map itself.
-import type { DensityBand } from '../domain/types'
-import type { CarePoint } from '../data/carePoints'
+import type { CareLayer, DensityBand } from '../domain/types'
+import { isVerified, type CarePoint } from '../data/carePoints'
+import { LAYER_EMOJI } from '../design/emojiCodes'
+import { emojiUrl } from '../design/emojiUrl'
 import { DOT_GAP, DOT_R, EDGE, HATCH, SAMPLE_PX, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
 
 /** A care point pin. Its point is at 0, 0 and its round head is centred 26 px above. */
 const PIN_SHAPE = 'M0 0C0 0 14 -15 14 -26A14 14 0 1 0 -14 -26C-14 -15 0 0 0 0Z'
 
-/** The mark inside a pin's head: a cross for a clinic or hospital, a square for a pharmacy, a dot for a lab. Always black on pink. */
-function Glyph({ kind }: { kind: CarePoint['kind'] }) {
-  if (kind === 'pharmacy') return <rect data-glyph x="-5.8" y="-31.8" width="11.6" height="11.6" rx="3" fill="none" stroke="var(--color-ink)" strokeWidth="2.6" />
-  if (kind === 'lab') return <circle data-glyph cx="0" cy="-26" r="4.8" fill="var(--color-ink)" />
-  return <path data-glyph d="M-6.6 -26h13.2M0 -32.6v13.2" fill="none" stroke="var(--color-ink)" strokeWidth="3.2" strokeLinecap="round" />
+/** A layer's emoji as a picture inside a mark, centred at (0, y). */
+function MarkEmoji({ layer, size, y }: { layer: CareLayer; size: number; y: number }) {
+  return <image data-emoji href={emojiUrl(LAYER_EMOJI[layer])} x={-size / 2} y={y - size / 2} width={size} height={size} />
 }
 
-/** The pin itself, for the map layer: a hard shadow, the pink body with a black outline, and the mark. */
-export function PinBody({ kind }: { kind: CarePoint['kind'] }) {
+/** A confirmed place's pin, for the map layer: a hard shadow, the pink body with a black outline, and its layer's emoji (redesign spec 5.8). */
+export function PinBody({ layer }: { layer: CareLayer }) {
   return (
     <>
       <path d={PIN_SHAPE} transform="translate(2.5 2.5)" fill="var(--color-ink)" />
       <path data-pin-body d={PIN_SHAPE} fill="var(--color-care)" stroke="var(--color-ink)" strokeWidth="2.4" strokeLinejoin="round" />
-      <Glyph kind={kind} />
+      <MarkEmoji layer={layer} size={18} y={-26} />
+    </>
+  )
+}
+
+/** A place nobody has confirmed: a small white dot centred on its point, with its layer's emoji, never a pin (redesign spec 5.8). */
+export function DotBody({ layer }: { layer: CareLayer }) {
+  return (
+    <>
+      <circle cx="2" cy="2" r="9" fill="var(--color-ink)" />
+      <circle data-dot r="9" fill="var(--color-surface)" stroke="var(--color-ink)" strokeWidth="2" />
+      <MarkEmoji layer={layer} size={12} y={0} />
     </>
   )
 }
@@ -38,12 +49,30 @@ export function ManyBody({ count }: { count: number }) {
   )
 }
 
-/** The map's pin as a small picture, for lists and the legend. */
-export function PinMark({ kind, size = 28 }: { kind: CarePoint['kind']; size?: number }) {
+/** The map's pin as a small picture, for the key. */
+export function PinMark({ layer, size = 28 }: { layer: CareLayer; size?: number }) {
   return (
     <svg width={size} height={(size * 47) / 36} viewBox="-16 -42 36 47" aria-hidden="true" className="shrink-0">
-      <PinBody kind={kind} />
+      <PinBody layer={layer} />
     </svg>
+  )
+}
+
+/** The map's dot as a small picture, for the key. */
+export function DotMark({ layer, size = 22 }: { layer: CareLayer; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="-11 -11 24 24" aria-hidden="true" className="shrink-0">
+      <DotBody layer={layer} />
+    </svg>
+  )
+}
+
+/** A place's mark as the map draws it, for lists: the pin when confirmed, else the dot, in a box of one width. */
+export function PointMark({ point, size = 28 }: { point: CarePoint; size?: number }) {
+  return (
+    <span className="grid shrink-0 place-items-center" style={{ width: size }}>
+      {isVerified(point) ? <PinMark layer={point.layer} size={size} /> : <DotMark layer={point.layer} size={Math.round(size * 0.8)} />}
+    </span>
   )
 }
 

@@ -57,7 +57,8 @@ export const th = {
     weekly: 'อัปเดตสัปดาห์ละครั้ง',
     current: 'ตอนนี้',
     key: 'เครื่องหมายบนแผนที่',
-    keyPins: { clinic: 'คลินิกหรือโรงพยาบาล', pharmacy: 'ร้านยา', lab: 'แล็บตรวจ' },
+    /** The two levels of trust of a care point, by its mark (redesign spec 5.8). */
+    keyPins: { verified: 'ยืนยันแล้ว', unverified: 'ยังไม่ยืนยัน · โทรถามก่อนไป' },
   },
   care: {
     klassA: 'หน่วยงานรัฐหรือสภากาชาด',

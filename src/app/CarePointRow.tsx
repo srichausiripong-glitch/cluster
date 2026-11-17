@@ -3,7 +3,7 @@ import { th } from '../copy/th'
 import { Emoji } from '../design/Emoji'
 import { PRESS } from '../design/look'
 import { districtLabel } from '../domain/districts'
-import { PinMark } from '../map/legend'
+import { PointMark } from '../map/legend'
 import { isVerified, type CarePoint } from '../data/carePoints'
 
 
@@ -28,7 +28,7 @@ export function CarePointRow({ point, onOpen, tone = 'light' }: Props) {
   const detail = verified && point.klass === 'A' ? [point.hours, point.cost].filter(Boolean).join(' · ') : ''
   const body = (
     <>
-      <PinMark kind={point.kind} />
+      <PointMark point={point} />
       <span className="min-w-0 flex-1">
         <span className="block font-bold">{point.name}</span>
         <span className={`block text-[13px] ${sub}`}>

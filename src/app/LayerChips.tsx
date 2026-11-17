@@ -1,12 +1,11 @@
 import { Check } from 'lucide-react'
 import { th } from '../copy/th'
 import { Emoji } from '../design/Emoji'
-import type { EmojiName } from '../design/emojiCodes'
+import { LAYER_EMOJI } from '../design/emojiCodes'
 import { PRESS } from '../design/look'
 import type { MapLayer } from '../domain/types'
 import { MAP_LAYERS } from '../store/actions'
 
-const EMOJI: Record<MapLayer, EmojiName> = { confirmed: 'confirmed', symptoms: 'feverish', sti: 'testTube', health_centre: 'stethoscope', hospital: 'hospital', pharmacy: 'pill' }
 /** A switch that is on takes the colour of its mark on the map: violet dots, the black hatch, pink pins. */
 const ON: Record<MapLayer, string> = {
   confirmed: 'bg-signal text-white',
@@ -34,7 +33,7 @@ export function LayerChips({ on, onToggle }: { on: Record<MapLayer, boolean>; on
         >
           {/* On is told by a tick as well as by the fill (plan, Global Constraints). */}
           {on[layer] && <Check data-tick size={14} strokeWidth={3} className="shrink-0" aria-hidden="true" />}
-          <Emoji name={EMOJI[layer]} size={18} />
+          <Emoji name={LAYER_EMOJI[layer]} size={18} />
           {th.layers[layer]}
         </button>
       ))}
