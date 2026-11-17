@@ -3,7 +3,7 @@ import { useEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent, t
 import { th } from '../copy/th'
 import type { AreaState, PublishedArea } from '../domain/types'
 import type { CarePoint } from '../data/carePoints'
-import { CITY_EDGES, pathOf, zoneAt, ZONES } from './areas'
+import { areaAt, AREAS, CITY_EDGES, pathOf } from './areas'
 import { LEVELS, PPM, toXY, type Level, type XY } from './geo'
 import { ManyBody, PinBody } from './legend'
 import { paintDots, paintGround, paintLines, type Scene } from './paint'
@@ -23,15 +23,15 @@ export interface RealMapProps {
   selectedPoint?: string | null
   onSelectArea: (areaId: string) => void
   onSelectCarePoint: (id: string) => void
-  /** Called when the level, or the zone under the middle of the map, changes. */
-  onView?: (seen: { level: Level; zoneId: string | null }) => void
+  /** Called when the level, or the district under the middle of the map, changes. */
+  onView?: (seen: { level: Level; areaId: string | null }) => void
 }
 
 // The shapes of the button layer, in metres. They never change, so they are built once.
-const CITY_PATH = pathOf(ZONES.flatMap((zone) => zone.rings))
+const CITY_PATH = pathOf(AREAS.flatMap((area) => area.rings))
 const CITY_EDGE_PATH = pathOf(CITY_EDGES, false)
-const ZONE_PATH = new Map(ZONES.map((zone) => [zone.id, pathOf(zone.rings)]))
-const ZONE_EDGE_PATH = new Map(ZONES.map((zone) => [zone.id, pathOf(zone.edges, false)]))
+const AREA_PATH = new Map(AREAS.map((area) => [area.id, pathOf(area.rings)]))
+const AREA_EDGE_PATH = new Map(AREAS.map((area) => [area.id, pathOf(area.edges, false)]))
 /**
  * Where a selected pin or zone is brought to, in pixels down the map: low enough for the pin's name,
  * which sits above it, to clear the state box, and high enough to stay above the sheet on a short phone.
@@ -113,7 +113,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
 
   // A selected care point, or a selected zone at city level, is brought up under the chips where the sheet does not cover it.
   const point = selectedPoint ? carePoints.find((p) => p.id === selectedPoint) : undefined
-  const zone = selectedArea && view.level === 'city' ? ZONES.find((z) => z.id === selectedArea) : undefined
+  const zone = selectedArea && view.level === 'city' ? AREAS.find((a) => a.id === selectedArea) : undefined
   const focusX = point ? toXY(point.lat, point.lon)[0] : zone ? zone.label[0] : null
   const focusY = point ? toXY(point.lat, point.lon)[1] : zone ? zone.label[1] : null
   const shown = useMemo<View>(() => {
@@ -179,7 +179,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
   }, [manifest, level])
 
   const marks = useMemo(() => markers(carePoints, shown, size), [carePoints, shown, size])
-  const names = useMemo(() => (phase === 2 && shown.level === 'city' ? nameBoxes(ZONES, shown, size, marks) : []), [phase, shown, size, marks])
+  const names = useMemo(() => (phase === 2 && shown.level === 'city' ? nameBoxes(AREAS, shown, size, marks) : []), [phase, shown, size, marks])
   const byId = useMemo(() => new Map(areas.map((a) => [a.areaId, a])), [areas])
   /** Only the dots of an area that was just reported move. */
   const breathing = !still && showSignal && areas.some((a) => a.state === 'shown' && a.step === 'new' && (phase === 2 ? a.areaId !== 'bkk' : a.areaId === 'bkk'))
@@ -253,14 +253,14 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
     stack.current?.animate?.([{ transform: `scale(${before.ppm / shown.ppm})`, opacity: 0.5 }, { transform: 'none', opacity: 1 }], { duration: 280, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' })
   }, [shown.level, shown.ppm, still])
 
-  const zoneId = zoneAt([shown.cx, shown.cy])?.id ?? null
+  const areaId = areaAt([shown.cx, shown.cy])?.id ?? null
   const tell = useRef(onView)
   useEffect(() => {
     tell.current = onView
   })
   useEffect(() => {
-    tell.current?.({ level: shown.level, zoneId })
-  }, [shown.level, zoneId])
+    tell.current?.({ level: shown.level, areaId })
+  }, [shown.level, areaId])
 
   /** Whether the prototype has map one level in at a place. Without the list of files nothing is known, and nothing is refused. */
   const deeperAt = (p: XY) => !manifest || LEVELS.indexOf(deepestAt(manifest, p)) > LEVELS.indexOf(shown.level)
@@ -396,10 +396,10 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
           <g transform={`translate(${round(ox)} ${round(oy)}) scale(${shown.ppm})`}>
             <path d={CITY_PATH} fill="transparent" role="button" tabIndex={0} aria-label={`กรุงเทพฯ: ${th.map.state[cityState]}`} className="map-area cursor-pointer" onClick={pickArea('bkk')} onKeyDown={press(() => onSelectArea('bkk'))} />
             {phase === 2 &&
-              ZONES.map((z) => (
+              AREAS.map((z) => (
                 <path
                   key={z.id}
-                  d={ZONE_PATH.get(z.id)}
+                  d={AREA_PATH.get(z.id)}
                   fill="transparent"
                   role="button"
                   tabIndex={0}
@@ -409,8 +409,8 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
                   onKeyDown={press(() => onSelectArea(z.id))}
                 />
               ))}
-            {selectedArea && (selectedArea === 'bkk' || ZONE_EDGE_PATH.has(selectedArea)) && (
-              <path d={selectedArea === 'bkk' ? CITY_EDGE_PATH : ZONE_EDGE_PATH.get(selectedArea)} fill="none" stroke="var(--color-ink)" strokeWidth="2.5" vectorEffect="non-scaling-stroke" style={{ pointerEvents: 'none' }} />
+            {selectedArea && (selectedArea === 'bkk' || AREA_EDGE_PATH.has(selectedArea)) && (
+              <path d={selectedArea === 'bkk' ? CITY_EDGE_PATH : AREA_EDGE_PATH.get(selectedArea)} fill="none" stroke="var(--color-ink)" strokeWidth="2.5" vectorEffect="non-scaling-stroke" style={{ pointerEvents: 'none' }} />
             )}
           </g>
           {names.map((b) => (

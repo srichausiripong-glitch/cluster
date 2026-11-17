@@ -1,14 +1,13 @@
 import { expect, it } from 'vitest'
-import { zoneAt } from '../map/areas'
-import { toXY } from '../map/geo'
-import { ALL_CARE_POINTS, verifiedOnly, type CarePoint } from './carePoints'
+import { DISTRICT_IDS } from '../domain/districts'
+import { ALL_CARE_POINTS, CARE_POINTS, verifiedOnly, type CarePoint } from './carePoints'
 
 const point = (over: Partial<CarePoint>): CarePoint => ({
   id: 'x',
   name: 'จุดบริการ',
   kind: 'clinic',
   klass: 'A',
-  zoneId: 'central',
+  districtId: 'ratchathewi',
   lat: 13.766536,
   lon: 100.538162,
   address: 'ถนนตัวอย่าง',
@@ -19,7 +18,7 @@ const point = (over: Partial<CarePoint>): CarePoint => ({
   ...over,
 })
 
-it('holds every candidate point with a source, a real place in Bangkok and the zone it stands in', () => {
+it('holds every candidate point with a source and a real place in Bangkok', () => {
   const ids = new Set<string>()
   for (const p of ALL_CARE_POINTS) {
     expect(ids.has(p.id), p.id).toBe(false)
@@ -29,7 +28,6 @@ it('holds every candidate point with a source, a real place in Bangkok and the z
     expect(p.lat, p.id).toBeLessThan(14.0)
     expect(p.lon, p.id).toBeGreaterThan(100.3)
     expect(p.lon, p.id).toBeLessThan(100.95)
-    expect(zoneAt(toXY(p.lat, p.lon))?.id, p.id).toBe(p.zoneId)
     expect(p.address.length, p.id).toBeGreaterThan(0)
     expect(p.name.endsWith('ตัวอย่าง'), p.id).toBe(false)
   }
@@ -47,4 +45,12 @@ it('requires a phone call to confirm a place that gives PEP', () => {
 it('shows only the points somebody has confirmed', () => {
   const confirmed = point({ id: 'a', verified: { date: '2026-11-20', by: 'ทีม', method: 'phone' } })
   expect(verifiedOnly([confirmed, point({ id: 'b' })])).toEqual([confirmed])
+})
+
+it('places each care point in the district its coordinates fall in', () => {
+  expect(CARE_POINTS.find((p) => p.id === 'cp4')?.districtId).toBe('bang_rak')
+  expect(CARE_POINTS.find((p) => p.id === 'cp8')?.districtId).toBe('chatuchak')
+})
+it('puts every point of the real registry inside a district', () => {
+  for (const p of ALL_CARE_POINTS) expect(DISTRICT_IDS, p.id).toContain(p.districtId)
 })

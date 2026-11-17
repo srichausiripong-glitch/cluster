@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react'
 import type { PublishedArea, PublishedFile } from '../domain/types'
-import { ZONE_IDS } from '../store/seed'
+import { DISTRICT_IDS } from '../domain/districts'
 
 // The latest weekly file the server published, read from /api/published when the app opens. The
 // last good file is kept on the phone for when the server cannot be reached; with neither, every
@@ -18,13 +18,13 @@ export const setPublishedForTest = setPublished
 const empty = (areaId: string): PublishedArea => ({ areaId, state: 'no_data', density: null, step: null, testing: null, symptoms: null })
 
 export interface Areas {
-  zones: PublishedArea[]
+  districts: PublishedArea[]
   city: PublishedArea
   byId: (areaId: string) => PublishedArea
 }
 function areasOf(file: PublishedFile | null): Areas {
   const find = (id: string) => file?.areas.find((a) => a.areaId === id) ?? empty(id)
-  return { zones: ZONE_IDS.map(find), city: find('bkk'), byId: find }
+  return { districts: DISTRICT_IDS.map(find), city: find('bkk'), byId: find }
 }
 
 export function useAreas(): Areas {

@@ -3,8 +3,7 @@ import { th } from '../copy/th'
 import { ALERT, NOTE } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
-import { ZONES } from '../map/areas'
-import { ZONE_IDS } from '../store/seed'
+import { DISTRICT_IDS, districtLabel } from '../domain/districts'
 
 interface State {
   intakeOpen: boolean
@@ -13,7 +12,7 @@ interface State {
   suspensions: { id: number; zone: string; reason: string; started: string; ended: string | null }[]
   harm: { week: string; kind: string; n: number }[]
 }
-const zoneName = (id: string) => ZONES.find((z) => z.id === id)?.name ?? id
+const zoneName = (id: string) => districtLabel(id) || id
 const ask = (body: Record<string, unknown>) => fetch('/api/admin', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
 const input = 'min-h-11 w-full rounded-md border-2 border-ink bg-bg px-3'
 
@@ -23,7 +22,7 @@ export function AdminPage() {
   const [failed, setFailed] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
-  const [zone, setZone] = useState<string>(ZONE_IDS[0])
+  const [zone, setZone] = useState<string>(DISTRICT_IDS[0])
   const [reason, setReason] = useState('')
 
   const refresh = async () => {
@@ -139,7 +138,7 @@ export function AdminPage() {
           <label className="text-[13px] font-semibold">
             {th.admin.suspend}
             <select className={input} value={zone} onChange={(e) => setZone(e.target.value)}>
-              {ZONE_IDS.map((id) => (
+              {DISTRICT_IDS.map((id) => (
                 <option key={id} value={id}>
                   {zoneName(id)}
                 </option>

@@ -6,7 +6,8 @@ import { TEXT_LINK } from '../design/look'
 import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
 import type { CarePoint } from '../data/carePoints'
-import { carePointType, zoneName } from './CarePointRow'
+import { districtLabel } from '../domain/districts'
+import { carePointType } from './CarePointRow'
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -26,7 +27,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
         {point.pep && <Chip tone="care">{th.care.pep}</Chip>}
       </div>
       <dl className="space-y-2 rounded-md border-2 border-ink bg-bg p-3 text-[15px]">
-        <Row label={th.care.place} value={zoneName(point.zoneId)} />
+        <Row label={th.care.place} value={districtLabel(point.districtId)} />
         {point.klass === 'A' && (
           <>
             {point.services && <Row label={th.care.services} value={point.services.join(' · ')} />}

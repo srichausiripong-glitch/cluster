@@ -1,5 +1,5 @@
 import type { CarePoint } from '../data/carePoints'
-import type { Zone } from './areas'
+import type { Area } from './areas'
 import { CITY_FRAME, LEVELS, PPM, toXY, type Level, type XY } from './geo'
 import type { Manifest } from './types'
 
@@ -155,8 +155,8 @@ export interface NameBox {
 export const advances = (name: string) => [...name].filter((ch) => !/[ัิ-ฺ็-๎]/.test(ch)).length
 const touch = (a: Box, b: Box, pad: number) => a[0] < b[2] + pad && a[2] > b[0] - pad && a[1] < b[3] + pad && a[3] > b[1] - pad
 
-/** Zone name boxes, centred on each zone's label point. A box that would touch a marker, another box or the edge of the map is left out. */
-export function nameBoxes(zones: Zone[], view: View, size: Size, taken: Marker[]): NameBox[] {
+/** District name boxes, centred on each district's label point. A box that would touch a marker, another box or the edge of the map is left out. */
+export function nameBoxes(zones: Area[], view: View, size: Size, taken: Marker[]): NameBox[] {
   const placed: NameBox[] = []
   const boxOf = (b: NameBox): Box => [b.x - b.w / 2, b.y - b.h / 2, b.x + b.w / 2, b.y + b.h / 2]
   for (const zone of zones) {

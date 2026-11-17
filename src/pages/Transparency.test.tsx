@@ -10,7 +10,7 @@ it('lists every decision with the reviewer, the suspensions and the weekly envel
     'fetch',
     vi.fn(async (url: string) =>
       url === '/api/transparency'
-        ? new Response(JSON.stringify({ decisions: [{ day: '2026-11-15', reviewer: 'ก้อย', action: 'suspend', detail: 'east: เรื่องร้องเรียน' }], held: [], suspensions: [{ zone: 'east', reason: 'เรื่องร้องเรียน', started: '2026-11-15', ended: null }], envelopes: [{ week: '2026-W46', n: 1200 }] }))
+        ? new Response(JSON.stringify({ decisions: [{ day: '2026-11-15', reviewer: 'ก้อย', action: 'suspend', detail: 'bang_kapi: เรื่องร้องเรียน' }], held: [], suspensions: [{ zone: 'bang_kapi', reason: 'เรื่องร้องเรียน', started: '2026-11-15', ended: null }], envelopes: [{ week: '2026-W46', n: 1200 }] }))
         : Promise.reject(new Error('offline')),
     ),
   )
@@ -22,5 +22,5 @@ it('lists every decision with the reviewer, the suspensions and the weekly envel
   expect(await screen.findByText(/ก้อย/)).toBeInTheDocument()
   expect(screen.getByRole('heading', { level: 1, name: th.transparency.title })).toBeInTheDocument()
   expect(screen.getByText('1200')).toBeInTheDocument()
-  expect(screen.getAllByText(/กรุงเทพตะวันออก/).length).toBeGreaterThan(0)
+  expect(screen.getAllByText(/เขตบางกะปิ/).length).toBeGreaterThan(0)
 })

@@ -3,7 +3,7 @@
 // roads, rail, the edge of each signal and the names of the base map.
 // Zones and care points are not drawn here: they are real buttons in the SVG layer above.
 import type { AreaState, PublishedArea } from '../domain/types'
-import { CITY_EDGES, ZONES } from './areas'
+import { AREAS, CITY_EDGES } from './areas'
 import { breath, DOT_GAP, DOT_R, EDGE, HATCH, ROADS, type Palette } from './style'
 import type { CityData, Label, Line, RoadClass, Shape, TileData } from './types'
 import { fromScreen, toScreen, type Box, type Size, type View } from './view'
@@ -137,13 +137,22 @@ interface Painted {
   edges: number[][]
   area: PublishedArea | undefined
 }
-const CITY_RINGS = ZONES.flatMap((z) => z.rings)
-const ZONE_RINGS = ZONES.map((z) => z.rings)
-const ZONE_EDGES = ZONES.map((z) => z.edges)
-/** What carries a signal: each zone in the phase 2 preview; the whole city as one area in phase 1. */
+const CITY_RINGS = AREAS.flatMap((a) => a.rings)
+const AREA_RINGS = AREAS.map((a) => a.rings)
+const AREA_EDGES = AREAS.map((a) => a.edges)
+/** What carries a signal: each of the 50 districts; the whole city as one area in phase 1. */
 function painted(s: Scene): Painted[] {
   if (s.phase === 1) return [{ rings: CITY_RINGS, edges: CITY_EDGES, area: s.areas.get('bkk') }]
-  return ZONES.map((z) => ({ rings: z.rings, edges: z.edges, area: s.areas.get(z.id) }))
+  return AREAS.map((a) => ({ rings: a.rings, edges: a.edges, area: s.areas.get(a.id) }))
+}
+
+/**
+ * The state an area is drawn in. A district below the threshold is drawn with no mark, like one with
+ * no data, since its file entry does not say whether anyone there reported; the city keeps its own
+ * (redesign spec 5.7).
+ */
+export function drawnState(area: PublishedArea): AreaState {
+  return area.areaId !== 'bkk' && area.state === 'below_threshold' ? 'no_data' : area.state
 }
 /** The part of the screen an area covers, or null when it is out of view. */
 function onScreen(s: Scene, rings: number[][]): Box | null {
@@ -198,13 +207,13 @@ export function paintGround(ctx: Ctx, s: Scene): void {
   ctx.fillStyle = p.water
   ctx.fillRect(-200000, 55500, 400000, 60000)
   // The city's ground stays warm: a signal is dots on it, never a wash over it.
-  fill(ctx, s, ZONE_RINGS, p.land)
+  fill(ctx, s, AREA_RINGS, p.land)
   if (s.view.level === 'city') {
     if (s.city) fill(ctx, s, s.city.green, p.park, 0.75)
   } else {
     for (const tile of s.tiles) fill(ctx, s, tile.green, p.park)
   }
-  if (s.showSignal) for (const { rings, area } of painted(s)) quiet(ctx, s, rings, area?.state ?? 'no_data')
+  if (s.showSignal) for (const { rings, area } of painted(s)) quiet(ctx, s, rings, area ? drawnState(area) : 'no_data')
   if (s.view.level === 'district') for (const tile of s.tiles) if (tile.blocks) fill(ctx, s, tile.blocks, p.ink, 0.07)
 }
 
@@ -335,7 +344,7 @@ function tileLines(ctx: Ctx, s: Scene) {
 /** The edge of each area, in the line of its state. Only the inner half is kept, so two neighbours' edges sit side by side. */
 function areaEdges(ctx: Ctx, s: Scene) {
   const p = s.palette
-  if (s.phase === 1) strokeAll(ctx, s, ZONE_EDGES, 1, p.ink, { alpha: 0.3, dash: [2, 4], cap: 'butt' })
+  if (s.phase === 1) strokeAll(ctx, s, AREA_EDGES, 1, p.ink, { alpha: 0.3, dash: [2, 4], cap: 'butt' })
   for (const { rings, edges, area } of painted(s)) {
     const state = area?.state ?? 'no_data'
     let line: { width: number; dash?: number[]; cap?: CanvasLineCap; color: string; alpha?: number }

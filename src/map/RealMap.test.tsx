@@ -4,10 +4,14 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { th } from '../copy/th'
-import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
+import { DISTRICTS } from '../domain/districts'
+import { withDistrict } from '../data/carePoints'
+import { FIXTURE_POINTS } from '../test/carePoints'
+
+const CARE_POINTS = FIXTURE_POINTS.map(withDistrict)
 import { fakeCtx } from '../test/fakeCtx'
 import { STUB_MANIFEST, stubSource } from '../test/mapStub'
-import { zoneAt } from './areas'
+import { areaAt } from './areas'
 import { RealMap } from './RealMap'
 import { setPublishedForTest } from './published'
 import { fetchSource, setMapSource } from './source'
@@ -50,10 +54,11 @@ it('credits OpenStreetMap on the map', () => {
   openApp('/app')
   expect(screen.getByText(th.map.credit)).toBeInTheDocument()
 })
-it('writes the six zone names in white boxes with a black edge', () => {
+it('writes the district names that fit in white boxes with a black edge', () => {
   openApp('/app')
   const boxes = [...document.querySelectorAll('[data-caption]')]
-  expect(boxes.map((b) => b.textContent).sort()).toEqual(['กรุงธนเหนือ', 'กรุงธนใต้', 'กรุงเทพกลาง', 'กรุงเทพตะวันออก', 'กรุงเทพเหนือ', 'กรุงเทพใต้'].sort())
+  expect(boxes.length).toBeGreaterThan(0)
+  for (const b of boxes) expect(DISTRICTS.map((d) => d.name)).toContain(b.textContent)
   for (const b of boxes) {
     expect(b.querySelector('rect[data-face]')).toHaveAttribute('fill', 'var(--color-surface)')
     expect(b.querySelector('rect[data-face]')).toHaveAttribute('stroke', 'var(--color-ink)')
@@ -147,8 +152,8 @@ it('keeps zones, markers and sheets working when the map files cannot be loaded'
   const user = userEvent.setup()
   openApp('/app')
   await waitFor(() => expect(screen.getByText(th.map.loadFailed)).toBeInTheDocument())
-  // The city and its six zones.
-  expect(document.querySelectorAll('.map-area')).toHaveLength(7)
+  // The city and its fifty districts.
+  expect(document.querySelectorAll('.map-area')).toHaveLength(51)
   await user.click(screen.getByRole('button', { name: CARE_POINTS[2].name }))
   expect(screen.getByRole('dialog')).toBeInTheDocument()
 })
@@ -189,14 +194,14 @@ it('brings a selected care point, with its name, into the space left clear betwe
   // On the shortest phone (640 px) the sheet starts 202 px down the map: the pin's point stays above it.
   expect(pin.y).toBeLessThanOrEqual(190)
 })
-it('tells the screen which level and which zone it is showing', async () => {
+it('tells the screen which level and which district it is showing', async () => {
   const seen = vi.fn()
   const user = userEvent.setup()
   const phone = { w: 390, h: 714, inset: MAP_INSET }
   render(<RealMap areas={[]} cityState="no_data" carePoints={[]} phase={2} showSignal onSelectArea={() => {}} onSelectCarePoint={() => {}} onView={seen} />)
   await user.click(zoomIn())
   const centre = viewAt(STUB_MANIFEST, phone, 'district', [cityView(phone).cx, cityView(phone).cy])
-  expect(seen).toHaveBeenLastCalledWith({ level: 'district', zoneId: zoneAt([centre.cx, centre.cy])?.id ?? null })
+  expect(seen).toHaveBeenLastCalledWith({ level: 'district', areaId: areaAt([centre.cx, centre.cy])?.id ?? null })
 })
 it('keeps still for a person who asks for reduced motion', () => {
   vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('reduce'), addEventListener() {}, removeEventListener() {} }))
@@ -210,7 +215,7 @@ it('keeps still for a person who asks for reduced motion', () => {
 it('lets the newest zone breathe and the markers pop in when motion is allowed', () => {
   const frames = vi.fn(() => 0)
   vi.stubGlobal('requestAnimationFrame', frames)
-  setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: [{ areaId: 'south', state: 'shown', density: 'dense', step: 'new', testing: null }] })
+  setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: [{ areaId: 'bang_rak', state: 'shown', density: 'dense', step: 'new', testing: null, symptoms: null }] })
   openApp('/app')
   expect(map()).not.toHaveAttribute('data-still')
   expect(frames).toHaveBeenCalled()

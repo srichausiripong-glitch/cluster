@@ -1,6 +1,5 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { expect, it } from 'vitest'
-import { pointInRings } from '../../scripts/map/geometry.ts'
 import { DISTRICT_IDS, districtName } from '../domain/districts'
 import { ZONE_IDS } from '../store/seed'
 import { areaAt, AREAS } from './areas'
@@ -63,10 +62,10 @@ it('adds no map library: the app runs on its own six packages plus the database 
   const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
   expect(Object.keys(pkg.dependencies).sort()).toEqual(['@fontsource-variable/anuphan', '@neondatabase/serverless', 'lucide-react', 'react', 'react-dom', 'react-router-dom'])
 })
-it('keeps every example care point inside its zone and at least 60 m from a real clinic or hospital', () => {
+it('keeps every example care point inside a district and at least 60 m from a real clinic or hospital', () => {
   for (const p of CARE_POINTS) {
     expect(p.name.endsWith('ตัวอย่าง'), p.id).toBe(true)
-    expect(pointInRings(xy(p.lat, p.lon), zones.find((z) => z.id === p.zoneId)!.rings), `${p.id} in ${p.zoneId}`).toBe(true)
+    expect(areaAt(toXY(p.lat, p.lon)), p.id).toBeDefined()
     expect(manifest.clearance[p.id], p.id).toBeGreaterThanOrEqual(60)
   }
 })

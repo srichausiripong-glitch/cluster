@@ -1,7 +1,10 @@
 import { expect, it } from 'vitest'
-import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
+import { withDistrict } from '../data/carePoints'
+import { FIXTURE_POINTS } from '../test/carePoints'
+
+const CARE_POINTS = FIXTURE_POINTS.map(withDistrict)
 import { STUB_MANIFEST } from '../test/mapStub'
-import { ZONES, zoneAt } from './areas'
+import { areaAt, AREAS } from './areas'
 import { CITY_FRAME, PPM, toXY } from './geo'
 import { cityView, clampView, deepestAt, MAP_INSET, MARKER_GAP, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Size } from './view'
 
@@ -24,8 +27,9 @@ it('fits the city frame inside the free window at every size', () => {
     expect(y1, `${h}`).toBeLessThanOrEqual(h - MAP_INSET.bottom + 0.01)
   }
 })
-it('puts every care point inside the zone it belongs to', () => {
-  for (const p of CARE_POINTS) expect(zoneAt(toXY(p.lat, p.lon))?.id, p.id).toBe(p.zoneId)
+it('puts every test care point inside the district it stands in', () => {
+  const expected: Record<string, string> = { cp1: 'ratchathewi', cp2: 'pathum_wan', cp3: 'bang_khen', cp4: 'bang_rak', cp5: 'ratchathewi', cp6: 'bangkok_yai', cp7: 'bang_kapi', cp8: 'chatuchak', cp9: 'bang_khae' }
+  for (const p of CARE_POINTS) expect(areaAt(toXY(p.lat, p.lon))?.id, p.id).toBe(expected[p.id])
 })
 it('gathers the four inner-city care points into one marker at city level, and separates them at district level', () => {
   const city = markers(CARE_POINTS, cityView(phone), phone)
@@ -42,13 +46,13 @@ it('never lets two markers sit closer than the gap, at any size', () => {
     for (const a of list) for (const b of list) if (a !== b) expect(Math.hypot(a.x - b.x, a.y - b.y), `${w}`).toBeGreaterThanOrEqual(MARKER_GAP)
   }
 })
-it('shows all six zone names on a phone, and at every size keeps each name clear of the markers and of the other names', () => {
+it('at every size keeps each district name clear of the markers and of the other names', () => {
   const touch = (a: number[], b: number[]) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1]
-  expect(nameBoxes(ZONES, cityView(phone), phone, markers(CARE_POINTS, cityView(phone), phone))).toHaveLength(6)
+  expect(nameBoxes(AREAS, cityView(phone), phone, markers(CARE_POINTS, cityView(phone), phone)).length).toBeGreaterThan(0)
   for (const [w, h] of SIZES) {
     const s = size(w, h)
     const pins = markers(CARE_POINTS, cityView(s), s)
-    const boxes = nameBoxes(ZONES, cityView(s), s, pins).map((b) => [b.x - b.w / 2, b.y - b.h / 2, b.x + b.w / 2, b.y + b.h / 2])
+    const boxes = nameBoxes(AREAS, cityView(s), s, pins).map((b) => [b.x - b.w / 2, b.y - b.h / 2, b.x + b.w / 2, b.y + b.h / 2])
     for (const b of boxes) {
       for (const pin of pins) expect(touch(b, markerBox(pin)), `${w}x${h}`).toBe(false)
       for (const other of boxes) if (other !== b) expect(touch(b, other), `${w}x${h}`).toBe(false)

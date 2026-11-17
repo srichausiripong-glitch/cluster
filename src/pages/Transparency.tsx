@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react'
 import { th } from '../copy/th'
 import { ALERT } from '../design/look'
 import { Logo } from '../design/Logo'
-import { ZONES } from '../map/areas'
+import { DISTRICTS, districtLabel } from '../domain/districts'
 
 interface Report {
   decisions: { day: string; reviewer: string; action: keyof typeof th.transparency.action; detail: string }[]
   suspensions: { zone: string; reason: string; started: string; ended: string | null }[]
   envelopes: { week: string; n: number }[]
 }
-const zoneName = (id: string) => ZONES.find((z) => z.id === id)?.name ?? id
-const withZoneNames = (text: string) => ZONES.reduce((t, z) => t.replace(new RegExp(`\\b${z.id}\\b`, 'g'), z.name), text)
+const zoneName = (id: string) => districtLabel(id) || id
+const withZoneNames = (text: string) => DISTRICTS.reduce((t, d) => t.replace(new RegExp(`\\b${d.id}\\b`, 'g'), `เขต${d.name}`), text)
 const date = (d: string | null) => (d ? String(d).slice(0, 10) : '')
 
 /** The public transparency report (v1 spec 6). */

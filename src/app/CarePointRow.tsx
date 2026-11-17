@@ -1,11 +1,10 @@
 import { ChevronRight } from 'lucide-react'
 import { th } from '../copy/th'
 import { PRESS } from '../design/look'
-import { ZONES } from '../map/areas'
+import { districtLabel } from '../domain/districts'
 import { PinMark } from '../map/legend'
 import type { CarePoint } from '../data/carePoints'
 
-export const zoneName = (zoneId: string): string => ZONES.find((zone) => zone.id === zoneId)?.name ?? ''
 
 /** What kind of place this is, in words. A pharmacy is a pharmacy, even where it may list what it offers. */
 export function carePointType(point: CarePoint): string {
@@ -29,7 +28,7 @@ export function CarePointRow({ point, onOpen, tone = 'light' }: Props) {
       <span className="min-w-0 flex-1">
         <span className="block font-bold">{point.name}</span>
         <span className={`block text-[13px] ${sub}`}>
-          {zoneName(point.zoneId)} · {carePointType(point)}
+          {districtLabel(point.districtId)} · {carePointType(point)}
         </span>
         {detail && <span className={`block text-[13px] ${sub}`}>{detail}</span>}
         {point.pep && <span className="mt-1 inline-block rounded-full border-[1.5px] border-ink bg-care-soft px-2.5 py-0.5 text-[12px] font-semibold text-ink">{th.care.pep}</span>}

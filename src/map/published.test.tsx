@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { th } from '../copy/th'
+import { DISTRICTS } from '../domain/districts'
 import type { PublishedFile } from '../domain/types'
 import { loadPublished, setPublishedForTest } from './published'
 
@@ -16,8 +17,8 @@ const FILE: PublishedFile = {
   publishedAt: '2026-11-16T20:00:00.000Z',
   intakeOpen: true,
   areas: [
-    { areaId: 'south', state: 'shown', density: 'medium', step: 'new', testing: 'medium' },
-    { areaId: 'bkk', state: 'shown', density: 'thin', step: 'new', testing: 'low' },
+    { areaId: 'bang_rak', state: 'shown', density: 'medium', step: 'new', testing: 'medium', symptoms: null },
+    { areaId: 'bkk', state: 'shown', density: 'thin', step: 'new', testing: 'low', symptoms: null },
   ],
 }
 const open = (path = '/app') =>
@@ -32,25 +33,25 @@ it('fetches the weekly file and keeps the last good one for when the server cann
   vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(FILE))))
   await loadPublished()
   open()
-  expect(zoneButton('กรุงเทพใต้')).toHaveAccessibleName(`กรุงเทพใต้: ${th.map.state.shown}`)
+  expect(zoneButton('บางรัก')).toHaveAccessibleName(`บางรัก: ${th.map.state.shown}`)
   setPublishedForTest(null)
   vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new Error('offline'))))
   await loadPublished()
-  expect(zoneButton('กรุงเทพใต้')).toHaveAccessibleName(`กรุงเทพใต้: ${th.map.state.shown}`)
+  expect(zoneButton('บางรัก')).toHaveAccessibleName(`บางรัก: ${th.map.state.shown}`)
 })
 it('shows every zone as having no data, and no error, before any file exists', async () => {
   localStorage.clear()
   vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ week: null, publishedAt: null, intakeOpen: true, areas: [] }))))
   await loadPublished()
   open()
-  for (const name of ['กรุงเทพเหนือ', 'กรุงเทพกลาง', 'กรุงเทพตะวันออก', 'กรุงเทพใต้', 'กรุงธนเหนือ', 'กรุงธนใต้']) expect(zoneButton(name)).toHaveAccessibleName(`${name}: ${th.map.state.no_data}`)
+  for (const { name } of DISTRICTS) expect(zoneButton(name)).toHaveAccessibleName(`${name}: ${th.map.state.no_data}`)
   expect(screen.queryByRole('alert')).toBeNull()
 })
 it('labels every signal as unconfirmed user reports, and shows testing only in the zone sheet', async () => {
   const user = userEvent.setup()
   setPublishedForTest(FILE)
   open()
-  await user.click(zoneButton('กรุงเทพใต้'))
+  await user.click(zoneButton('บางรัก'))
   const sheet = within(await screen.findByRole('dialog'))
   expect(sheet.getByText(th.map.unconfirmed)).toBeInTheDocument()
   expect(sheet.getByText(th.map.legendWhat)).toBeInTheDocument()

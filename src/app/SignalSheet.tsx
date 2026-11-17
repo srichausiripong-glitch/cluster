@@ -4,6 +4,7 @@ import type { PublishedArea } from '../domain/types'
 import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
 import { DotSwatch, EdgeSample, PinMark, QuietSwatch } from '../map/legend'
+import { drawnState } from '../map/paint'
 import { OFFICIAL } from '../data/official'
 import type { CarePoint } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
@@ -15,8 +16,9 @@ const PIN_KINDS = ['clinic', 'pharmacy', 'lab'] as const
 
 /** The area's own patch: the map's dots and edge when it has a signal, the map's quiet mark when it has none. */
 function Swatch({ area }: { area: PublishedArea }) {
-  if (area.state === 'shown') return <DotSwatch density={area.density ?? 'thin'} edge={area.step ?? 'mixed'} large />
-  return <QuietSwatch state={area.state} large />
+  const state = drawnState(area)
+  if (state === 'shown') return <DotSwatch density={area.density ?? 'thin'} edge={area.step ?? 'mixed'} large />
+  return <QuietSwatch state={state} large />
 }
 
 /** The value that applies now is marked with a tick and the word "ตอนนี้", never by weight or colour alone. */
@@ -60,6 +62,7 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
         <div className="mt-3 rounded-md border-2 border-ink bg-bg p-3 text-[13px]">
           <p className="font-bold">{`${th.map.testing}: ${th.map.testingLevel[area.testing ?? 'none']}`}</p>
           {area.testing && <p className="text-muted">{th.map.testingNotSafe}</p>}
+          <p className="mt-1 font-bold">{`${th.map.symptoms}: ${th.map.symptomsLevel[area.symptoms ?? 'none']}`}</p>
         </div>
       )}
 

@@ -103,7 +103,7 @@ it('says where each care point is and gives the re-test date with a day count', 
   const user = userEvent.setup()
   open(hashOf({}))
   await reveal(user)
-  expect(screen.getAllByText(/กรุงเทพกลาง/).length).toBeGreaterThan(0)
+  expect(screen.getAllByText(/เขตราชเทวี/).length).toBeGreaterThan(0)
   expect(screen.getByText(th.recipient.retest)).toBeInTheDocument()
   expect(screen.getByText(/อีก 84 วัน/)).toBeInTheDocument()
 })

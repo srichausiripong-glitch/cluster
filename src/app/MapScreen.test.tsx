@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it } from 'vitest'
 import App from '../App'
 import { formatThaiDate } from '../copy/format'
+import { DISTRICTS } from '../domain/districts'
 import { th } from '../copy/th'
 import type { PublishedArea } from '../domain/types'
 import { setCarePoints } from '../data/carePoints'
@@ -16,10 +17,10 @@ const openApp = (path: string) =>
       <App />
     </MemoryRouter>,
   )
-const area = (areaId: string, state: PublishedArea['state'], density: PublishedArea['density'] = null, step: PublishedArea['step'] = null): PublishedArea => ({ areaId, state, density, step, testing: null })
+const area = (areaId: string, state: PublishedArea['state'], density: PublishedArea['density'] = null, step: PublishedArea['step'] = null): PublishedArea => ({ areaId, state, density, step, testing: null, symptoms: null })
 /** What the weekly file says: the city thin and new, as twelve fresh reports would make it; the zones in every state. */
-const SHOWN = [area('bkk', 'shown', 'thin', 'new'), area('south', 'shown', 'dense', 'new'), area('central', 'shown', 'medium', 'followup'), area('north', 'shown', 'thin', 'expiring'), area('east', 'below_threshold'), area('thon_north', 'no_data'), area('thon_south', 'no_data')]
-const publish = (which: 'shown' | 'below') => setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: which === 'shown' ? SHOWN : [area('bkk', 'below_threshold'), area('south', 'below_threshold')] })
+const SHOWN = [area('bkk', 'shown', 'thin', 'new'), area('bang_rak', 'shown', 'dense', 'new'), area('ratchathewi', 'shown', 'medium', 'followup'), area('chatuchak', 'shown', 'thin', 'expiring'), area('bang_kapi', 'below_threshold'), area('bangkok_yai', 'no_data'), area('bang_khae', 'no_data')]
+const publish = (which: 'shown' | 'below') => setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: which === 'shown' ? SHOWN : [area('bkk', 'below_threshold'), area('bang_rak', 'below_threshold')] })
 afterEach(() => setPublishedForTest(null))
 const openSignal = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole('button', { name: th.map.openSignal }))
@@ -78,8 +79,8 @@ it('names the city by its published state, and makes every zone reachable', () =
   expect(screen.getByRole('button', { name: `กรุงเทพฯ: ${th.map.state.shown}` })).toBeInTheDocument()
   view.unmount()
   openApp('/app')
-  expect(screen.getByRole('button', { name: `กรุงเทพใต้: ${th.map.state.shown}` })).toHaveAttribute('tabindex', '0')
-  expect(screen.getByRole('button', { name: `กรุงธนใต้: ${th.map.state.no_data}` })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: `บางรัก: ${th.map.state.shown}` })).toHaveAttribute('tabindex', '0')
+  expect(screen.getByRole('button', { name: `บางแค: ${th.map.state.no_data}` })).toBeInTheDocument()
 })
 it('gives every marker a 44 px target and marks the selected one', async () => {
   const user = userEvent.setup()
@@ -107,10 +108,10 @@ it('carries the area signal and the send-signal button on the list, as on the ma
 it('never calls a pharmacy a state or Red Cross unit, and shows cost words only where they may be shown', () => {
   openApp('/app/list')
   const row = (name: string) => within(screen.getByRole('button', { name: new RegExp(name) }))
-  expect(row('ร้านยาชุมชนตัวอย่าง').getByText(`กรุงเทพกลาง · ${th.care.type.pharmacy}`)).toBeInTheDocument()
+  expect(row('ร้านยาชุมชนตัวอย่าง').getByText(`เขตราชเทวี · ${th.care.type.pharmacy}`)).toBeInTheDocument()
   expect(row('ร้านยาชุมชนตัวอย่าง').queryByText(new RegExp(th.care.klassA))).toBeNull()
   expect(row('คลินิกชุมชนสีลมตัวอย่าง').queryByText(/ฟรี/)).toBeNull()
-  expect(row('คลินิกชุมชนสีลมตัวอย่าง').getByText(/กรุงเทพใต้/)).toBeInTheDocument()
+  expect(row('คลินิกชุมชนสีลมตัวอย่าง').getByText(/เขตบางรัก/)).toBeInTheDocument()
 })
 it('says where a class B care point is, in plain words', async () => {
   const user = userEvent.setup()
@@ -118,7 +119,7 @@ it('says where a class B care point is, in plain words', async () => {
   await user.click(screen.getByRole('button', { name: /คลินิกชุมชนสีลมตัวอย่าง/ }))
   const sheet = within(screen.getByRole('dialog'))
   expect(sheet.getByText(th.care.place)).toBeInTheDocument()
-  expect(sheet.getByText('กรุงเทพใต้')).toBeInTheDocument()
+  expect(sheet.getByText('เขตบางรัก')).toBeInTheDocument()
   expect(sheet.getByText(th.care.klassBNote)).toBeInTheDocument()
   expect(sheet.queryByText(/อนุมัติ/)).toBeNull()
 })
@@ -149,10 +150,10 @@ it('names the zone in view, in place of the city, once the map is below city lev
   const state = screen.getByRole('button', { name: th.map.openSignal })
   expect(state).toHaveTextContent('กรุงเทพฯ')
   await user.click(screen.getByRole('button', { name: th.map.zoomIn }))
-  expect(state.textContent).toMatch(/กรุงเทพ(กลาง|ใต้)/)
+  expect(state.textContent).toMatch(new RegExp(DISTRICTS.map((d) => d.name).join('|')))
   expect(state).not.toHaveTextContent('กรุงเทพฯ')
   await user.click(state)
-  expect(screen.getByRole('dialog').getAttribute('aria-label')).toMatch(/กรุงเทพ(กลาง|ใต้)/)
+  expect(screen.getByRole('dialog').getAttribute('aria-label')).toMatch(/^สัญญาณของเขต/)
   await user.click(screen.getByRole('button', { name: 'ปิดแผ่นนี้' }))
   await user.click(screen.getByRole('button', { name: th.map.zoomOut }))
   expect(state).toHaveTextContent('กรุงเทพฯ')
@@ -216,4 +217,14 @@ it('links a private clinic to its own public page', async () => {
   const link = within(screen.getByRole('dialog')).getByRole('link', { name: th.care.linkOut })
   expect(link).toHaveAttribute('href', 'https://example.org/care')
   expect(link).toHaveAttribute('target', '_blank')
+})
+
+it('shows the symptoms level of a district in its sheet, under the district name', async () => {
+  const user = userEvent.setup()
+  setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: [{ ...area('bang_rak', 'below_threshold'), symptoms: 'medium' }] })
+  openApp('/app')
+  await user.click(screen.getByRole('button', { name: /^บางรัก:/ }))
+  const sheet = within(await screen.findByRole('dialog'))
+  expect(sheet.getByText(`${th.map.symptoms}: ${th.map.symptomsLevel.medium}`)).toBeInTheDocument()
+  expect(sheet.getByRole('heading', { name: 'สัญญาณของเขตบางรัก' })).toBeInTheDocument()
 })

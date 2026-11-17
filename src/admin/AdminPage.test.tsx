@@ -9,8 +9,8 @@ afterEach(() => vi.unstubAllGlobals())
 const STATE = {
   intakeOpen: true,
   envelopes: [{ week: '2026-W46', n: 1200 }],
-  held: [{ id: 3, zone: 'north', kind: 'syphilis', week: '2026-W46', n: 40, status: 'pending', first_reviewer: 'ก้อย', first_choice: 'release' }],
-  suspensions: [{ id: 1, zone: 'east', reason: 'เรื่องร้องเรียน', started: '2026-11-15', ended: null }],
+  held: [{ id: 3, zone: 'chatuchak', kind: 'syphilis', week: '2026-W46', n: 40, status: 'pending', first_reviewer: 'ก้อย', first_choice: 'release' }],
+  suspensions: [{ id: 1, zone: 'bang_kapi', reason: 'เรื่องร้องเรียน', started: '2026-11-15', ended: null }],
   harm: [{ week: '2026-W46', kind: 'outed', n: 2 }],
 }
 function server(loggedIn: { value: boolean }) {
@@ -62,4 +62,17 @@ it('shows the intake switch, the held cells with who chose what, suspensions and
   expect(within(screen.getByRole('region', { name: th.admin.suspensions })).getByText(/เรื่องร้องเรียน/)).toBeInTheDocument()
   expect(within(screen.getByRole('region', { name: th.admin.harm })).getByText('2')).toBeInTheDocument()
   expect(document.body.textContent).not.toMatch(/nonce|ct|epk/)
+})
+
+it('offers the 50 districts for a suspension', async () => {
+  const user = userEvent.setup()
+  server({ value: false })
+  open()
+  await user.type(screen.getByLabelText(th.admin.name), 'บอล')
+  await user.type(screen.getByLabelText(th.admin.password), 'right')
+  await user.click(screen.getByRole('button', { name: th.admin.login }))
+  const select = await screen.findByLabelText(th.admin.suspend)
+  const options = within(select).getAllByRole('option')
+  expect(options).toHaveLength(50)
+  expect(options.map((o) => o.textContent)).toContain('เขตบางรัก')
 })
