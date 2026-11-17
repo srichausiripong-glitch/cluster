@@ -26,6 +26,8 @@ export interface PhoneState {
   symptomsNextWeek?: string | null
   /** The district this phone checks in for, so the next check-in is one press. Absent until the first; optional for the same reason. */
   myDistrict?: string
+  /** The district this phone follows (redesign spec 5.11); the service worker reads its own copy. Never sent anywhere. */
+  follow?: string
   /** The map layers this person switched on or off; the rest keep their defaults. Optional for stores kept before it. */
   layers?: Partial<Record<MapLayer, boolean>>
 }

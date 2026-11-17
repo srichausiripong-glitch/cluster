@@ -4,6 +4,7 @@ import { afterEach, beforeEach } from 'vitest'
 import { setMapSource } from '../map/source'
 import { setCarePoints } from '../data/carePoints'
 import { resetPharmaciesForTest, setPharmacySource } from '../data/pharmacies'
+import { setPushPlatformForTest } from '../push/follow'
 import { FIXTURE_POINTS } from './carePoints'
 import { stubSource } from './mapStub'
 
@@ -20,6 +21,8 @@ beforeEach(() => {
   // No test reads the real pharmacy file; one that wants pharmacies hands in its own.
   resetPharmaciesForTest()
   setPharmacySource(() => Promise.resolve([]))
+  // The browser's push, where a test has not handed in its own: in jsdom it reports no support.
+  setPushPlatformForTest(null)
 })
 afterEach(() => {
   if (!browser) return
