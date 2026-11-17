@@ -12,7 +12,7 @@ import { setPublishedForTest } from '../map/published'
 import type { MapLayer } from '../domain/types'
 import { MAP_LAYERS } from '../store/actions'
 import { phone } from '../store/stores'
-import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
+import { FIXTURE_POINTS as CARE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
 
 const openApp = (path: string) =>
   render(
@@ -109,6 +109,19 @@ it('offers help and the two status answers on the map, and no check-in or send-s
 it('draws each tab with its emoji above its word', () => {
   openApp('/app')
   for (const label of Object.values(th.nav)) expect(screen.getByRole('link', { name: label }).querySelector('img')).not.toBeNull()
+})
+it('lists PEP places of both trust levels on the help page, verified first, the unverified one marked call-first', () => {
+  // The unverified point comes first in the data, so the order on the page is the app's doing.
+  setCarePoints([...FIXTURE_UNVERIFIED, ...CARE_POINTS])
+  openApp('/app/help')
+  const block = screen.getByRole('heading', { name: th.help.pepTitle }).closest('section')!
+  const rows = within(block).getAllByRole('button').map((b) => b.textContent ?? '')
+  const at = (name: string) => rows.findIndex((text) => text.includes(name))
+  expect(at('ศูนย์บริการสาธารณสุขทดสอบตัวอย่าง')).toBeGreaterThan(at('คลินิกกาชาดตัวอย่าง'))
+  expect(at('ศูนย์บริการสาธารณสุขทดสอบตัวอย่าง')).toBeGreaterThan(at('โรงพยาบาลรัฐตัวอย่าง'))
+  expect(th.care.unverifiedTag).toBeTruthy()
+  expect(rows[at('ศูนย์บริการสาธารณสุขทดสอบตัวอย่าง')]).toContain(th.care.unverifiedTag)
+  expect(rows[at('คลินิกกาชาดตัวอย่าง')]).not.toContain(th.care.unverifiedTag)
 })
 it('credits the emoji set on the help page, with a link to its licence', () => {
   openApp('/app/help')

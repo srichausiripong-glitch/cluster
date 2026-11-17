@@ -1,7 +1,26 @@
-/** What the launch check reads: the deploy's settings, the care-point registry, and the clinical register. */
+/** What the launch check reads: the deploy's settings, every care point that ships, and the clinical register. */
 export interface LaunchData {
-  carePoints: { id: string; verified: unknown }[]
+  carePoints: { id: string; verified: unknown; source?: unknown; fetched?: unknown; pep?: unknown }[]
   clinical: { id: string; status: string }[]
+}
+const DAY = /^\d{4}-\d{2}-\d{2}$/
+const METHODS: unknown[] = ['phone', 'visit', 'partner']
+
+/**
+ * Why one care point may not ship (redesign spec 5.8). Every point names its https source and the
+ * day it was copied; a point not yet confirmed may ship like that, as "call first". A confirmed
+ * one says when, by whom and how, and a place that gives PEP is confirmed by phone.
+ */
+function carePointReasons(p: LaunchData['carePoints'][number]): string[] {
+  const reasons: string[] = []
+  if (typeof p.source !== 'string' || !p.source.startsWith('https://')) reasons.push(`care point ${p.id} needs an https source`)
+  if (typeof p.fetched !== 'string' || !DAY.test(p.fetched)) reasons.push(`care point ${p.id} needs the day its data was copied (fetched, YYYY-MM-DD)`)
+  if (p.verified === null || p.verified === undefined) return reasons
+  const v = (typeof p.verified === 'object' ? p.verified : {}) as { date?: unknown; by?: unknown; method?: unknown }
+  const whole = typeof v.date === 'string' && DAY.test(v.date) && typeof v.by === 'string' && v.by.trim() !== '' && METHODS.includes(v.method)
+  if (!whole) reasons.push(`care point ${p.id} is marked verified without saying when, by whom and how`)
+  else if (p.pep === true && v.method !== 'phone') reasons.push(`care point ${p.id} gives PEP, so it must be verified by phone`)
+  return reasons
 }
 const REQUIRED = ['VITE_CONTROLLER_NAME', 'VITE_CONTACT_EMAIL', 'ENVELOPE_PRIVATE_JWK', 'SESSION_SECRET', 'DATABASE_URL', 'CRON_SECRET'] as const
 
@@ -10,9 +29,9 @@ export function launchCheck(env: Record<string, string | undefined>, data: Launc
   const reasons: string[] = []
   // A preview deploy may run on unconfirmed data to try the whole path; production never may.
   const preview = env.LAUNCH_CHECK_PREVIEW === '1' && env.VERCEL_ENV !== 'production'
-  if (preview) data = { carePoints: [{ id: 'preview', verified: true }], clinical: [] }
-  if (data.carePoints.length === 0) reasons.push('no care point in src/data/care-points.json')
-  for (const p of data.carePoints) if (!p.verified) reasons.push(`care point ${p.id} is not verified`)
+  if (preview) data = { carePoints: [{ id: 'preview', verified: null, source: 'https://example.org', fetched: '2026-01-01' }], clinical: [] }
+  if (data.carePoints.length === 0) reasons.push('no care point to show')
+  for (const p of data.carePoints) reasons.push(...carePointReasons(p))
   for (const t of data.clinical) if (t.status !== 'signed') reasons.push(`clinical text ${t.id} is not signed by a physician`)
   for (const name of REQUIRED) if (!env[name]?.trim()) reasons.push(`${name} is not set`)
   let reviewers = 0

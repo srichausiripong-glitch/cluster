@@ -6,14 +6,15 @@ import { PRESS, TEXT_LINK } from '../design/look'
 import { Banner } from '../design/primitives/Banner'
 import { Card } from '../design/primitives/Card'
 import { More } from './More'
-import { CARE_POINTS } from '../data/carePoints'
+import { CARE_POINTS, orderedCarePoints } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
 import { Go } from './Go'
 
 export function HelpNow() {
   const [pointId, setPointId] = useState<string | null>(null)
-  const pepPoints = CARE_POINTS.filter((p) => p.pep)
+  // Confirmed places first; one not yet confirmed still shows, marked to call first (plan decision 7).
+  const pepPoints = orderedCarePoints().filter((p) => p.pep)
   return (
     <main className="space-y-4 p-4">
       <h1 className="text-[20px] font-bold">{th.help.title}</h1>

@@ -1,6 +1,7 @@
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { DISTRICT_IDS } from '../domain/districts'
-import { ALL_CARE_POINTS, CARE_POINTS, canTest, verifiedOnly, type CarePoint } from './carePoints'
+import { FIXTURE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
+import { ALL_CARE_POINTS, CARE_POINTS, canTest, isVerified, orderedCarePoints, setCarePoints, type CarePoint } from './carePoints'
 
 const point = (over: Partial<CarePoint>): CarePoint => ({
   id: 'x',
@@ -15,6 +16,7 @@ const point = (over: Partial<CarePoint>): CarePoint => ({
   free: true,
   community: false,
   source: 'https://example.org',
+  fetched: '2026-11-17',
   verified: null,
   ...over,
 })
@@ -43,9 +45,19 @@ it('shows services, hours and cost only for class A (spec 5.2)', () => {
 it('requires a phone call to confirm a place that gives PEP', () => {
   for (const p of ALL_CARE_POINTS.filter((c) => c.pep && c.verified)) expect(p.verified?.method, p.id).toBe('phone')
 })
-it('shows only the points somebody has confirmed', () => {
-  const confirmed = point({ id: 'a', verified: { date: '2026-11-20', by: 'ทีม', method: 'phone' } })
-  expect(verifiedOnly([confirmed, point({ id: 'b' })])).toEqual([confirmed])
+it('gives every registry point the day its data was copied', () => {
+  for (const p of ALL_CARE_POINTS) expect(p.fetched, p.id).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+})
+// Two levels of trust replace "every point confirmed before launch" (redesign spec 5.8, 5.12).
+it('ships every point, verified or not', async () => {
+  vi.resetModules() // the setup has already replaced the list; a fresh copy shows what ships
+  const fresh = await import('./carePoints')
+  expect(fresh.CARE_POINTS.map((p) => p.id)).toEqual(fresh.ALL_CARE_POINTS.map((p) => p.id))
+})
+it('orders verified points first', () => {
+  setCarePoints([...FIXTURE_UNVERIFIED, ...FIXTURE_POINTS])
+  const order = orderedCarePoints().map((p) => isVerified(p))
+  expect(order.indexOf(false)).toBeGreaterThan(order.lastIndexOf(true))
 })
 
 it('places each care point in the district its coordinates fall in', () => {

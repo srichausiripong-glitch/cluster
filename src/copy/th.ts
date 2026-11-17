@@ -75,6 +75,8 @@ export const th = {
     filterTest: 'ตรวจได้',
     showAll: 'ดูทั้งหมด',
     noneHere: 'ไม่มีจุดบริการที่ตรงกับตัวกรองนี้',
+    /** On a place nobody has confirmed yet (redesign spec 5.8). */
+    unverifiedTag: 'ยังไม่ยืนยัน',
   },
   help: {
     title: 'ช่วยเหลือ',

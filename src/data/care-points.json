@@ -22,6 +22,7 @@
     "cost": "ตรวจเลือดหาการติดเชื้อเอชไอวี 160 บาท (คลินิกพิเศษนอกเวลา 192 บาท); ตรวจซิฟิลิสวิธี RPR 60 บาท; ตรวจคัดกรอง STI-4 (โรคติดต่อทางเพศสัมพันธ์ 4 ชนิด) 1,200 บาท; อัตราค่าบริการอาจมีเปลี่ยนแปลงได้",
     "pep": true,
     "source": "https://th.aidsid.or.th/anonymous-clinic/",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -37,6 +38,7 @@
     "community": true,
     "pep": true,
     "source": "https://ihri.org/pribta/",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -52,6 +54,7 @@
     "community": true,
     "pep": true,
     "source": "https://ihri.org/?p=10825",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -66,6 +69,7 @@
     "free": false,
     "community": false,
     "source": "https://ddc.moph.go.th/das/news.php?news=33805&deptcode=das",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -87,6 +91,7 @@
     ],
     "hours": "Tuesdays and Wednesdays during 9.00 – 12.00",
     "source": "https://www2.si.mahidol.ac.th/en/dermatology/siriraj-std-and-hiv-clinic",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -101,6 +106,7 @@
     "free": false,
     "community": true,
     "source": "https://www.swingthailand.org/contact",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -115,6 +121,7 @@
     "free": false,
     "community": true,
     "source": "https://www.swingthailand.org/contact",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -129,6 +136,7 @@
     "free": false,
     "community": true,
     "source": "https://www.swingthailand.org/contact",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -143,6 +151,7 @@
     "free": false,
     "community": true,
     "source": "https://rsat.info/",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -166,6 +175,7 @@
     "hours": "เปิดให้บริการทุกวันในเวลาราชการเวลา 08.00 - 16.00 น.",
     "pep": true,
     "source": "https://webportal.bangkok.go.th/healthcenter23/page/sub/19780",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -189,6 +199,7 @@
     "hours": "ให้บริการในทุกวัน เวลา 08.00 - 15.30 น. ยกเว้นวันหยุดราชการและวันหยุดนักขัตฤกษ์ (คลินิกรักปลอดภัย ชั้น 3 อาคารใหม่ 5 ชั้น)",
     "pep": true,
     "source": "https://webportal.bangkok.go.th/healthcenter3/page/sub/12508",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -209,6 +220,7 @@
     ],
     "hours": "วันจันทร์ - วันศุกร์ เวลา 08.00 น. - 12.00 น.",
     "source": "https://webportal.bangkok.go.th/healthcenter9/page/sub/5596",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -231,6 +243,7 @@
     "hours": "จันทร์-ศุกร์ ช่วงเวลา 8.00-12.00 น.",
     "cost": "ตรวจรักษาโรคติดต่อทางเพศสัมพันธ์ฟรี เจาะเลือด HIV คนไทยฟรีปีละ 2 ครั้ง (ชาวต่างชาติ ครั้งละ 270 บาท)",
     "source": "https://webportal.bangkok.go.th/healthcenter25/page/sub/31862",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -250,6 +263,7 @@
       "คลินิก ARV"
     ],
     "source": "https://webportal.bangkok.go.th/health/page/sub/13938/%E0%B8%84%E0%B8%A5%E0%B8%B4%E0%B8%99%E0%B8%B4%E0%B8%81%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AD%E0%B8%B7%E0%B9%88%E0%B8%99-%E0%B9%86",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -268,6 +282,7 @@
       "คลินิก ARV"
     ],
     "source": "https://webportal.bangkok.go.th/health/page/sub/13938/%E0%B8%84%E0%B8%A5%E0%B8%B4%E0%B8%99%E0%B8%B4%E0%B8%81%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AD%E0%B8%B7%E0%B9%88%E0%B8%99-%E0%B9%86",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -290,6 +305,7 @@
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277040",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -312,6 +328,7 @@
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277041",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -334,6 +351,7 @@
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277044",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -356,6 +374,7 @@
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277047",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -378,6 +397,7 @@
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277049",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -400,6 +420,7 @@
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277050",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -422,6 +443,7 @@
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277051",
+    "fetched": "2026-11-12",
     "verified": null
   },
   {
@@ -444,6 +466,7 @@
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/538308",
+    "fetched": "2026-11-12",
     "verified": null
   }
 ]
