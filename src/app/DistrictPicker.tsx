@@ -34,7 +34,7 @@ export function DistrictPicker({ district, onDistrict, name }: { district: strin
       </div>
       <fieldset>
         <legend className="sr-only">{th.picker.legend}</legend>
-        <div className="max-h-[38dvh] overflow-y-auto rounded-md border-2 border-ink bg-surface">
+        <div className="max-h-[30dvh] overflow-y-auto rounded-md border-2 border-ink bg-surface">
           {shown.map((d) => (
             <label
               key={d.id}

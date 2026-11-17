@@ -22,7 +22,8 @@ const TOO_LATE_MS = 2500
 
 type Toast = { district: string; savedAt: string; late: boolean }
 
-const ANSWER = `flex min-h-14 items-center justify-center gap-1.5 rounded-md border-2 border-ink bg-surface px-2 text-center font-bold leading-tight ${PRESS}`
+/** On a screen under 360 px the picture goes above the words, so "เจอ / มีอาการ" stays on one line instead of breaking inside มีอาการ. */
+const ANSWER = `flex min-h-14 items-center justify-center gap-1.5 rounded-md border-2 border-ink bg-surface px-2 text-center font-bold leading-tight max-[359px]:flex-col max-[359px]:gap-0.5 ${PRESS}`
 
 /**
  * "ตรวจล่าสุดเป็นไง?" with its two answers, in place of the check-in and send-signal buttons (redesign
@@ -133,7 +134,7 @@ export function StatusCard() {
         </div>
         <div className="mt-2 grid grid-cols-2 gap-2">
           <button ref={clearButton} type="button" disabled={waiting} onClick={press} className={`${ANSWER} flex-col gap-0 disabled:cursor-not-allowed disabled:bg-veil disabled:shadow-none`}>
-            <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 max-[359px]:flex-col max-[359px]:gap-0.5">
               <Emoji name="check" size={22} />
               {waiting ? th.home.sent : th.home.clear}
             </span>
@@ -169,11 +170,14 @@ export function StatusCard() {
         ) : (
           <div className="space-y-3">
             <DistrictPicker district={chosen} onDistrict={setChosen} name="tested-district" />
-            <SendsOnly emoji="check" kind={th.home.clear} extra={[th.report.pastOnly]} />
-            <Button size="lg" className="w-full" disabled={chosen === null} onClick={sendChosen}>
-              <Emoji name="check" />
-              {th.tested.send}
-            </Button>
+            {/* Kept at the foot of the sheet, so the send press stays in view below a long list. */}
+            <div className="sticky bottom-0 -mx-4 space-y-1 border-t-2 border-ink bg-surface px-4 pb-1 pt-1">
+              <SendsOnly emoji="check" kind={th.home.clear} extra={[th.report.pastOnly]} />
+              <Button size="lg" className="w-full" disabled={chosen === null} onClick={sendChosen}>
+                <Emoji name="check" />
+                {th.tested.send}
+              </Button>
+            </div>
           </div>
         )}
       </Sheet>
