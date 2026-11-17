@@ -1,4 +1,4 @@
-import { areaAt } from '../map/areas'
+import { areaAt, NEIGHBOURS } from '../map/areas'
 import { toXY } from '../map/geo'
 import type { CareLayer } from '../domain/types'
 import registry from './care-points.json'
@@ -62,6 +62,24 @@ export function setCarePoints(points: CarePointData[]): void {
 export function orderedCarePoints(points: CarePoint[] = CARE_POINTS): CarePoint[] {
   const rank = (p: CarePoint) => (isVerified(p) ? 0 : 4) + (p.free && p.klass === 'A' ? 0 : p.community ? 1 : p.free ? 2 : 3)
   return [...points].sort((a, b) => rank(a) - rank(b))
+}
+
+/**
+ * Places by what is near (redesign spec 5.7): those in the district first, then those in a
+ * district next to it, then the rest, each part in the order of `orderedCarePoints`. Without one of
+ * the 50 districts, that order alone.
+ */
+export function nearSort(points: CarePoint[], district: string | null): CarePoint[] {
+  const ordered = orderedCarePoints(points)
+  const next = district && Object.hasOwn(NEIGHBOURS, district) ? NEIGHBOURS[district] : null
+  if (!next) return ordered
+  const part = (p: CarePoint) => (p.districtId === district ? 0 : next.includes(p.districtId) ? 1 : 2)
+  return ordered.sort((a, b) => part(a) - part(b))
+}
+
+/** The place to start from: the first by what is near the district, or the first of all without one. */
+export function nearestFor(district: string | null, points: CarePoint[] = CARE_POINTS): CarePoint | undefined {
+  return nearSort(points, district)[0]
 }
 
 /** Whether a point is a place to get tested: every layer but pharmacies (redesign spec 5.1). */

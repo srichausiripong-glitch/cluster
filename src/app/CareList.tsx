@@ -2,7 +2,7 @@ import { ChevronRight, Waves, X } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { th } from '../copy/th'
-import { CARE_POINTS, canTest, orderedCarePoints } from '../data/carePoints'
+import { CARE_POINTS, canTest, nearestFor, orderedCarePoints } from '../data/carePoints'
 import { Emoji } from '../design/Emoji'
 import { Mascot } from '../design/Logo'
 import { PRESS, TEXT_LINK } from '../design/look'
@@ -15,7 +15,6 @@ import { CarePointSheet } from './CarePointSheet'
 import { Go } from './Go'
 import { SignalSheet } from './SignalSheet'
 import { StatusCard } from './StatusCard'
-import { carePointFor } from './useCity'
 
 /**
  * Everything the map says, as a list, equal to the map (v1 spec 5.1, 18): the status card, the city's
@@ -35,7 +34,7 @@ export function CareList() {
   const district = asked && DISTRICT_IDS.includes(asked) ? asked : null
   const filtered = find || district !== null
   const points = orderedCarePoints().filter((p) => (!find || canTest(p)) && (!district || p.districtId === district))
-  const nearest = filtered ? undefined : carePointFor(myDistrict ?? 'bkk')
+  const nearest = filtered ? undefined : nearestFor(myDistrict ?? null)
   const inMine = nearest !== undefined && myDistrict !== undefined && nearest.districtId === myDistrict
   const filterLabel = district ? districtLabel(district) : th.care.filterTest
 

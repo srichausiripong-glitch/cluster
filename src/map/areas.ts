@@ -1,4 +1,5 @@
 import districts from './data/districts.json'
+import neighbours from './data/neighbours.json'
 import outline from './data/outline.json'
 import { inRings, type XY } from './geo'
 
@@ -18,6 +19,9 @@ export interface Area {
 
 /** In the order of the district list. */
 export const AREAS: Area[] = districts as Area[]
+
+/** The districts next to each district, baked by scripts/map/neighbours.ts: "near" without the phone's position (redesign spec 5.7). */
+export const NEIGHBOURS: Record<string, string[]> = neighbours
 
 /**
  * The box round the whole city, in metres: west, north, east and south of every district. The

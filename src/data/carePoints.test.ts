@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest'
 import { DISTRICT_IDS } from '../domain/districts'
 import { FIXTURE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
-import { ALL_CARE_POINTS, CARE_POINTS, canTest, isVerified, orderedCarePoints, setCarePoints, type CarePoint } from './carePoints'
+import { ALL_CARE_POINTS, CARE_POINTS, canTest, isVerified, nearestFor, nearSort, orderedCarePoints, setCarePoints, type CarePoint } from './carePoints'
 
 const point = (over: Partial<CarePoint>): CarePoint => ({
   id: 'x',
@@ -72,4 +72,19 @@ it('puts every registry point in one of the four layers, and counts every layer 
   for (const p of ALL_CARE_POINTS) expect(['sti', 'health_centre', 'hospital', 'pharmacy'], p.id).toContain(p.layer)
   expect(canTest(point({ layer: 'pharmacy' }))).toBe(false)
   expect(canTest(point({ layer: 'hospital' }))).toBe(true)
+})
+
+// "Near" is the same district, then a neighbouring one (redesign spec 5.7).
+it('orders places by the chosen district, then its neighbours, then the rest', () => {
+  setCarePoints(FIXTURE_POINTS)
+  const districts = nearSort(CARE_POINTS, 'bang_rak').map((p) => p.districtId)
+  // cp4 stands in Bang Rak, cp2 in Pathum Wan next to it; no other fixture is in a neighbour.
+  expect(districts.slice(0, 2)).toEqual(['bang_rak', 'pathum_wan'])
+  expect(districts).toHaveLength(CARE_POINTS.length)
+})
+it('falls back to the first place when no district is known', () => {
+  setCarePoints(FIXTURE_POINTS)
+  expect(nearestFor(null)?.id).toBe(orderedCarePoints()[0].id)
+  expect(nearestFor('bkk')?.id).toBe(orderedCarePoints()[0].id)
+  expect(nearestFor('bang_rak')?.id).toBe('cp4')
 })
