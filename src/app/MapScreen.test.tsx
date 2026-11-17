@@ -518,3 +518,9 @@ it('opens the followed district’s sheet when the app is opened from the notifi
   openApp('/app#follow')
   expect(screen.getByRole('dialog', { name: 'เขตบางรัก' })).toBeInTheDocument()
 })
+it('gives a district sheet most of a short screen, so the care link and 🔔 show above its fold', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  await openArea(user, 'บางรัก')
+  expect(screen.getByRole('dialog').className).toMatch(/max-h-\[85dvh\]/)
+})

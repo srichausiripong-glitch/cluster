@@ -68,7 +68,8 @@ export function SignalSheet({ area, open, onClose }: Props) {
   ]
 
   return (
-    <Sheet open={open} onClose={onClose} title={isCity ? th.map.city : districtLabel(area.areaId)}>
+    // Tall, so a short screen still shows the way to care and 🔔 above the fold (round 4 plan, Task 7).
+    <Sheet open={open} onClose={onClose} title={isCity ? th.map.city : districtLabel(area.areaId)} tall>
       {area.state === 'suspended' ? (
         <More
           summary={
