@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import App from '../App'
 import { BANNED_WORDS, th } from '../copy/th'
-import { DISTRICTS } from '../domain/districts'
+import { DISTRICTS, districtName } from '../domain/districts'
 import { shiftWeek } from '../domain/weeks'
 import { cancelPending, clearPassedWaits, currentWeek, dropStaleAreas, queueReport, saveCard, wipePhone } from '../store/actions'
 import { phone } from '../store/stores'
@@ -24,7 +24,7 @@ async function toConsent(user: UserEvent) {
 }
 /** Ticks the map box after choosing a district and confirming the age. */
 async function toMap(user: UserEvent, district = 'bang_rak') {
-  await user.selectOptions(screen.getByLabelText(th.report.pickDistrict), district)
+  await user.click(screen.getByRole('radio', { name: districtName(district) }))
   await user.click(screen.getByLabelText(th.report.age))
   await user.click(screen.getByLabelText(th.report.toMap))
 }
@@ -91,16 +91,14 @@ it('leaves the map box unticked, and lets it be ticked only after a district and
   const box = screen.getByLabelText(th.report.toMap)
   expect(box).not.toBeChecked()
   expect(box).toBeDisabled()
-  await user.selectOptions(screen.getByLabelText(th.report.pickDistrict), 'bang_rak')
+  await user.click(screen.getByRole('radio', { name: 'บางรัก' }))
   expect(box).toBeDisabled()
   await user.click(screen.getByLabelText(th.report.age))
   expect(box).toBeEnabled()
-  const options = within(screen.getByLabelText(th.report.pickDistrict)).getAllByRole('option').map((o) => o.textContent)
-  expect(options).toEqual([th.report.districtPlaceholder, ...DISTRICTS.map((d) => d.name)])
-  // No control asks for the phone's position; the hint says the app never uses it.
+  expect(screen.getAllByRole('radio')).toHaveLength(DISTRICTS.length)
+  // No control asks for the phone's position; the ⓘ of the "ส่งแค่" line says the app never uses it.
   expect(screen.queryAllByRole('button', { name: /ตำแหน่ง/ })).toEqual([])
   expect(screen.queryAllByRole('checkbox', { name: /ตำแหน่ง/ })).toEqual([])
-  expect(screen.getByText(th.report.zoneHint)).toBeInTheDocument()
 })
 it('says before the box what leaves the phone, that it waits and can be cancelled, and that it cannot be taken back', async () => {
   const user = userEvent.setup()

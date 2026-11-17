@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, it } from 'vitest'
 import App from '../App'
 import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
+import { districtName } from '../domain/districts'
 import { mondayDate, shiftWeek } from '../domain/weeks'
 import { setPublishedForTest } from '../map/published'
 import { cancelPending, currentWeek, queueReport, wipePhone } from '../store/actions'
@@ -19,7 +20,7 @@ const open = (path = '/app') =>
       <App />
     </MemoryRouter>,
   )
-const pick = (user: UserEvent, sheet: HTMLElement, district: string) => user.selectOptions(within(sheet).getByLabelText(th.report.pickDistrict), district)
+const pick = (user: UserEvent, sheet: HTMLElement, district: string) => user.click(within(sheet).getByRole('radio', { name: districtName(district) }))
 const openSheet = async (user: UserEvent) => {
   await user.click(screen.getByRole('button', { name: new RegExp(th.checkIn.cta) }))
   return screen.getByRole('dialog')

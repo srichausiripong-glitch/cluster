@@ -73,3 +73,9 @@ export function districtLabel(id: string): string {
   const name = districtName(id)
   return name ? `เขต${name}` : ''
 }
+
+/** Whether a search matches a district's name. Spaces, and the word เขต typed in front, do not count. */
+export function matchDistrict(query: string, name: string): boolean {
+  const q = query.replace(/\s+/g, '').replace(/^เขต/, '')
+  return q === '' || name.replace(/\s+/g, '').includes(q)
+}
