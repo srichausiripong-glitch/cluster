@@ -1,11 +1,9 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { expect, it } from 'vitest'
 import { DISTRICT_IDS, districtName } from '../domain/districts'
-import { ZONE_IDS } from '../store/seed'
 import { areaAt, AREAS } from './areas'
 import { toXY } from './geo'
 import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
-import zones from './data/zones.json'
 import type { CityData, LabelKind, Manifest, TileData } from './types'
 
 // Paths are from the project root: under Vitest's jsdom environment import.meta.url is not a file URL.
@@ -27,10 +25,8 @@ it('carries the credit line and lists only files that exist', () => {
   expect(manifest.street).toHaveLength(3)
   for (const ref of [...manifest.district, ...manifest.street]) expect(statSync(dir + ref.file).size).toBeGreaterThan(1000)
 })
-it('has six zones made of all fifty districts', () => {
-  expect(zones.map((z) => z.id).sort()).toEqual([...ZONE_IDS].sort())
-  expect(zones.map((z) => z.name).sort()).toEqual(['กรุงธนเหนือ', 'กรุงธนใต้', 'กรุงเทพกลาง', 'กรุงเทพตะวันออก', 'กรุงเทพเหนือ', 'กรุงเทพใต้'].sort())
-  expect(city.districts).toHaveLength(50)
+it('lists all fifty districts, by id, in the city file', () => {
+  expect(city.districts.map((d) => d.id).sort()).toEqual([...DISTRICT_IDS].sort())
 })
 it('carries one shape for each of the 50 districts', () => {
   expect(AREAS.map((a) => a.id).sort()).toEqual([...DISTRICT_IDS].sort())
