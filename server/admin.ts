@@ -1,4 +1,4 @@
-import { ZONES_IN_FILE } from '../src/domain/display.js'
+import { DISTRICT_IDS } from '../src/domain/districts.js'
 import type { Db } from './db.js'
 import { serverWeek } from './week.js'
 
@@ -42,7 +42,7 @@ export async function decideHeld(db: Db, now: Date, reviewer: string, id: number
 }
 
 export async function suspend(db: Db, now: Date, reviewer: string, zone: string, reason: string) {
-  if (!(ZONES_IN_FILE as readonly string[]).includes(zone) || !reason.trim()) return false
+  if (!DISTRICT_IDS.includes(zone) || !reason.trim()) return false
   await db.query('insert into suspensions (zone, reason, started) values ($1, $2, $3)', [zone, reason.trim().slice(0, 200), day(now)])
   await log(db, now, reviewer, 'suspend', `${zone}: ${reason.trim().slice(0, 200)}`)
   return true

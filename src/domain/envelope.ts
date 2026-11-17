@@ -1,11 +1,11 @@
-import { ZONES_IN_FILE } from './display.js'
+import { DISTRICT_IDS } from './districts.js'
 import type { PendingReport, ReportKind } from './types.js'
 
 /** Every envelope's plain content is padded to this many bytes before it is sealed (amendment 5). */
 export const PLAIN_BYTES = 256
 /** Chance that an envelope with no real report carries a random one (amendment 5). */
 export const Q = 0.002
-export const REPORT_KINDS: readonly ReportKind[] = ['gono_chlam', 'syphilis', 'tested']
+export const REPORT_KINDS: readonly ReportKind[] = ['gono_chlam', 'syphilis', 'tested', 'symptoms']
 
 /** What an envelope says once opened. `nonce` lets the server refuse the same envelope twice. */
 export interface Plain {
@@ -18,9 +18,9 @@ export interface Plain {
 export function makePlain(pending: PendingReport | null, rand: () => number, nonce: string): Plain {
   if (pending) return { v: 1, nonce, report: { zone: pending.zone, kind: pending.kind } }
   if (rand() >= Q) return { v: 1, nonce, report: null }
-  const cells = ZONES_IN_FILE.length * REPORT_KINDS.length
+  const cells = DISTRICT_IDS.length * REPORT_KINDS.length
   const cell = Math.min(cells - 1, Math.floor(rand() * cells))
-  return { v: 1, nonce, report: { zone: ZONES_IN_FILE[Math.floor(cell / REPORT_KINDS.length)], kind: REPORT_KINDS[cell % REPORT_KINDS.length] } }
+  return { v: 1, nonce, report: { zone: DISTRICT_IDS[Math.floor(cell / REPORT_KINDS.length)], kind: REPORT_KINDS[cell % REPORT_KINDS.length] } }
 }
 
 /** JSON in UTF-8, padded with spaces to PLAIN_BYTES. */

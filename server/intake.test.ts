@@ -35,13 +35,13 @@ async function envelope(pending: PendingReport | null, over: { pow?: string; wee
   return { ...sealed, pow }
 }
 const deps = (ip = '203.0.113.7') => ({ db, privateJwk, bits: BITS, now: NOW, ip })
-const report = (kind: PendingReport['kind'], zone = 'south'): PendingReport => ({ kind, zone, savedAt: 'x' })
+const report = (kind: PendingReport['kind'], zone = 'bang_rak'): PendingReport => ({ kind, zone, savedAt: 'x' })
 const count = async (zone: string, kind: string) => (await db.query<{ n: number }>('select n from counts where zone = $1 and kind = $2 and week = $3', [zone, kind, WEEK]))[0]?.n ?? 0
 const totals = async () => (await db.query<{ n: number }>('select n from envelope_totals where week = $1', [WEEK]))[0]?.n ?? 0
 
 it('counts a report into its zone and kind, counts the envelope, and keeps nothing else of it', async () => {
   expect(await intake(await envelope(report('syphilis')), deps())).toEqual({ status: 202 })
-  expect(await count('south', 'syphilis')).toBe(1)
+  expect(await count('bang_rak', 'syphilis')).toBe(1)
   expect(await totals()).toBe(1)
   expect(await db.query('select * from seen_nonces')).toHaveLength(1)
 })
@@ -54,7 +54,7 @@ it('does not count the same envelope twice', async () => {
   const env = await envelope(report('tested'))
   await intake(env, deps())
   expect(await intake(env, deps())).toEqual({ status: 202 })
-  expect(await count('south', 'tested')).toBe(1)
+  expect(await count('bang_rak', 'tested')).toBe(1)
   expect(await totals()).toBe(1)
 })
 it('refuses bad proof of work, a stale week, bad JSON, a wrong size, and a zone or kind it does not know', async () => {
@@ -65,14 +65,14 @@ it('refuses bad proof of work, a stale week, bad JSON, a wrong size, and a zone 
     'not json',
     { ...good, ct: good.ct.slice(4) },
     await envelope({ kind: 'syphilis', zone: 'mars', savedAt: 'x' }),
-    await envelope({ kind: 'hiv' as never, zone: 'south', savedAt: 'x' }),
+    await envelope({ kind: 'hiv' as never, zone: 'bang_rak', savedAt: 'x' }),
   ]
   for (const body of cases) expect(await intake(body, deps())).toEqual({ status: 400 })
   expect(await db.query('select * from counts')).toHaveLength(0)
 })
 it('stops counting reports from one network after thirty in a week, and keeps no part of its address', async () => {
   for (let i = 0; i < 31; i++) await intake(await envelope(report('syphilis')), deps(`203.0.113.${i}`))
-  expect(await count('south', 'syphilis')).toBe(30)
+  expect(await count('bang_rak', 'syphilis')).toBe(30)
   expect(await totals()).toBe(31)
   const caps = await db.query<{ grp: string }>('select grp from network_caps')
   expect(caps).toHaveLength(1)
@@ -83,7 +83,7 @@ it('takes envelopes but counts no report while intake is closed', async () => {
   await db.query("insert into settings (name, value) values ('intake', 'closed')")
   expect(await intake(await envelope(report('syphilis')), deps())).toEqual({ status: 202 })
   expect(await totals()).toBe(1)
-  expect(await count('south', 'syphilis')).toBe(0)
+  expect(await count('bang_rak', 'syphilis')).toBe(0)
 })
 it('writes nothing about an envelope or an address to the logs', async () => {
   const lines: string[] = []
@@ -124,5 +124,14 @@ it('hides the network with a key the database alone does not hold', async () => 
 it('stops counting envelopes from one network past the envelope cap, so empty envelopes cannot wash out the map', async () => {
   for (let i = 0; i < 4; i++) await intake(await envelope(i === 3 ? report('syphilis') : null), { ...deps(), envelopeCap: 3 })
   expect(await totals()).toBe(3)
-  expect(await count('south', 'syphilis')).toBe(0)
+  expect(await count('bang_rak', 'syphilis')).toBe(0)
+})
+
+it('counts a symptoms report for a district', async () => {
+  expect(await intake(await envelope(report('symptoms', 'bang_rak')), deps())).toEqual({ status: 202 })
+  expect(await count('bang_rak', 'symptoms')).toBe(1)
+})
+it('refuses a report for an old zone id', async () => {
+  expect(await intake(await envelope(report('tested', 'central')), deps())).toEqual({ status: 400 })
+  expect(await count('central', 'tested')).toBe(0)
 })

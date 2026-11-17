@@ -48,7 +48,7 @@ it('picks one moment in the server week, keeps it, and waits for it', async () =
   expect(posted).toHaveLength(0)
 })
 it('sends once it is due, then marks the week sent and clears the waiting report', async () => {
-  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'south', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: '2026-11-12T00:00:00.000Z' } }))
   await sendIfDue(weekStart, deps())
   expect(await sendIfDue(phone.get().sendAt!.at, deps())).toBe('sent')
   expect(posted).toHaveLength(1)
@@ -56,12 +56,12 @@ it('sends once it is due, then marks the week sent and clears the waiting report
   expect(phone.get().pending).toBeNull()
   const body = JSON.parse(posted[0])
   expect(body.pow).toBe('0000000042')
-  expect(await unseal(body, keys.privateKey)).toMatchObject({ report: { zone: 'south', kind: 'tested' } })
+  expect(await unseal(body, keys.privateKey)).toMatchObject({ report: { zone: 'bang_rak', kind: 'tested' } })
   expect(await sendIfDue(phone.get().sendAt!.at + 1000, deps())).toBe('already-sent')
   expect(posted).toHaveLength(1)
 })
 it('keeps the report when sending fails, and tries again later', async () => {
-  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'north', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'chatuchak', savedAt: '2026-11-12T00:00:00.000Z' } }))
   failPost = true
   const late = weekStart + 7 * 86_400_000 - 1
   expect(await sendIfDue(late, deps())).toBe('failed')
@@ -86,7 +86,7 @@ it('sends once although two tabs try at the same moment', async () => {
 })
 it('posts bodies of one length for an empty envelope, a test and a positive report', async () => {
   const late = weekStart + 7 * 86_400_000 - 1
-  for (const pending of [null, { kind: 'tested' as const, zone: 'south', savedAt: 'x' }, { kind: 'gono_chlam' as const, zone: 'thon_north', savedAt: 'x' }]) {
+  for (const pending of [null, { kind: 'tested' as const, zone: 'bang_rak', savedAt: 'x' }, { kind: 'gono_chlam' as const, zone: 'bangkok_yai', savedAt: 'x' }]) {
     wipePhone()
     localStorage.clear()
     phone.update((s) => ({ ...s, pending }))
@@ -98,7 +98,7 @@ it('posts bodies of one length for an empty envelope, a test and a positive repo
 
 const LATE = weekStart + 7 * 86_400_000 - 1
 it('posts the very same envelope again when the answer was lost, so the server counts it once', async () => {
-  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'north', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'chatuchak', savedAt: '2026-11-12T00:00:00.000Z' } }))
   loseAnswer = true
   expect(await sendIfDue(LATE, deps())).toBe('failed')
   loseAnswer = false
@@ -107,7 +107,7 @@ it('posts the very same envelope again when the answer was lost, so the server c
   expect(posted[1]).toBe(posted[0])
 })
 it('clears the sent report even when the phone state was written again during the solve', async () => {
-  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'south', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: '2026-11-12T00:00:00.000Z' } }))
   const solve = async () => {
     phone.update((s) => ({ ...s, pending: s.pending && { ...s.pending } }))
     return '0000000042'
@@ -124,7 +124,7 @@ it('does not post when another tab finished this week while this one was solving
   expect(posted).toHaveLength(0)
 })
 it('keeps the waiting report and sends an empty envelope while intake is closed', async () => {
-  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'north', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'chatuchak', savedAt: '2026-11-12T00:00:00.000Z' } }))
   intakeOpen = false
   expect(await sendIfDue(LATE, deps())).toBe('sent')
   expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: null })
@@ -136,7 +136,7 @@ it('treats a key answer without a week as a failure, not a crash', async () => {
   expect(await sendIfDue(LATE, { ...deps(), fetch })).toBe('failed')
 })
 it('leaves no sealed envelope behind when the phone is wiped', async () => {
-  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'north', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'chatuchak', savedAt: '2026-11-12T00:00:00.000Z' } }))
   failPost = true
   await sendIfDue(LATE, deps())
   expect(localStorage.getItem('cluster.envelope-outbox')).not.toBeNull()

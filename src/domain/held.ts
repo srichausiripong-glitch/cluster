@@ -10,8 +10,9 @@ const jumps = (count: (w: string) => number, week: string) => {
 }
 
 /**
- * The cells to hold for a week: each zone and kind judged on its own, and also each zone's signal
- * kinds judged together, since amendment 6 speaks of the zone's count. Pass counts with earlier held
+ * The cells to hold for a week: each district and kind judged on its own, and also each district's
+ * signal kinds judged together, since amendment 6 speaks of the area's count. Symptoms are judged
+ * alone and never join that sum (redesign spec 5.6). Pass counts with earlier held
  * or discarded cells already taken out, so a rejected jump never becomes the next week's baseline.
  */
 export function heldCells(counts: CountRow[], week: string): { zone: string; kind: ReportKind; n: number }[] {

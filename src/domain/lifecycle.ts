@@ -4,6 +4,8 @@ import type { LifecycleStep } from './types.js'
 export const BANDS = {
   gono_chlam: { new: 1, followup: 2, expiring: 4 },
   syphilis: { new: 2, followup: 8, expiring: 12 },
+  /** Symptoms live as long as gonorrhoea and chlamydia (redesign spec 5.6). */
+  symptoms: { new: 1, followup: 2, expiring: 4 },
 } as const
 
 export type ZonedGroup = keyof typeof BANDS

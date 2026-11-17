@@ -5,11 +5,15 @@ export type LifecycleStep = 'new' | 'followup' | 'expiring' | 'expired'
 export type ExposureBand = 'h72' | 'w2' | 'w4' | 'm3' | 'older'
 export type DensityBand = 'thin' | 'medium' | 'dense'
 export type AreaState = 'shown' | 'below_threshold' | 'no_data' | 'suspended'
-/** What a report on the server is about: a positive result of a mapped group, or "tested" with no result (amendment 4.4). */
-export type ReportKind = 'gono_chlam' | 'syphilis' | 'tested'
+/**
+ * What a report on the server is about: a positive result of a mapped group, "tested" with no result
+ * (amendment 4.4), or symptoms without a test (redesign spec 5.6), counted on their own.
+ */
+export type ReportKind = 'gono_chlam' | 'syphilis' | 'tested' | 'symptoms'
 /** A report waiting on the phone for the next weekly envelope (amendment 4.1). */
 export interface PendingReport {
   kind: ReportKind
+  /** A district id (redesign spec 5.5); named zone on the wire and in the tables. */
   zone: string
   savedAt: string
 }
@@ -37,6 +41,8 @@ export interface PublishedArea {
   density: DensityBand | null
   step: Exclude<LifecycleStep, 'expired'> | 'mixed' | null
   testing: TestingLevel | null
+  /** Symptoms reported without a test, never summed with confirmed results: null below the threshold (redesign spec 5.6). */
+  symptoms: DensityBand | null
 }
 
 /** The weekly file the server publishes and every phone reads. */

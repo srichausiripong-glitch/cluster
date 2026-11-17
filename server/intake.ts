@@ -1,5 +1,5 @@
 import { POW_DIGITS, powInput, powOk, REPORT_KINDS, type Plain } from '../src/domain/envelope.js'
-import { ZONES_IN_FILE } from '../src/domain/display.js'
+import { DISTRICT_IDS } from '../src/domain/districts.js'
 import { hashHex } from '../src/envelope/pow.js'
 import { unseal, type Sealed } from '../src/envelope/seal.js'
 import type { Db } from './db.js'
@@ -41,7 +41,7 @@ function shaped(body: unknown): (Sealed & { pow: string }) | null {
 function known(plain: Plain): boolean {
   if (plain.v !== 1 || typeof plain.nonce !== 'string' || plain.nonce.length === 0 || plain.nonce.length > 64) return false
   if (plain.report === null) return true
-  return (ZONES_IN_FILE as readonly string[]).includes(plain.report.zone) && REPORT_KINDS.includes(plain.report.kind)
+  return DISTRICT_IDS.includes(plain.report.zone) && REPORT_KINDS.includes(plain.report.kind)
 }
 
 /**

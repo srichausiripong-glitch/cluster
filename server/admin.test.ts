@@ -14,7 +14,7 @@ beforeEach(async () => {
   await migrate(db)
   setDbForTest(db)
   setEnvForTest({ ADMIN_USERS: JSON.stringify([{ name: 'ก้อย', hash: hashPassword('pw-koi') }, { name: 'บอล', hash: hashPassword('pw-ball') }]), SESSION_SECRET: 'session-secret-for-tests' })
-  await db.query("insert into held (zone, kind, week, n, status) values ('north', 'syphilis', '2026-W46', 40, 'pending')")
+  await db.query("insert into held (zone, kind, week, n, status) values ('chatuchak', 'syphilis', '2026-W46', 40, 'pending')")
 })
 const call = (body: unknown, cookie?: string, ip = '198.51.100.7') =>
   admin(new Request('https://cluster.test/api/admin', { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': ip, ...(cookie ? { cookie } : {}) }, body: JSON.stringify(body) }))
@@ -79,12 +79,12 @@ it('releases a held cell only when two different reviewers choose the same', asy
 })
 it('suspends a zone so the next file says so, and shows the decision on the transparency page with the reviewer', async () => {
   const koi = await login('ก้อย', 'pw-koi')
-  expect((await call({ action: 'suspend', zone: 'east', reason: 'เรื่องร้องเรียน' }, koi)).status).toBe(200)
+  expect((await call({ action: 'suspend', zone: 'bang_kapi', reason: 'เรื่องร้องเรียน' }, koi)).status).toBe(200)
   const file = await publishWeek(db, '2026-W46', new Date('2026-11-16T20:00:00Z'), 0.002)
-  expect(file.areas.find((a) => a.areaId === 'east')?.state).toBe('suspended')
+  expect(file.areas.find((a) => a.areaId === 'bang_kapi')?.state).toBe('suspended')
   const page = await (await transparency(new Request('https://cluster.test/api/transparency'))).json()
   expect(JSON.stringify(page)).toContain('ก้อย')
-  expect(page.suspensions[0]).toMatchObject({ zone: 'east', reason: 'เรื่องร้องเรียน' })
+  expect(page.suspensions[0]).toMatchObject({ zone: 'bang_kapi', reason: 'เรื่องร้องเรียน' })
 })
 it('closes and opens intake, and gives totals only, never one envelope', async () => {
   const koi = await login('ก้อย', 'pw-koi')
@@ -93,4 +93,10 @@ it('closes and opens intake, and gives totals only, never one envelope', async (
   const state = await (await call({ action: 'state' }, koi)).json()
   expect(state.intakeOpen).toBe(false)
   expect(Object.keys(state).sort()).toEqual(['envelopes', 'harm', 'held', 'intakeOpen', 'suspensions'])
+})
+
+it('suspends a district by id and refuses an old zone id', async () => {
+  const koi = await login('ก้อย', 'pw-koi')
+  expect((await call({ action: 'suspend', zone: 'bang_rak', reason: 'เรื่องร้องเรียน' }, koi)).status).toBe(200)
+  expect((await call({ action: 'suspend', zone: 'east', reason: 'เรื่องร้องเรียน' }, koi)).status).toBe(400)
 })

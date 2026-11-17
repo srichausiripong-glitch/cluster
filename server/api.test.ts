@@ -36,7 +36,7 @@ it('gives the week, the work to do and the public key, never the private part', 
 })
 it('takes an envelope made by the phone, and refuses what is not one', async () => {
   const { week, bits, jwk } = await (await key(req('/api/key'))).json()
-  const sealed = await seal(makePlain({ kind: 'tested', zone: 'south', savedAt: 'x' }, () => 0.5, 'n1'), jwk)
+  const sealed = await seal(makePlain({ kind: 'tested', zone: 'bang_rak', savedAt: 'x' }, () => 0.5, 'n1'), jwk)
   const pow = (await solvePow(powInput(sealed.ct, week), bits)).padStart(10, '0')
   expect((await envelope(post('/api/envelope', { ...sealed, pow }))).status).toBe(202)
   expect((await envelope(post('/api/envelope', 'not json'))).status).toBe(400)
@@ -59,7 +59,7 @@ it('publishes only for the cron secret, and then serves the new file', async () 
   expect(res.status).toBe(200)
   const file = await (await published(req('/api/published'))).json()
   expect(file.week).toBe(shiftWeek(serverWeek(new Date()), -1))
-  expect(file.areas).toHaveLength(7)
+  expect(file.areas).toHaveLength(51)
 })
 
 it('counts at most three harm reports from one network in a week', async () => {
