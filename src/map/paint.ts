@@ -460,7 +460,8 @@ function names(ctx: Ctx, s: Scene) {
     ctx.textBaseline = 'middle'
     ctx.fillText(l.t, x, y + 0.5)
   }
-  for (const l of of('district')) write(ctx, s, taken, l.t, ...at(l), { size: 12, weight: 700, spacing: '0.06em', halo: p.surface, haloW: 4, pad: 16 })
+  // At district level the name boxes above the map name the districts; the base map's own district names give way.
+  if (street) for (const l of of('district')) write(ctx, s, taken, l.t, ...at(l), { size: 12, weight: 700, spacing: '0.06em', halo: p.surface, haloW: 4, pad: 16 })
   for (const l of of('road')) write(ctx, s, taken, l.t, ...at(l), { size: street ? 11.5 : 10, weight: street ? 700 : 600, angle: l.a, halo: p.surface, haloW: 3.2, pad: 9 })
   for (const l of of('soi')) write(ctx, s, taken, l.t, ...at(l), { size: 10, angle: l.a, halo: p.surface, haloW: 3.2, pad: 8 })
   for (const l of of('water')) write(ctx, s, taken, l.t, ...at(l), { size: 10, weight: 500, alpha: 0.65, angle: l.a, halo: p.surface, haloW: 3, pad: 8 })

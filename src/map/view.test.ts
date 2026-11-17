@@ -4,7 +4,7 @@ import { FIXTURE_POINTS } from '../test/carePoints'
 
 const CARE_POINTS = FIXTURE_POINTS.map(withDistrict)
 import { STUB_MANIFEST } from '../test/mapStub'
-import { areaAt, AREAS } from './areas'
+import { areaAt, AREAS, CITY_BOX } from './areas'
 import { CITY_FRAME, PPM, toXY } from './geo'
 import { cityView, clampView, deepestAt, MAP_INSET, MARKER_GAP, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Size } from './view'
 
@@ -63,16 +63,26 @@ it('at every size keeps each district name clear of the markers and of the other
 it('steps one level at a time and stops at both ends', () => {
   expect([step('city', 1), step('district', 1), step('street', 1), step('city', -1), step('street', -1)]).toEqual(['district', 'street', 'street', 'city', 'district'])
 })
-it('knows the deepest level that has map data at a point', () => {
+it('has a district level at every place in the city, and a street level only where street map exists', () => {
   expect(deepestAt(STUB_MANIFEST, at('cp1'))).toBe('street')
-  expect(deepestAt(STUB_MANIFEST, toXY(13.7, 100.56))).toBe('district')
-  expect(deepestAt(STUB_MANIFEST, at('cp9'))).toBe('city')
+  expect(deepestAt(STUB_MANIFEST, at('cp9'))).toBe('district')
+  expect(deepestAt(STUB_MANIFEST, toXY(14.3, 100.55))).toBe('city')
 })
-it('centres a deeper view as near the asked point as the data allows', () => {
+it('boxes every point of every district in CITY_BOX', () => {
+  for (const area of AREAS)
+    for (const ring of area.rings)
+      for (let i = 0; i < ring.length; i += 2) {
+        expect(ring[i], area.id).toBeGreaterThanOrEqual(CITY_BOX[0])
+        expect(ring[i], area.id).toBeLessThanOrEqual(CITY_BOX[2])
+        expect(ring[i + 1], area.id).toBeGreaterThanOrEqual(CITY_BOX[1])
+        expect(ring[i + 1], area.id).toBeLessThanOrEqual(CITY_BOX[3])
+      }
+})
+it('centres a district view on the asked place anywhere in the city', () => {
   const v = viewAt(STUB_MANIFEST, phone, 'district', at('cp9'))
   expect(v.ppm).toBe(PPM.district)
-  expect(v.cx).toBeGreaterThanOrEqual(-4541)
-  expect(deepestAt(STUB_MANIFEST, [v.cx, v.cy])).not.toBe('city')
+  expect(v.cx).toBeCloseTo(at('cp9')[0], 0)
+  expect(v.cy).toBeCloseTo(at('cp9')[1], 0)
 })
 it('lets the map be dragged a little at city level, never away, and never off the data at deeper levels', () => {
   const fit = cityView(phone)
@@ -84,10 +94,17 @@ it('lets the map be dragged a little at city level, never away, and never off th
   expect(toScreen(street, phone, [-335, -276])[0]).toBeCloseTo(390, 3)
   expect(toScreen(street, phone, [-335, -276])[1]).toBeCloseTo(714, 3)
 })
-it('keeps the whole screen on the data when it goes one level in', () => {
-  const v = viewAt(STUB_MANIFEST, phone, 'district', at('cp9'))
-  expect(toScreen(v, phone, [-4541, -4423])[0]).toBeLessThanOrEqual(0.001)
-  expect(toScreen(v, phone, [2379, 6192])[0]).toBeGreaterThanOrEqual(390 - 0.001)
-  expect(toScreen(v, phone, [-4541, -4423])[1]).toBeLessThanOrEqual(0.001)
-  expect(toScreen(v, phone, [2379, 6192])[1]).toBeGreaterThanOrEqual(714 - 0.001)
+it('keeps the whole screen inside the city box at district level', () => {
+  const v = viewAt(STUB_MANIFEST, phone, 'district', [-1e6, -1e6])
+  const [x, y] = toScreen(v, phone, [CITY_BOX[0], CITY_BOX[1]])
+  expect(x).toBeCloseTo(0, 3)
+  expect(y).toBeCloseTo(0, 3)
+})
+it('keeps every district name box on the screen at district level', () => {
+  const boxes = nameBoxes(AREAS, viewAt(STUB_MANIFEST, phone, 'district', [0, 0]), phone, [])
+  expect(boxes.length).toBeGreaterThan(0)
+  for (const b of boxes) {
+    expect(b.y - b.h / 2).toBeGreaterThanOrEqual(2)
+    expect(b.y + b.h / 2).toBeLessThanOrEqual(phone.h - 2)
+  }
 })

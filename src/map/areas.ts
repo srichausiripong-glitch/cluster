@@ -19,6 +19,23 @@ export interface Area {
 /** In the order of the district list. */
 export const AREAS: Area[] = districts as Area[]
 
+/**
+ * The box round the whole city, in metres: west, north, east and south of every district. The
+ * district level reaches all of it (redesign spec 5.7).
+ */
+export const CITY_BOX: [number, number, number, number] = (() => {
+  const box: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity]
+  for (const area of AREAS)
+    for (const ring of area.rings)
+      for (let i = 0; i < ring.length; i += 2) {
+        box[0] = Math.min(box[0], ring[i])
+        box[1] = Math.min(box[1], ring[i + 1])
+        box[2] = Math.max(box[2], ring[i])
+        box[3] = Math.max(box[3], ring[i + 1])
+      }
+  return box
+})()
+
 export function areaAt(p: XY): Area | undefined {
   return AREAS.find((area) => inRings(p, area.rings))
 }

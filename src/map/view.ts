@@ -1,5 +1,5 @@
 import type { CarePoint } from '../data/carePoints'
-import type { Area } from './areas'
+import { CITY_BOX, type Area } from './areas'
 import { CITY_FRAME, LEVELS, PPM, toXY, type Level, type XY } from './geo'
 import type { Manifest } from './types'
 
@@ -52,9 +52,15 @@ export function step(level: Level, by: 1 | -1): Level {
   return LEVELS[Math.max(0, Math.min(LEVELS.length - 1, LEVELS.indexOf(level) + by))]
 }
 
-/** Areas that have map data at a level. The city level covers everything. */
+/**
+ * Where a level can be shown. The city level covers everything; the district level the whole city,
+ * drawn from the city map's roads and water where no detailed file exists (redesign spec 5.7); the
+ * street level only where street files exist.
+ */
 export function coverage(manifest: Manifest, level: Level): Box[] {
-  return level === 'city' ? [[-Infinity, -Infinity, Infinity, Infinity]] : manifest[level].map((ref) => ref.box)
+  if (level === 'city') return [[-Infinity, -Infinity, Infinity, Infinity]]
+  const files = manifest[level].map((ref) => ref.box)
+  return level === 'district' ? [CITY_BOX, ...files] : files
 }
 const inBox = ([x, y]: XY, [x0, y0, x1, y1]: Box) => x >= x0 && x <= x1 && y >= y0 && y <= y1
 export function deepestAt(manifest: Manifest, p: XY): Level {
@@ -155,7 +161,7 @@ export interface NameBox {
 export const advances = (name: string) => [...name].filter((ch) => !/[ัิ-ฺ็-๎]/.test(ch)).length
 const touch = (a: Box, b: Box, pad: number) => a[0] < b[2] + pad && a[2] > b[0] - pad && a[1] < b[3] + pad && a[3] > b[1] - pad
 
-/** District name boxes, centred on each district's label point. A box that would touch a marker, another box or the edge of the map is left out. */
+/** District name boxes, centred on each district's label point. A box that would touch a marker, another box or any edge of the map is left out. */
 export function nameBoxes(zones: Area[], view: View, size: Size, taken: Marker[]): NameBox[] {
   const placed: NameBox[] = []
   const boxOf = (b: NameBox): Box => [b.x - b.w / 2, b.y - b.h / 2, b.x + b.w / 2, b.y + b.h / 2]
@@ -163,7 +169,7 @@ export function nameBoxes(zones: Area[], view: View, size: Size, taken: Marker[]
     const [x, y] = toScreen(view, size, zone.label)
     const box: NameBox = { id: zone.id, name: zone.name, x, y, w: advances(zone.name) * 7.2 + 14, h: 23 }
     const b = boxOf(box)
-    if (b[0] < 2 || b[2] > size.w - 2) continue
+    if (b[0] < 2 || b[2] > size.w - 2 || b[1] < 2 || b[3] > size.h - 2) continue
     if (taken.some((m) => touch(b, markerBox(m), 2)) || placed.some((p) => touch(b, boxOf(p), 2))) continue
     placed.push(box)
   }

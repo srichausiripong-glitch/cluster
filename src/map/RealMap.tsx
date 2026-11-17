@@ -179,7 +179,8 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
   }, [manifest, level])
 
   const marks = useMemo(() => markers(carePoints, shown, size), [carePoints, shown, size])
-  const names = useMemo(() => (phase === 2 && shown.level === 'city' ? nameBoxes(AREAS, shown, size, marks) : []), [phase, shown, size, marks])
+  // District names are boxes at city level (those that fit) and at district level (redesign spec 5.7).
+  const names = useMemo(() => (phase === 2 && shown.level !== 'street' ? nameBoxes(AREAS, shown, size, marks) : []), [phase, shown, size, marks])
   const byId = useMemo(() => new Map(areas.map((a) => [a.areaId, a])), [areas])
   /** Only the dots of an area that was just reported move. */
   const breathing = !still && showSignal && areas.some((a) => a.state === 'shown' && a.step === 'new' && (phase === 2 ? a.areaId !== 'bkk' : a.areaId === 'bkk'))

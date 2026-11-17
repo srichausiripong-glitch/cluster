@@ -11,7 +11,7 @@ import { FIXTURE_POINTS } from '../test/carePoints'
 const CARE_POINTS = FIXTURE_POINTS.map(withDistrict)
 import { fakeCtx } from '../test/fakeCtx'
 import { STUB_MANIFEST, stubSource } from '../test/mapStub'
-import { areaAt } from './areas'
+import { areaAt, AREAS, CITY_BOX } from './areas'
 import { RealMap } from './RealMap'
 import { setPublishedForTest } from './published'
 import { fetchSource, setMapSource } from './source'
@@ -128,7 +128,8 @@ it('goes one level in on a double click, at the place that was clicked', async (
   expect(map()).toHaveAttribute('data-level', 'district')
 })
 it('goes down to street level where the prototype has street map at the middle of the screen, and stops there', async () => {
-  setMapSource(stubSource({ manifest: () => Promise.resolve({ ...STUB_MANIFEST, street: [{ file: 'street/stub.json', box: STUB_MANIFEST.district[0].box }] }) }))
+  // Street map under the middle of the screen: the district level now opens where it was asked, not on the detailed centre.
+  setMapSource(stubSource({ manifest: () => Promise.resolve({ ...STUB_MANIFEST, street: [{ file: 'street/stub.json', box: CITY_BOX }] }) }))
   const user = userEvent.setup()
   openApp('/app')
   await user.click(zoomIn())
@@ -362,4 +363,23 @@ it('goes one level, not two, on a double click on a grouped marker', async () =>
   fireEvent.click(cityArea(), { detail: 2 })
   fireEvent.doubleClick(cityArea())
   expect(map()).toHaveAttribute('data-level', 'district')
+})
+
+// ---- round 2: a district level over the whole city, with district names ---------------------------
+it('goes to district level over an outer district, outside the detailed centre, and names it', async () => {
+  openApp('/app')
+  await waitFor(() => expect(zoomIn()).toBeEnabled())
+  const [x, y] = toScreen(cityView(PHONE), PHONE, AREAS.find((a) => a.id === 'bang_khae')!.label)
+  fireEvent.doubleClick(map(), { clientX: x, clientY: y })
+  // Not refused: the map is at district level there. It has no street level, so the note beside the buttons says so.
+  expect(map()).toHaveAttribute('data-level', 'district')
+  expect(screen.getByRole('button', { name: th.map.openSignal })).toHaveTextContent('บางแค')
+})
+it('writes the names of the districts in view at district level, in the same white boxes', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  await user.click(zoomIn())
+  const boxes = [...document.querySelectorAll('[data-caption]')]
+  expect(boxes.length).toBeGreaterThan(0)
+  for (const b of boxes) expect(DISTRICTS.map((d) => d.name)).toContain(b.textContent)
 })

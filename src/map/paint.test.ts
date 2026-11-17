@@ -119,3 +119,14 @@ it('draws no signal edge around a district below the threshold', () => {
   paintLines(f.ctx, scene([area('bang_rak', 'below_threshold')]))
   expect(f.sets.filter((s) => s.prop === 'strokeStyle').map((s) => s.value)).not.toContain(PALETTE.signalEdge)
 })
+
+it('leaves district names to the name boxes at district level, and still writes them at street level', () => {
+  const t = tile({ labels: [{ t: 'บางรัก', x: 0, y: 0, k: 'district' }] })
+  const measured = (view: View) => {
+    const f = fakeCtx()
+    paintLines(f.ctx, scene([], { view, tiles: [t] }))
+    return f.calls.filter((c) => c.name === 'measureText').map((c) => c.args[0])
+  }
+  expect(measured(district)).not.toContain('บางรัก')
+  expect(measured(street)).toContain('บางรัก')
+})
