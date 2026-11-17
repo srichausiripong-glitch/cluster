@@ -42,8 +42,6 @@ it('sends someone whose check found nothing to the check-in on the map, which is
 })
 it('names the tested report in everyday words wherever it shows (owner, 2026-11-16)', () => {
   expect(th.me.kind.tested).toBe('ไปเช็กมา ไม่เจออะไร')
-  expect(th.checkIn.title).toContain(th.me.kind.tested)
-  expect(th.report.testedAgainFrom).toContain(`"${th.me.kind.tested}"`)
   expect(th.privacy.leaves.join(' ')).toContain(th.me.kind.tested)
 })
 it('sends symptoms to the map for the chosen district', async () => {

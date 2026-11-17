@@ -9,8 +9,8 @@ export interface Inset {
   bottom: number
   left: number
 }
-/** Space the map screen's own controls take: chips at the top; the care point card and half the send button at the bottom. */
-export const MAP_INSET: Inset = { top: 108, right: 10, bottom: 116, left: 10 }
+/** Space the map screen's own controls take: the layer chips and the state box at the top; the status card and the map credit at the bottom. */
+export const MAP_INSET: Inset = { top: 108, right: 10, bottom: 200, left: 10 }
 export interface Size {
   w: number
   h: number

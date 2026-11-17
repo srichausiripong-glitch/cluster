@@ -132,10 +132,12 @@ it('labels the 72-hour block as a draft and opens a PEP care point from it', asy
   await user.click(screen.getByRole('button', { name: /คลินิกกาชาดตัวอย่าง/ }))
   expect(screen.getByRole('dialog', { name: 'คลินิกกาชาดตัวอย่าง' })).toBeInTheDocument()
 })
-it('offers a route to help and to sending a signal from the map', () => {
+it('offers help and the two status answers on the map, and no check-in or send-signal button', () => {
   openApp('/app')
-  expect(screen.getByRole('link', { name: th.report.cta })).toHaveAttribute('href', '/app/report')
   expect(screen.getByRole('link', { name: th.nav.help })).toHaveAttribute('href', '/app/help')
+  expect(screen.getByRole('button', { name: th.home.clear })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: th.home.found })).toHaveAttribute('href', '/app/report')
+  expect(screen.queryByText(/เช็กอิน|ส่งสัญญาณ/)).toBeNull()
 })
 
 // ---- the Pop-art map screen, sheets and navigation ---------------------------------------------
@@ -168,12 +170,9 @@ it('names the zone in view, in place of the city, once the map is below city lev
   await user.click(screen.getByRole('button', { name: th.map.zoomOut }))
   expect(state).toHaveTextContent('กรุงเทพฯ')
 })
-it('shows the state of the city in a yellow box and the send button in pink with a ripple', () => {
+it('shows the state of the city in a yellow box', () => {
   openApp('/app')
   expect(screen.getByRole('button', { name: th.map.openSignal }).className).toMatch(/\bbg-yellow\b/)
-  const send = screen.getByRole('link', { name: th.report.cta })
-  expect(send.className).toMatch(/\bbg-care\b/)
-  expect(send.className).toMatch(/\bripple\b/)
 })
 it('marks the value that applies now with a yellow tag', async () => {
   const user = userEvent.setup()
@@ -192,7 +191,8 @@ it('shows what a state care point costs as a green tag', async () => {
 })
 it('keeps a sheet open when a second tap lands on the veil in the instant after it opened', async () => {
   const user = userEvent.setup()
-  openApp('/app')
+  // The map no longer carries the nearest care point (it moved to the list), so the point opens from the list.
+  openApp('/app/list')
   await user.click(screen.getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
   const veil = screen.getByRole('dialog').previousElementSibling as HTMLElement
   await user.click(veil)
@@ -213,7 +213,6 @@ it('says so, instead of breaking, while no care point has been confirmed', async
   const user = userEvent.setup()
   setCarePoints([])
   const view = openApp('/app')
-  expect(screen.getByText(th.care.noneVerified)).toBeInTheDocument()
   const sheet = await openSignal(user)
   expect(sheet.queryByText(th.map.pair)).toBeNull()
   view.unmount()

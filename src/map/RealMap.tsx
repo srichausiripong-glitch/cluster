@@ -484,8 +484,6 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
           {th.map.loadFailed}
         </p>
       )}
-      {/* The credit must stay readable: it has its own line between the bottom card and the check-in and send buttons above it. */}
-      <p className="absolute bottom-[5rem] left-2 max-w-[calc(100%-1rem)] rounded-md bg-bg/85 px-1.5 text-[9.5px] leading-4 text-muted">{th.map.credit}</p>
     </div>
   )
 }

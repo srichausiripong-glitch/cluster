@@ -15,7 +15,7 @@ it('moves between screens without adding to the browser history, so Back leaves 
     </BrowserRouter>,
   )
   for (const tab of [th.nav.list, th.nav.me, th.nav.help, th.nav.map]) await user.click(screen.getByRole('link', { name: tab }))
-  await user.click(screen.getByRole('link', { name: th.report.cta }))
+  await user.click(screen.getByRole('link', { name: th.home.found }))
   await user.click(screen.getByRole('button', { name: th.report.way.symptoms }))
   await user.click(screen.getByRole('button', { name: th.common.back }))
   expect(window.location.pathname).toBe('/app/report')

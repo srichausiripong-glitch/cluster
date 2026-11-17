@@ -45,8 +45,10 @@ it('links both pages from the help page, the consent step of a report and the ch
   expect(screen.getByRole('link', { name: th.privacy.title })).toHaveAttribute('href', '/privacy')
   report.unmount()
   open('/app')
-  await user.click(screen.getByRole('button', { name: new RegExp(th.checkIn.cta) }))
-  expect(within(screen.getByRole('dialog')).getByRole('link', { name: th.privacy.title })).toHaveAttribute('href', '/privacy')
+  await user.click(screen.getByRole('button', { name: th.home.clear }))
+  const sheet = within(screen.getByRole('dialog'))
+  await user.click(sheet.getByRole('button', { name: /ส่งแค่:/ }))
+  expect(sheet.getByRole('link', { name: th.privacy.title })).toHaveAttribute('href', '/privacy')
 })
 it('offers a way back into the app and the quick exit on the privacy and terms pages', () => {
   for (const path of ['/privacy', '/terms']) {

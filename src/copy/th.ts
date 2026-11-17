@@ -47,7 +47,6 @@ export const th = {
     step: { new: 'เพิ่งรายงาน', followup: 'ช่วงติดตามผู้สัมผัส', expiring: 'ใกล้หมดอายุ', mixed: 'ผสม' },
     official: 'ตัวเลขทางการ',
     officialSource: 'ที่มา',
-    nearest: 'จุดบริการฟรี เริ่มที่นี่ได้',
     source: 'แผนที่จาก OpenStreetMap',
     credit: '© ผู้ร่วมสร้าง OpenStreetMap · OpenMapTiles',
     zoomIn: 'ซูมเข้า',
@@ -107,7 +106,6 @@ export const th = {
     leaves: 'สิ่งที่ออกจากเครื่อง: ชนิดของรายงาน เขตที่เลือก และสัปดาห์นี้ ไม่มีชื่อ เบอร์ หรือตำแหน่ง',
     waits: 'รายงานรออยู่ในเครื่องจนซองประจำสัปดาห์ถูกส่ง และยกเลิกได้ที่ "ของฉัน" ก่อนนั้น',
     noTakeBack: 'ส่งแล้วถอนไม่ได้ เพราะเซิร์ฟเวอร์เก็บแค่ยอดรวม ไม่มีรายการรายคนให้ถอน',
-    testedAgainFrom: 'ส่ง "ไปเช็กมา ไม่เจออะไร" ขึ้นแผนที่ได้อีกครั้งตั้งแต่ {date}',
     symptomsAgainFrom: 'ส่ง "มีอาการ" ขึ้นแผนที่ได้อีกครั้งตั้งแต่ {date}',
     intakeClosed: 'ปิดรับรายงานขึ้นแผนที่ชั่วคราว รายงานนี้ยังเก็บเป็นการ์ดในเครื่องได้',
     replacesPending: 'มีรายงานรอส่งอยู่แล้ว ถ้าส่งรายงานนี้ รายงานเดิมจะถูกแทน',
@@ -139,7 +137,24 @@ export const th = {
 
   /** The six layer switches over the map (redesign spec 5.1). */
   layers: { confirmed: 'ผลยืนยัน', symptoms: 'มีอาการ', sti: 'คลินิก', health_centre: 'ศูนย์ฯ กทม.', hospital: 'โรงพยาบาล', pharmacy: 'ร้านยา' },
-  home: { layers: 'ชั้นแผนที่' },
+  /** The status card on the home screen (redesign spec 5.1, 5.2). */
+  home: {
+    layers: 'ชั้นแผนที่',
+    ask: 'ตรวจล่าสุดเป็นไง?',
+    clear: 'ไม่เจอ',
+    found: 'เจอ / มีอาการ',
+    sent: 'ส่งแล้ว',
+    again: 'อีกครั้ง {date}',
+    notTested: 'ยังไม่ได้ตรวจ?',
+    findTest: 'หาที่ตรวจ',
+    pending: 'รอส่ง · ยกเลิกได้ที่',
+    pendingLabel: 'รอส่ง ยกเลิกได้ที่หน้าของฉัน',
+    toast: 'ส่งแล้ว · {district}',
+    undo: 'เลิกทำ',
+    tooLate: 'ซองกำลังออก ถอนไม่ได้แล้ว',
+  },
+  /** The ✅ sheet: the district the first time, or why it cannot go now (redesign spec 5.2). */
+  tested: { title: 'เขตที่ใช้ชีวิต', send: 'ส่ง', closed: 'ปิดรับชั่วคราว ส่งได้เมื่อเปิดรับอีกครั้ง', otherPending: 'มีรายงานอื่นรอส่งอยู่ ยกเลิกได้ที่ "ของฉัน"' },
   picker: { search: 'ค้นหาเขต', placeholder: 'พิมพ์ชื่อเขต…', legend: 'เลือกเขต', none: 'ไม่พบเขตนี้', change: 'เปลี่ยน', use: 'ใช้เขตนี้' },
   /** The "ส่งแค่" line of a report, and what its ⓘ says (redesign spec 5.2). */
   send: {
@@ -225,20 +240,6 @@ export const th = {
     myDistrict: 'เขตของฉัน: {district}',
     forgetDistrict: 'ลืมเขตนี้',
     kind: { tested: 'ไปเช็กมา ไม่เจออะไร', gono_chlam: 'หนองในและคลามิเดีย', syphilis: 'ซิฟิลิส', symptoms: 'มีอาการ' },
-  },
-  checkIn: {
-    cta: 'เช็กอิน',
-    title: 'เช็กอิน: ไปเช็กมา ไม่เจออะไร',
-    hint: 'ให้คนในเขตรู้ว่ามีคนไปเช็กมา ผลออกมาไม่มีปฏิกิริยา',
-    at: 'เช็กอินที่เขต{district}',
-    changeZone: 'เปลี่ยนเขต',
-    remembers: 'เครื่องนี้จะจำเขตที่เลือกไว้ใช้เช็กอินครั้งต่อไป ลืมได้ที่ "ของฉัน"',
-    send: 'เช็กอินขึ้นแผนที่',
-    done: 'เช็กอินแล้ว',
-    again: 'อีกครั้ง {date}',
-    otherPending: 'มีรายงานอื่นรอส่งอยู่ เช็กอินได้หลังซองสัปดาห์นี้ออก หรือยกเลิกรายงานนั้นที่ "ของฉัน"',
-    closed: 'ปิดรับรายงานขึ้นแผนที่ชั่วคราว เช็กอินได้เมื่อเปิดรับอีกครั้ง',
-    close: 'ปิด',
   },
   privacy: {
     title: 'นโยบายความเป็นส่วนตัว',

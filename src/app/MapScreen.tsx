@@ -3,15 +3,13 @@ import { useState } from 'react'
 import { th } from '../copy/th'
 import { PRESS } from '../design/look'
 import type { Level } from '../map/geo'
-import { PinMark } from '../map/legend'
 import { useAreas } from '../map/published'
 import { RealMap } from '../map/RealMap'
-import { CARE_POINTS, orderedCarePoints } from '../data/carePoints'
+import { CARE_POINTS } from '../data/carePoints'
 import { districtLabel, districtName } from '../domain/districts'
 import { CarePointSheet } from './CarePointSheet'
-import { CheckIn } from './CheckIn'
-import { SendSignalLink } from './SendSignalLink'
 import { SignalSheet } from './SignalSheet'
+import { StatusCard } from './StatusCard'
 import { carePointFor } from './useCity'
 import { LayerChips } from './LayerChips'
 import { layersOn, toggleLayer } from '../store/actions'
@@ -33,7 +31,6 @@ export function MapScreen() {
   const place = inView
     ? { id: inView, name: districtName(inView), state: byId(inView).state }
     : { id: 'bkk', name: 'กรุงเทพฯ', state: city.state }
-  const first = orderedCarePoints().at(0)
 
   return (
     <div className="relative h-full overflow-hidden">
@@ -68,22 +65,13 @@ export function MapScreen() {
         <ChevronRight size={16} strokeWidth={2.25} className="shrink-0" aria-hidden="true" />
       </button>
 
-      <CheckIn className="absolute bottom-[6.5rem] left-3" />
-      <SendSignalLink className="absolute bottom-[6.5rem] right-3" />
-
-      {first ? (
-        <button type="button" onClick={() => setPointId(first.id)} className={`absolute inset-x-3 bottom-3 flex min-h-16 items-center gap-3 box px-3 text-left ${PRESS}`}>
-          <PinMark kind={first.kind} />
-          <span className="min-w-0 flex-1">
-            <span className="block text-[12px] text-muted">{th.map.nearest}</span>
-            <span className="block truncate font-semibold">{first.name}</span>
-            <span className="block truncate text-[12px] text-muted">{districtLabel(first.districtId)}</span>
-          </span>
-          <ChevronRight size={20} strokeWidth={1.75} className="shrink-0 text-muted" aria-hidden="true" />
-        </button>
-      ) : (
-        <p className="absolute inset-x-3 bottom-3 box px-3 py-3 text-[13px]">{th.care.noneVerified}</p>
-      )}
+      {/* The credit keeps its own line right above the status card, which floats over the map (owner's design A). */}
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex flex-col items-start gap-1">
+        <p className="max-w-full rounded-md bg-bg/85 px-1.5 text-[9.5px] leading-4 text-muted">{th.map.credit}</p>
+        <div className="pointer-events-auto w-full">
+          <StatusCard />
+        </div>
+      </div>
 
       {selected && areaId && (
         <SignalSheet
