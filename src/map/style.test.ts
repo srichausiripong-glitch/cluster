@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
-import { breath, DOT_GAP, DOT_R, EDGE, HATCH, PALETTE, ROADS, SAMPLE_PX } from './style'
+import { breath, DOT_GAP, DOT_R, EDGE, HATCH, PALETTE, ROADS, SAMPLE_PX, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
 
 it('shows a higher level as a bigger dot, and never lets dots touch', () => {
   expect(DOT_R.thin).toBeLessThan(DOT_R.medium)
@@ -40,4 +40,9 @@ it('marks an area below the threshold more lightly than the lightest signal', ()
   const hatch = ((HATCH.width * Math.SQRT2) / HATCH.gap) * HATCH.alpha * (land - lum(PALETTE.signalSoft))
   const thinDots = ((Math.PI * DOT_R.thin ** 2) / DOT_GAP ** 2) * 0.92 * (land - lum(PALETTE.signal))
   expect(hatch).toBeLessThan(thinDots)
+})
+it('hatches symptoms tighter for a higher level, never so tight that the lines become a fill', () => {
+  expect(SYMPTOM_GAP.thin).toBeGreaterThan(SYMPTOM_GAP.medium)
+  expect(SYMPTOM_GAP.medium).toBeGreaterThan(SYMPTOM_GAP.dense)
+  expect(SYMPTOM_GAP.dense).toBeGreaterThanOrEqual(4 * SYMPTOM_LINE.width)
 })

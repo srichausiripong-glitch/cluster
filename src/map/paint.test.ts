@@ -2,6 +2,7 @@ import { expect, it } from 'vitest'
 import type { PublishedArea } from '../domain/types'
 import { fakeCtx } from '../test/fakeCtx'
 import { paintDots, paintGround, paintLines, type Scene } from './paint'
+import { AREAS } from './areas'
 import { PPM } from './geo'
 import { DOT_R, EDGE, PALETTE } from './style'
 import type { TileData } from './types'
@@ -129,4 +130,31 @@ it('leaves district names to the name boxes at district level, and still writes 
   }
   expect(measured(district)).not.toContain('บางรัก')
   expect(measured(street)).toContain('บางรัก')
+})
+
+// ---- round 2: the symptoms hatch --------------------------------------------------------------
+const sick = (level: PublishedArea['symptoms'], base = area('bang_rak', 'below_threshold')): PublishedArea => ({ ...base, symptoms: level })
+const bangRak = AREAS.find((a) => a.id === 'bang_rak')!.label
+const onBangRak: View = { level: 'district', ppm: PPM.district, cx: bangRak[0], cy: bangRak[1] }
+const inkLines = (s: Scene) => {
+  const f = fakeCtx()
+  paintGround(f.ctx, s)
+  return { inks: f.sets.filter((x) => x.prop === 'strokeStyle' && x.value === PALETTE.ink).length, moves: f.calls.filter((c) => c.name === 'moveTo').length }
+}
+it('hatches a district with symptoms in black lines, closer together for a higher level', () => {
+  const [thin, medium, dense] = (['thin', 'medium', 'dense'] as const).map((l) => inkLines(scene([sick(l)], { view: onBangRak, showSymptoms: true })))
+  expect(thin.inks).toBe(1)
+  expect(medium.moves).toBeGreaterThan(thin.moves)
+  expect(dense.moves).toBeGreaterThan(medium.moves)
+})
+it('draws no symptoms hatch when the symptoms layer is off, or for a district without a symptoms level', () => {
+  expect(inkLines(scene([sick('dense')], { showSymptoms: false })).inks).toBe(0)
+  expect(inkLines(scene([sick(null)], { showSymptoms: true })).inks).toBe(0)
+})
+it('shows the symptoms hatch and the confirmed dots of one district together', () => {
+  const both = sick('thin', area('bang_rak', 'shown', 'medium', 'new'))
+  expect(inkLines(scene([both], { showSymptoms: true })).inks).toBe(1)
+  const dots = fakeCtx()
+  paintDots(dots.ctx, scene([both], { showSymptoms: true }), null)
+  expect([...radii(dots)]).toContain(DOT_R.medium)
 })

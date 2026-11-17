@@ -23,6 +23,12 @@ export const QUIET = { below_threshold: 'hatch', no_data: 'none', suspended: 'no
  * how opaque, in screen pixels. A test keeps them lighter on the ground than the smallest dots.
  */
 export const HATCH = { gap: 12, width: 1, alpha: 0.5 } as const
+/**
+ * Symptoms reported without a test: black lines slanting "/" (the other way from the city's violet
+ * hatch), closer together for a higher level (redesign spec 5.6, 5.7). Gaps and width are screen pixels.
+ */
+export const SYMPTOM_GAP: Record<DensityBand, number> = { thin: 14, medium: 9, dense: 6 }
+export const SYMPTOM_LINE = { width: 1.1, alpha: 0.55 } as const
 /** Per level, low class to high: class, casing width, fill width, casing opacity. Widths in screen pixels. */
 export const ROADS: Record<'district' | 'street', [RoadClass, number, number, number][]> = {
   district: [

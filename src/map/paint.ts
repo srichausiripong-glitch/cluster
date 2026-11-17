@@ -2,9 +2,9 @@
 // Dots: the signal, redrawn on its own while the newest zone breathes. Lines: water, buildings,
 // roads, rail, the edge of each signal and the names of the base map.
 // Zones and care points are not drawn here: they are real buttons in the SVG layer above.
-import type { AreaState, PublishedArea } from '../domain/types'
+import type { AreaState, DensityBand, PublishedArea } from '../domain/types'
 import { AREAS, CITY_EDGES } from './areas'
-import { breath, DOT_GAP, DOT_R, EDGE, HATCH, ROADS, type Palette } from './style'
+import { breath, DOT_GAP, DOT_R, EDGE, HATCH, ROADS, SYMPTOM_GAP, SYMPTOM_LINE, type Palette } from './style'
 import type { CityData, Label, Line, RoadClass, Shape, TileData } from './types'
 import { fromScreen, toScreen, type Box, type Size, type View } from './view'
 
@@ -19,6 +19,8 @@ export interface Scene {
   areas: Map<string, PublishedArea>
   phase: 1 | 2
   showSignal: boolean
+  /** The symptoms layer (redesign spec 5.1). Off unless given. */
+  showSymptoms?: boolean
   /** Screen boxes that names on the base map keep clear of: markers and zone name boxes. */
   avoid?: Box[]
 }
@@ -197,6 +199,29 @@ function quiet(ctx: Ctx, s: Scene, rings: number[][], state: AreaState) {
   world(ctx, s)
 }
 
+/** Symptoms without a test: black lines slanting "/" over the area, closer together for a higher level (redesign spec 5.6, 5.7). */
+function symptomsHatch(ctx: Ctx, s: Scene, rings: number[][], level: DensityBand) {
+  const box = onScreen(s, rings)
+  if (!box) return
+  const gap = SYMPTOM_GAP[level]
+  ctx.save()
+  outline(ctx, rings)
+  ctx.clip()
+  screen(ctx, s)
+  ctx.beginPath()
+  const reach = box[3] - box[1]
+  for (let x = Math.floor((box[0] - reach) / gap) * gap; x < box[2]; x += gap) {
+    ctx.moveTo(x, box[3])
+    ctx.lineTo(x + reach, box[1])
+  }
+  ctx.strokeStyle = s.palette.ink
+  ctx.globalAlpha = SYMPTOM_LINE.alpha
+  ctx.lineWidth = SYMPTOM_LINE.width
+  ctx.stroke()
+  ctx.restore()
+  world(ctx, s)
+}
+
 export function paintGround(ctx: Ctx, s: Scene): void {
   const p = s.palette
   screen(ctx, s)
@@ -214,6 +239,8 @@ export function paintGround(ctx: Ctx, s: Scene): void {
     for (const tile of s.tiles) fill(ctx, s, tile.green, p.park)
   }
   if (s.showSignal) for (const { rings, area } of painted(s)) quiet(ctx, s, rings, area ? drawnState(area) : 'no_data')
+  // Under the dots, so a district can show both its symptoms and its confirmed signal.
+  if (s.showSymptoms) for (const { rings, area } of painted(s)) if (area?.symptoms) symptomsHatch(ctx, s, rings, area.symptoms)
   if (s.view.level === 'district') for (const tile of s.tiles) if (tile.blocks) fill(ctx, s, tile.blocks, p.ink, 0.07)
 }
 

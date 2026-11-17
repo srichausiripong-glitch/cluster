@@ -2,7 +2,7 @@
 // in lists, and on the map itself.
 import type { DensityBand } from '../domain/types'
 import type { CarePoint } from '../data/carePoints'
-import { DOT_GAP, DOT_R, EDGE, HATCH, SAMPLE_PX } from './style'
+import { DOT_GAP, DOT_R, EDGE, HATCH, SAMPLE_PX, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
 
 /** A care point pin. Its point is at 0, 0 and its round head is centred 26 px above. */
 const PIN_SHAPE = 'M0 0C0 0 14 -15 14 -26A14 14 0 1 0 -14 -26C-14 -15 0 0 0 0Z'
@@ -121,6 +121,25 @@ export function QuietSwatch({ state, large = false }: { state: 'below_threshold'
         strokeLinecap={state === 'no_data' ? 'round' : 'butt'}
         opacity={state === 'below_threshold' ? 0.75 : state === 'suspended' ? 0.6 : 0.5}
       />
+    </svg>
+  )
+}
+
+/** How the map marks symptoms: black slanted lines on the map's own ground, as far apart as the map draws that level. */
+export function HatchSwatch({ level }: { level: DensityBand }) {
+  const [w, h] = [34, 26]
+  const gap = SYMPTOM_GAP[level]
+  const id = `symptoms-${level}`
+  const lines: string[] = []
+  for (let x = -h; x < w; x += gap) lines.push(`M${x} ${h}L${x + h} 0`)
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" className="shrink-0" data-gap={gap}>
+      <clipPath id={id}>
+        <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" />
+      </clipPath>
+      <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-land)" />
+      <path d={lines.join('')} clipPath={`url(#${id})`} fill="none" stroke="var(--color-ink)" strokeWidth={SYMPTOM_LINE.width} opacity={SYMPTOM_LINE.alpha} />
+      <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="none" stroke="var(--color-ink)" strokeWidth="1.5" />
     </svg>
   )
 }

@@ -19,6 +19,8 @@ export interface RealMapProps {
   carePoints: CarePoint[]
   phase: 1 | 2
   showSignal: boolean
+  /** The symptoms hatch (redesign spec 5.6). */
+  showSymptoms?: boolean
   selectedArea?: string | null
   selectedPoint?: string | null
   onSelectArea: (areaId: string) => void
@@ -62,7 +64,7 @@ type Gesture = { kind: 'drag'; from: XY; start: View; moved: boolean } | { kind:
  * the roads; the SVG layer above them holds what a person can act on, as real buttons: the city,
  * the zones and the care points.
  */
-export function RealMap({ areas, cityState, carePoints, phase, showSignal, selectedArea, selectedPoint, onSelectArea, onSelectCarePoint, onView }: RealMapProps) {
+export function RealMap({ areas, cityState, carePoints, phase, showSignal, showSymptoms = false, selectedArea, selectedPoint, onSelectArea, onSelectCarePoint, onView }: RealMapProps) {
   const wrap = useRef<HTMLDivElement>(null)
   const stack = useRef<HTMLDivElement>(null)
   const picture = useRef<HTMLDivElement>(null)
@@ -209,6 +211,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
       areas: byId,
       phase,
       showSignal,
+      showSymptoms,
       avoid: [...marks.map(markerBox), ...names.map((b): Box => [b.x - b.w / 2, b.y - b.h / 2, b.x + b.w / 2, b.y + b.h / 2])],
     }
     const now = scene.current
