@@ -17,13 +17,14 @@ const ON: Record<MapLayer, string> = {
 }
 
 /**
- * The six layers of the map as switches in one row (redesign spec 5.1). The row scrolls on its own,
- * so a narrow screen never scrolls sideways.
+ * The six layers of the map as switches in one row (redesign spec 5.1), or the four care layers on
+ * the list, which share the same switches (plan decision 10). The row scrolls on its own, so a
+ * narrow screen never scrolls sideways.
  */
-export function LayerChips({ on, onToggle }: { on: Record<MapLayer, boolean>; onToggle: (layer: MapLayer) => void }) {
+export function LayerChips({ on, onToggle, layers = MAP_LAYERS }: { on: Record<MapLayer, boolean>; onToggle: (layer: MapLayer) => void; layers?: readonly MapLayer[] }) {
   return (
     <div role="group" aria-label={th.home.layers} className="flex flex-nowrap gap-2 overflow-x-auto px-3 pb-1.5">
-      {MAP_LAYERS.map((layer) => (
+      {layers.map((layer) => (
         <button
           key={layer}
           type="button"

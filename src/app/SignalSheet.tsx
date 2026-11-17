@@ -1,7 +1,7 @@
 import { Check, ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { th } from '../copy/th'
-import { CARE_POINTS } from '../data/carePoints'
+import { CARE_POINTS, canTest } from '../data/carePoints'
 import { OFFICIAL } from '../data/official'
 import { Emoji } from '../design/Emoji'
 import type { EmojiName } from '../design/emojiCodes'
@@ -58,7 +58,8 @@ type Props = { area: PublishedArea; open: boolean; onClose: () => void }
 export function SignalSheet({ area, open, onClose }: Props) {
   const isCity = area.areaId === 'bkk'
   const shown = area.state === 'shown'
-  const hasPlace = !isCity && CARE_POINTS.some((p) => p.districtId === area.areaId)
+  // A pharmacy is not a place to test (redesign spec 5.1), so it does not count here.
+  const hasPlace = !isCity && CARE_POINTS.some((p) => p.districtId === area.areaId && canTest(p))
   const rows: { emoji: EmojiName; label: string; value: ReactNode }[] = [
     { emoji: 'confirmed', label: th.map.sheet.confirmed, value: shown && area.density ? <Dots band={area.density} /> : <span className="text-[14px] text-muted">{th.map.state[area.state]}</span> },
     { emoji: 'feverish', label: th.map.sheet.symptoms, value: area.symptoms ? <Dots band={area.symptoms} /> : <Without area={area} /> },
@@ -153,7 +154,8 @@ export function SignalSheet({ area, open, onClose }: Props) {
         </More>
       </div>
 
-      <Go to={hasPlace ? `/app/list?district=${area.areaId}` : '/app/list?find=test'} onClick={onClose} className={`mt-3 ${QUIET_LINK}`}>
+      {/* A district without a place to test still leads to its own list, which then begins with its neighbours' places (spec 5.7). */}
+      <Go to={isCity ? '/app/list?find=test' : `/app/list?district=${area.areaId}&find=test`} onClick={onClose} className={`mt-3 ${QUIET_LINK}`}>
         <Emoji name={hasPlace ? 'testTube' : 'pin'} />
         {hasPlace ? th.map.sheet.careHere : th.map.sheet.findCare}
         <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />

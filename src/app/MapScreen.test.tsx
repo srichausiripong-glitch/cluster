@@ -4,14 +4,14 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { formatThaiDate } from '../copy/format'
-import { DISTRICTS } from '../domain/districts'
+import { DISTRICTS, districtLabel } from '../domain/districts'
 import { th } from '../copy/th'
 import type { PublishedArea } from '../domain/types'
 import { setCarePoints } from '../data/carePoints'
 import { setPharmacySource } from '../data/pharmacies'
 import { setPublishedForTest } from '../map/published'
 import type { MapLayer } from '../domain/types'
-import { MAP_LAYERS } from '../store/actions'
+import { layersOn, MAP_LAYERS, toggleLayer } from '../store/actions'
 import { phone } from '../store/stores'
 import { FIXTURE_PHARMACIES, FIXTURE_POINTS as CARE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
 
@@ -61,9 +61,11 @@ it('gives every marker a 44 px target and marks the selected one', async () => {
   expect(pin).toHaveAttribute('data-selected', 'true')
   expect(within(screen.getByRole('dialog')).getByText(th.care.place)).toBeInTheDocument()
 })
-it('offers a list view with every care point', () => {
+/** What the list shows at first: every place but the pharmacies, whose switch starts off (redesign spec 5.1). */
+const AT_FIRST = CARE_POINTS.filter((p) => p.layer !== 'pharmacy')
+it('offers a list view with every care point of the layers that are on', () => {
   openApp('/app/list')
-  expect(screen.getAllByRole('listitem').length).toBe(CARE_POINTS.length)
+  expect(screen.getAllByRole('listitem').length).toBe(AT_FIRST.length)
 })
 it('carries the city signal and the status card on the list, as on the map', async () => {
   const user = userEvent.setup()
@@ -74,6 +76,7 @@ it('carries the city signal and the status card on the list, as on the map', asy
   expect(sheet.getAllByText(th.map.state.below_threshold).length).toBeGreaterThan(0)
 })
 it('never calls a pharmacy a state or Red Cross unit, and shows cost words only where they may be shown', () => {
+  toggleLayer('pharmacy') // the list follows the map's switches, and pharmacies start off
   openApp('/app/list')
   const row = (name: string) => within(screen.getByRole('button', { name: new RegExp(name) }))
   expect(row('ร้านยาชุมชนตัวอย่าง').getByText(`เขตราชเทวี · ${th.care.type.pharmacy}`)).toBeInTheDocument()
@@ -303,15 +306,17 @@ it('explains the marks, the age of a signal and what a signal is not, behind ⓘ
   const row = sheet.getAllByText(th.map.state.below_threshold).map((el) => el.closest('li')).find((li) => li !== null)!
   expect(row.querySelector('path')?.getAttribute('d')).toBe('')
 })
-it('leads from a district to the places to test in it, or to every place when it has none', async () => {
+it('leads from a district’s sheet to the places to test there, never counting a pharmacy as one', async () => {
   const user = userEvent.setup()
   const view = openApp('/app')
   let sheet = await openArea(user, 'บางรัก')
-  expect(sheet.getByRole('link', { name: th.map.sheet.careHere })).toHaveAttribute('href', '/app/list?district=bang_rak')
+  expect(sheet.getByRole('link', { name: th.map.sheet.careHere })).toHaveAttribute('href', '/app/list?district=bang_rak&find=test')
   view.unmount()
   openApp('/app')
-  sheet = await openArea(user, 'หนองจอก')
-  expect(sheet.getByRole('link', { name: th.map.sheet.findCare })).toHaveAttribute('href', '/app/list?find=test')
+  // Bang Khae has only cp9, a pharmacy: not a place to test, so the list leads with its neighbours' places.
+  sheet = await openArea(user, 'บางแค')
+  expect(sheet.queryByRole('link', { name: th.map.sheet.careHere })).toBeNull()
+  expect(sheet.getByRole('link', { name: th.map.sheet.findCare })).toHaveAttribute('href', '/app/list?district=bang_khae&find=test')
 })
 it('opens the city sheet from the yellow box', async () => {
   const user = userEvent.setup()
@@ -340,14 +345,15 @@ it('shows only places that test when asked from "ยังไม่ได้ต�
 })
 it('shows only the places in a district when asked from its sheet', () => {
   openApp('/app/list?district=bang_rak')
-  const items = screen.getAllByRole('listitem')
+  const items = within(screen.getByRole('list', { name: 'เขตบางรัก' })).getAllByRole('listitem')
   expect(items.length).toBeGreaterThan(0)
   for (const item of items) expect(item).toHaveTextContent('เขตบางรัก')
-  expect(screen.getByRole('link', { name: `เขตบางรัก ${th.care.showAll}` })).toHaveAttribute('href', '/app/list')
+  expect(screen.getByRole('button', { name: 'เขตบางรัก' })).toBeInTheDocument()
 })
 it('ignores a district that is not one of the 50 and lists every place', () => {
   openApp('/app/list?district=central')
-  expect(screen.getAllByRole('listitem')).toHaveLength(CARE_POINTS.length)
+  expect(screen.getAllByRole('listitem')).toHaveLength(AT_FIRST.length)
+  expect(screen.getByRole('button', { name: th.care.allDistricts })).toBeInTheDocument()
 })
 it('names the nearest place as in your district when the phone remembers one with a place in it', () => {
   phone.update((s) => ({ ...s, myDistrict: 'bang_rak' }))
@@ -361,6 +367,56 @@ it('closes the city sheet on the list when it leads to the places to test', asyn
   await user.click(sheet.getByRole('link', { name: th.map.sheet.findCare }))
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(screen.getByRole('link', { name: `${th.care.filterTest} ${th.care.showAll}` })).toBeInTheDocument()
+})
+// ---- round 3: the list follows the map's care switches, and a district, and what is near ---------
+const careChips = () => within(screen.getByRole('group', { name: th.home.layers }))
+it('switches the list’s places with the same layer chips as the map', async () => {
+  const user = userEvent.setup()
+  setPharmacySource(() => Promise.resolve(FIXTURE_PHARMACIES))
+  openApp('/app/list')
+  expect(careChips().getAllByRole('button').map((b) => b.textContent)).toEqual((['sti', 'health_centre', 'hospital', 'pharmacy'] as const).map((l) => th.layers[l]))
+  await user.click(careChips().getByRole('button', { name: th.layers.hospital }))
+  expect(screen.queryByRole('button', { name: /โรงพยาบาลรัฐตัวอย่าง/ })).toBeNull()
+  expect(layersOn(phone.get()).hospital).toBe(false)
+  await user.click(careChips().getByRole('button', { name: th.layers.pharmacy }))
+  await user.click(await screen.findByRole('button', { name: /ร้านยาราชเทวีตัวอย่าง/ }))
+  expect(screen.getByRole('dialog', { name: 'ร้านยาราชเทวีตัวอย่าง' })).toBeInTheDocument()
+})
+it('picks a district from the list and shows its places first, then its neighbours’', async () => {
+  const user = userEvent.setup()
+  openApp('/app/list')
+  await user.click(screen.getByRole('button', { name: th.care.allDistricts }))
+  let sheet = within(screen.getByRole('dialog', { name: th.picker.legend }))
+  await user.click(sheet.getByRole('radio', { name: 'บางรัก' }))
+  await user.click(sheet.getByRole('button', { name: th.picker.use }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(within(screen.getByRole('list', { name: 'เขตบางรัก' })).getByRole('button', { name: /คลินิกชุมชนสีลมตัวอย่าง/ })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: th.care.nearby })).toBeInTheDocument()
+  expect(within(screen.getByRole('list', { name: th.care.nearby })).getByRole('button', { name: /คลินิกกาชาดตัวอย่าง/ })).toBeInTheDocument()
+  // And back to every district.
+  await user.click(screen.getByRole('button', { name: 'เขตบางรัก' }))
+  sheet = within(screen.getByRole('dialog', { name: th.picker.legend }))
+  await user.click(sheet.getByRole('button', { name: th.care.allDistricts }))
+  expect(screen.getAllByRole('listitem')).toHaveLength(AT_FIRST.length)
+})
+it('shows the neighbouring districts’ places when the chosen district has none', () => {
+  openApp('/app/list?district=samphanthawong')
+  expect(screen.queryByRole('list', { name: districtLabel('samphanthawong') })).toBeNull()
+  expect(screen.getByRole('heading', { name: th.care.nearby })).toBeInTheDocument()
+  expect(within(screen.getByRole('list', { name: th.care.nearby })).getAllByRole('listitem').length).toBeGreaterThan(0)
+  expect(screen.queryByText(th.care.noneHere)).toBeNull()
+})
+it('keeps the district when the test filter is cleared', () => {
+  openApp('/app/list?district=bang_rak&find=test')
+  expect(screen.getByRole('link', { name: `${th.care.filterTest} ${th.care.showAll}` })).toHaveAttribute('href', '/app/list?district=bang_rak')
+})
+it('says the pharmacy list could not be read when 💊 is on and the file fails', async () => {
+  const user = userEvent.setup()
+  setPharmacySource(() => Promise.reject(new Error('offline')))
+  openApp('/app/list')
+  expect(screen.queryByText(th.care.pharmaciesFailed)).toBeNull()
+  await user.click(careChips().getByRole('button', { name: th.layers.pharmacy }))
+  expect(await screen.findByText(th.care.pharmaciesFailed)).toBeInTheDocument()
 })
 it('marks a layer that is on with a tick, not by colour alone', () => {
   openApp('/app')

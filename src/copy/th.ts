@@ -83,6 +83,9 @@ export const th = {
     fetched: 'ข้อมูลเมื่อ {date}',
     call: 'โทร',
     directions: 'นำทาง',
+    allDistricts: 'ทุกเขต',
+    nearby: 'เขตใกล้เคียง',
+    pharmaciesFailed: 'โหลดรายชื่อร้านยาไม่ได้ ปิดแล้วเปิดชั้นร้านยาอีกครั้งเพื่อลองใหม่',
   },
   help: {
     title: 'ช่วยเหลือ',
