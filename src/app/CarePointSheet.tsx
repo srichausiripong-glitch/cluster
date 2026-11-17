@@ -2,10 +2,11 @@ import { ExternalLink } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
-import { TEXT_LINK } from '../design/look'
+import { Emoji } from '../design/Emoji'
+import { ALERT, QUIET_LINK, TEXT_LINK } from '../design/look'
 import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
-import type { CarePoint } from '../data/carePoints'
+import { isVerified, type CarePoint } from '../data/carePoints'
 import { districtLabel } from '../domain/districts'
 import { carePointType } from './CarePointRow'
 
@@ -18,34 +19,94 @@ function Row({ label, value }: { label: string; value: ReactNode }) {
   )
 }
 
+/** The name of the site a point's data came from, as a link reads it. */
+const host = (url: string) => {
+  try {
+    return new URL(url).host
+  } catch {
+    return url
+  }
+}
+
+/**
+ * One care point. A confirmed place shows its full detail; a place nobody has confirmed says to
+ * call first, where its data came from and when, and none of the detail it cannot vouch for
+ * (redesign spec 5.8). Both offer a call when a number is known, and the way there, which opens
+ * Google Maps with the place's coordinates only when pressed (plan decision 9; /privacy says so).
+ */
 export function CarePointSheet({ point, onClose }: { point: CarePoint | null; onClose: () => void }) {
   if (!point) return null
+  const verified = isVerified(point)
   return (
     <Sheet open onClose={onClose} title={point.name}>
       <div className="mb-3 flex flex-wrap gap-2">
         <Chip tone="care">{carePointType(point)}</Chip>
-        {point.pep && <Chip tone="care">{th.care.pep}</Chip>}
+        {verified && point.pep && <Chip tone="care">{th.care.pep}</Chip>}
       </div>
-      <dl className="space-y-2 rounded-md border-2 border-ink bg-bg p-3 text-[15px]">
-        <Row label={th.care.place} value={districtLabel(point.districtId)} />
-        {point.klass === 'A' && (
-          <>
-            {point.services && <Row label={th.care.services} value={point.services.join(' · ')} />}
-            {point.hours && <Row label={th.care.hours} value={point.hours} />}
-            {point.cost && <Row label={th.care.cost} value={<Chip tone="free">{point.cost}</Chip>} />}
-          </>
-        )}
-        {point.verified && <Row label={th.care.verified} value={formatThaiDate(new Date(point.verified.date))} />}
-      </dl>
-      {point.klass === 'B' && (
-        <div className="mt-3 space-y-2 rounded-md border-2 border-ink bg-bg p-3">
-          <p className="text-muted">{th.care.klassBNote}</p>
-          <a href={point.source} target="_blank" rel="noreferrer" className={`inline-flex min-h-11 items-center gap-2 ${TEXT_LINK}`}>
-            <ExternalLink size={18} strokeWidth={2} aria-hidden="true" />
-            {th.care.linkOut}
-          </a>
-        </div>
+      {verified ? (
+        <>
+          <dl className="space-y-2 rounded-md border-2 border-ink bg-bg p-3 text-[15px]">
+            <Row label={th.care.place} value={districtLabel(point.districtId)} />
+            {point.klass === 'A' && (
+              <>
+                {point.services && <Row label={th.care.services} value={point.services.join(' · ')} />}
+                {point.hours && <Row label={th.care.hours} value={point.hours} />}
+                {point.cost && <Row label={th.care.cost} value={<Chip tone="free">{point.cost}</Chip>} />}
+              </>
+            )}
+            {point.verified && <Row label={th.care.verified} value={formatThaiDate(new Date(point.verified.date))} />}
+          </dl>
+          {point.klass === 'B' && (
+            <div className="mt-3 space-y-2 rounded-md border-2 border-ink bg-bg p-3">
+              <p className="text-muted">{th.care.klassBNote}</p>
+              <a href={point.source} target="_blank" rel="noreferrer" className={`inline-flex min-h-11 items-center gap-2 ${TEXT_LINK}`}>
+                <ExternalLink size={18} strokeWidth={2} aria-hidden="true" />
+                {th.care.linkOut}
+              </a>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <p className={`mb-3 flex items-center gap-2 px-3 py-2 font-bold ${ALERT}`}>
+            <Emoji name="phone" />
+            {th.care.unverified}
+          </p>
+          <dl className="space-y-2 rounded-md border-2 border-ink bg-bg p-3 text-[15px]">
+            <Row
+              label={th.care.place}
+              value={
+                <>
+                  {districtLabel(point.districtId)}
+                  {point.address && <span className="block text-[14px] text-muted">{point.address}</span>}
+                </>
+              }
+            />
+            <Row
+              label={th.care.source}
+              value={
+                <a href={point.source} target="_blank" rel="noreferrer" className={`inline-flex min-h-11 items-center gap-1.5 break-all ${TEXT_LINK}`}>
+                  {host(point.source)}
+                  <ExternalLink size={16} strokeWidth={2} className="shrink-0" aria-hidden="true" />
+                </a>
+              }
+            />
+          </dl>
+          <p className="mt-2 text-[13px] text-muted">{th.care.fetched.replace('{date}', formatThaiDate(new Date(point.fetched)))}</p>
+        </>
       )}
+      <div className="mt-3 flex gap-2">
+        {point.phone && (
+          <a href={`tel:${point.phone}`} className={`flex-1 ${QUIET_LINK}`}>
+            <Emoji name="phone" />
+            {th.care.call}
+          </a>
+        )}
+        <a href={`https://www.google.com/maps/dir/?api=1&destination=${point.lat},${point.lon}`} target="_blank" rel="noreferrer" className={`flex-1 ${QUIET_LINK}`}>
+          <Emoji name="compass" />
+          {th.care.directions}
+        </a>
+      </div>
     </Sheet>
   )
 }

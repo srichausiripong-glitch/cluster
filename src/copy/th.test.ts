@@ -79,3 +79,10 @@ it('has no check-in, send-signal or age-limit words left in the copy', () => {
 it('puts no ปลอดภัย on a button', () => {
   for (const s of [th.notify.safeYes, th.home.clear, th.home.found, ...Object.values(th.report.found)]) expect(s).not.toContain('ปลอดภัย')
 })
+
+// What leaves the phone stays true on the privacy page (spec 3): the pharmacy file is ours, and นำทาง hands one place to Google only when pressed.
+it('says on the privacy page that the pharmacy list comes from our server and that นำทาง hands the place to Google', () => {
+  expect(th.privacy.leaves.join(' ')).toContain('รายชื่อร้านยา')
+  expect(th.privacy.leaves.at(-1)).toContain('Google')
+  expect(th.privacy.leaves.at(-1)).toContain(th.care.directions)
+})

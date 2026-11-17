@@ -10,6 +10,7 @@ export const CODES = {
   hospital: '1F3E5', pill: '1F48A', map: '1F5FA', clipboard: '1F4CB', smile: '1F642', sos: '1F198',
   envelope: '1F4E8', petri: '1F9EB', blood: '1FA78', ribbon: '1F397', blueCircle: '1F535', house: '1F3E0',
   speech: '1F4AC', alarm: '23F0', pushpin: '1F4CC', pause: '23F8', search: '1F50E', lock: '1F512', phone: '1F4DE',
+  compass: '1F9ED',
 } as const
 
 export type EmojiName = keyof typeof CODES
