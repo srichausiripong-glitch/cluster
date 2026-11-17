@@ -13,11 +13,14 @@ import { CheckIn } from './CheckIn'
 import { SendSignalLink } from './SendSignalLink'
 import { SignalSheet } from './SignalSheet'
 import { carePointFor } from './useCity'
+import { LayerChips } from './LayerChips'
+import { layersOn, toggleLayer } from '../store/actions'
+import { usePartyStore } from '../store/partyStore'
+import { phone } from '../store/stores'
 
 export function MapScreen() {
   const { districts, city, byId } = useAreas()
-  const [showCare, setShowCare] = useState(true)
-  const [showSignal, setShowSignal] = useState(true)
+  const on = layersOn(usePartyStore(phone))
   const [areaId, setAreaId] = useState<string | null>(null)
   const [pointId, setPointId] = useState<string | null>(null)
   const [seen, setSeen] = useState<{ level: Level; areaId: string | null }>({ level: 'city', areaId: null })
@@ -31,16 +34,16 @@ export function MapScreen() {
     ? { id: inView, name: districtName(inView), state: byId(inView).state }
     : { id: 'bkk', name: 'กรุงเทพฯ', state: city.state }
   const first = orderedCarePoints().at(0)
-  const toggle = `min-h-9 rounded-full border-2 border-ink px-3 text-[13px] font-bold ${PRESS}`
 
   return (
     <div className="relative h-full overflow-hidden">
       <RealMap
         areas={districts}
         cityState={city.state}
-        carePoints={showCare ? CARE_POINTS : []}
+        carePoints={CARE_POINTS.filter((p) => on[p.layer])}
         phase={2}
-        showSignal={showSignal}
+        showSignal={on.confirmed}
+        showSymptoms={on.symptoms}
         selectedArea={areaId}
         selectedPoint={pointId}
         onSelectArea={setAreaId}
@@ -48,13 +51,8 @@ export function MapScreen() {
         onView={setSeen}
       />
 
-      <div className="absolute inset-x-3 top-3 flex flex-wrap items-center gap-2">
-        <button type="button" aria-pressed={showCare} onClick={() => setShowCare((v) => !v)} className={`${toggle} ${showCare ? 'bg-care text-ink' : 'bg-surface text-muted'}`}>
-          {th.map.layers.care}
-        </button>
-        <button type="button" aria-pressed={showSignal} onClick={() => setShowSignal((v) => !v)} className={`${toggle} ${showSignal ? 'bg-signal text-white' : 'bg-surface text-muted'}`}>
-          {th.map.layers.signal}
-        </button>
+      <div className="absolute inset-x-0 top-3">
+        <LayerChips on={on} onToggle={toggleLayer} />
       </div>
 
       <button

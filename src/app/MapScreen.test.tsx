@@ -9,6 +9,8 @@ import { th } from '../copy/th'
 import type { PublishedArea } from '../domain/types'
 import { setCarePoints } from '../data/carePoints'
 import { setPublishedForTest } from '../map/published'
+import type { MapLayer } from '../domain/types'
+import { MAP_LAYERS } from '../store/actions'
 import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
 
 const openApp = (path: string) =>
@@ -244,4 +246,41 @@ it('keys "ยังไม่ถึงเกณฑ์" with the plain look the ma
   const sheet = await openSignal(user)
   const row = sheet.getAllByText(th.map.state.below_threshold).map((el) => el.closest('li')).find((li) => li !== null)!
   expect(row.querySelector('path')?.getAttribute('d')).toBe('')
+})
+
+// ---- round 2: six layer switches over the map ---------------------------------------------------
+const chip = (layer: MapLayer) => screen.getByRole('button', { name: th.layers[layer] })
+it('offers the six layers as switches, all on but pharmacies, and remembers a change', async () => {
+  const user = userEvent.setup()
+  const view = openApp('/app')
+  for (const layer of MAP_LAYERS) expect(chip(layer)).toHaveAttribute('aria-pressed', layer === 'pharmacy' ? 'false' : 'true')
+  await user.click(chip('pharmacy'))
+  view.unmount()
+  openApp('/app')
+  expect(chip('pharmacy')).toHaveAttribute('aria-pressed', 'true')
+})
+it('hides the places of a care layer that is off, and pharmacies until asked', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  expect(screen.queryByRole('button', { name: 'ร้านยาบางแคตัวอย่าง' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'โรงพยาบาลรัฐตัวอย่าง' })).toBeInTheDocument()
+  await user.click(chip('hospital'))
+  expect(screen.queryByRole('button', { name: 'โรงพยาบาลรัฐตัวอย่าง' })).toBeNull()
+})
+it('switches the confirmed signal and the symptoms hatch from their own chips', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  const m = document.querySelector('[data-map]')!
+  expect(m).toHaveAttribute('data-signal')
+  await user.click(chip('confirmed'))
+  expect(m).not.toHaveAttribute('data-signal')
+  expect(m).toHaveAttribute('data-symptoms')
+  await user.click(chip('symptoms'))
+  expect(m).not.toHaveAttribute('data-symptoms')
+})
+it('keeps the six chips in one row that scrolls on its own, so a 320 px screen never scrolls sideways', () => {
+  openApp('/app')
+  const row = screen.getByRole('group', { name: th.home.layers })
+  expect(row.className).toMatch(/\boverflow-x-auto\b/)
+  for (const b of within(row).getAllByRole('button')) expect(b.className).toMatch(/\bshrink-0\b/)
 })

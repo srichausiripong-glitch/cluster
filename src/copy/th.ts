@@ -57,7 +57,6 @@ export const th = {
     many: 'จุดบริการ {n} แห่งใกล้กัน ซูมเข้าเพื่อแยก',
     noDetail: 'ยังไม่มีแผนที่ระดับถัดไปตรงนี้',
     loadFailed: 'โหลดแผนที่ไม่ได้ ยังดูเขตและจุดบริการได้',
-    layers: { care: 'จุดบริการ', signal: 'สัญญาณ' },
     weekly: 'อัปเดตสัปดาห์ละครั้ง',
     current: 'ตอนนี้',
     key: 'เครื่องหมายบนแผนที่',
@@ -138,6 +137,9 @@ export const th = {
     backToMap: 'กลับไปที่แผนที่',
   },
 
+  /** The six layer switches over the map (redesign spec 5.1). */
+  layers: { confirmed: 'ผลยืนยัน', symptoms: 'มีอาการ', sti: 'คลินิก', health_centre: 'ศูนย์ฯ กทม.', hospital: 'โรงพยาบาล', pharmacy: 'ร้านยา' },
+  home: { layers: 'ชั้นแผนที่' },
   picker: { search: 'ค้นหาเขต', placeholder: 'พิมพ์ชื่อเขต…', legend: 'เลือกเขต', none: 'ไม่พบเขตนี้', change: 'เปลี่ยน', use: 'ใช้เขตนี้' },
   /** The "ส่งแค่" line of a report, and what its ⓘ says (redesign spec 5.2). */
   send: {

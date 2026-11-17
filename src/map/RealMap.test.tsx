@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { th } from '../copy/th'
 import { DISTRICTS } from '../domain/districts'
@@ -16,6 +16,10 @@ import { RealMap } from './RealMap'
 import { setPublishedForTest } from './published'
 import { fetchSource, setMapSource } from './source'
 import { cityView, MAP_INSET, toScreen, viewAt } from './view'
+import { toggleLayer } from '../store/actions'
+
+// These tests count and open markers, so every fixture point is shown: pharmacies are off by default (redesign spec 5.1).
+beforeEach(() => toggleLayer('pharmacy'))
 
 afterEach(() => {
   setPublishedForTest(null)

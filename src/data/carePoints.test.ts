@@ -1,11 +1,12 @@
 import { expect, it } from 'vitest'
 import { DISTRICT_IDS } from '../domain/districts'
-import { ALL_CARE_POINTS, CARE_POINTS, verifiedOnly, type CarePoint } from './carePoints'
+import { ALL_CARE_POINTS, CARE_POINTS, canTest, verifiedOnly, type CarePoint } from './carePoints'
 
 const point = (over: Partial<CarePoint>): CarePoint => ({
   id: 'x',
   name: 'จุดบริการ',
   kind: 'clinic',
+  layer: 'sti',
   klass: 'A',
   districtId: 'ratchathewi',
   lat: 13.766536,
@@ -53,4 +54,10 @@ it('places each care point in the district its coordinates fall in', () => {
 })
 it('puts every point of the real registry inside a district', () => {
   for (const p of ALL_CARE_POINTS) expect(DISTRICT_IDS, p.id).toContain(p.districtId)
+})
+
+it('puts every registry point in one of the four layers, and counts every layer but pharmacies as a place to test', () => {
+  for (const p of ALL_CARE_POINTS) expect(['sti', 'health_centre', 'hospital', 'pharmacy'], p.id).toContain(p.layer)
+  expect(canTest(point({ layer: 'pharmacy' }))).toBe(false)
+  expect(canTest(point({ layer: 'hospital' }))).toBe(true)
 })

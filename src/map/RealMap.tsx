@@ -371,6 +371,8 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
       ref={wrap}
       data-map
       data-level={shown.level}
+      data-signal={showSignal ? '' : undefined}
+      data-symptoms={showSymptoms ? '' : undefined}
       data-still={still ? '' : undefined}
       className="absolute inset-0 touch-none select-none overflow-hidden bg-land-out"
       onPointerDown={onPointerDown}

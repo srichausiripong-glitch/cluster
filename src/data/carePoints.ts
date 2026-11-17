@@ -1,5 +1,6 @@
 import { areaAt } from '../map/areas'
 import { toXY } from '../map/geo'
+import type { CareLayer } from '../domain/types'
 import registry from './care-points.json'
 
 /** A care point as the registry and the tests write it. Its district comes from where it stands. */
@@ -7,6 +8,8 @@ export interface CarePointData {
   id: string
   name: string
   kind: 'clinic' | 'hospital' | 'pharmacy' | 'lab'
+  /** Which layer of the map it belongs to (redesign spec 5.8; round 2 plan, decision 9). */
+  layer: CareLayer
   /** A: state or Red Cross, may show services, hours and cost. B: private or NGO clinic, name and place only (spec 5.2). */
   klass: 'A' | 'B'
   lat: number
@@ -50,4 +53,9 @@ export function setCarePoints(points: CarePointData[]): void {
 export function orderedCarePoints(points: CarePoint[] = CARE_POINTS): CarePoint[] {
   const rank = (p: CarePoint) => (p.free && p.klass === 'A' ? 0 : p.community ? 1 : p.free ? 2 : 3)
   return [...points].sort((a, b) => rank(a) - rank(b))
+}
+
+/** Whether a point is a place to get tested: every layer but pharmacies (redesign spec 5.1). */
+export function canTest(point: CarePoint): boolean {
+  return point.layer !== 'pharmacy'
 }
