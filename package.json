@@ -11,6 +11,7 @@
     "test": "vitest run",
     "map:fetch": "node scripts/map/fetch.ts",
     "map:build": "node scripts/map/build.ts",
+    "emoji:fetch": "node scripts/emoji/fetch.ts",
     "admin:hash": "node scripts/admin-hash.ts",
     "launch-check": "node scripts/launch-check.ts",
     "db:migrate": "node scripts/migrate.ts",

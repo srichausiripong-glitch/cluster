@@ -14,3 +14,8 @@ export function Logo({ size = 18 }: { size?: number }) {
     </span>
   )
 }
+
+/** The figures from the logo on their own, for a screen with nothing in it yet and for a finished flow (spec 5.10). */
+export function Mascot({ size = 72 }: { size?: number }) {
+  return <img src={mark} alt="" style={{ height: size, width: 'auto' }} className="shrink-0" />
+}

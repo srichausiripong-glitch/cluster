@@ -137,6 +137,14 @@ it('offers a route to help and to sending a signal from the map', () => {
 })
 
 // ---- the Pop-art map screen, sheets and navigation ---------------------------------------------
+it('draws each tab with its emoji above its word', () => {
+  openApp('/app')
+  for (const label of Object.values(th.nav)) expect(screen.getByRole('link', { name: label }).querySelector('img')).not.toBeNull()
+})
+it('credits the emoji set on the help page', () => {
+  openApp('/app/help')
+  expect(screen.getByRole('link', { name: th.help.emojiCredit })).toHaveAttribute('href', 'https://openmoji.org')
+})
 it('marks the current tab by a filled shape, not by colour alone', () => {
   openApp('/app/list')
   const current = screen.getByRole('link', { name: th.nav.list })

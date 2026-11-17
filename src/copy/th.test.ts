@@ -50,3 +50,13 @@ it('lists on the privacy page that the phone keeps when it may next send a check
   expect(th.privacy.phone).toContain('"มีอาการ"')
   expect(th.privacy.phone).toContain('ลบเองเมื่อถึงสัปดาห์นั้น')
 })
+
+it('writes no emoji character in the copy, so every emoji is a bundled picture (guard: passes from the start)', () => {
+  // ©, ® and ™ count as pictographs in Unicode, but they are text symbols here (the map credit).
+  for (const s of strings(th)) expect(s).not.toMatch(/(?![©®™])\p{Extended_Pictographic}/u)
+})
+it('calls the self-care tab ของฉัน wherever the copy points to it', () => {
+  expect(th.nav.me).toBe('ของฉัน')
+  expect(th.me.title).toBe('ของฉัน')
+  for (const s of strings(th)) expect(s).not.toContain('"ดูแลตัวเอง"')
+})
