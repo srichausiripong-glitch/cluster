@@ -65,6 +65,7 @@ it('keeps only the first phone number, as digits', () => {
   expect(['022265897 022227874', '0 2289 7000-3', '022112353 ext 101', '+66 81 234 5678', '02-123-4567', '1330', ''].map(firstPhone))
     .toEqual(['022265897', '022897000', '022112353', '0812345678', '021234567', undefined, undefined])
   expect(firstPhone(undefined)).toBeUndefined()
+  expect(firstPhone('+66 (0) 2731 6532 (ext. 102 for the clinic)')).toBe('027316532')
 })
 it('writes only points the launch check accepts', () => {
   const read = (path: string) => JSON.parse(readFileSync(path, 'utf8')) as LaunchData['carePoints']

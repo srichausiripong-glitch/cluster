@@ -54,6 +54,7 @@ export function MapScreen() {
         onSelectArea={setAreaId}
         onSelectCarePoint={setPointId}
         onView={setSeen}
+        note={pharmacy ? (pharmacies.failed ? th.care.pharmaciesFailed : atCity ? th.map.pharmaciesZoom : undefined) : undefined}
       />
 
       <div className="absolute inset-x-0 top-3">

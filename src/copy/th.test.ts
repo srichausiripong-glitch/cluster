@@ -86,3 +86,7 @@ it('says on the privacy page that the pharmacy list comes from our server and th
   expect(th.privacy.leaves.at(-1)).toContain('Google')
   expect(th.privacy.leaves.at(-1)).toContain(th.care.directions)
 })
+
+it('says on the privacy page that a place’s source link opens that site, such as OpenStreetMap, only when pressed', () => {
+  expect(th.privacy.leaves.some((line) => line.includes(`"${th.care.source}"`) && line.includes('OpenStreetMap'))).toBe(true)
+})

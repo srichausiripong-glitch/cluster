@@ -62,7 +62,8 @@ export function parseCsv(text: string): Record<string, string>[] {
  */
 export function firstPhone(raw: string | undefined): string | undefined {
   if (!raw) return undefined
-  const first = raw.split(/[;,/]|ext|ต่อ/i)[0].trim().replace(/^\+\s*66[\s-]*/, '0')
+  // "+66 (0) 2731 6532" writes the trunk 0 twice; it is dropped with the country code.
+  const first = raw.split(/[;,/]|ext|ต่อ/i)[0].trim().replace(/^\+\s*66[\s-]*(\(0\))?[\s-]*/, '0')
   const digits = first.replace(/\D/g, '')
   if (!digits.startsWith('0')) return undefined
   const whole = /^0[689]/.test(digits) ? 10 : 9

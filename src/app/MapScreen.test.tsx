@@ -8,7 +8,7 @@ import { DISTRICTS, districtLabel } from '../domain/districts'
 import { th } from '../copy/th'
 import type { PublishedArea } from '../domain/types'
 import { setCarePoints } from '../data/carePoints'
-import { setPharmacySource } from '../data/pharmacies'
+import { resetPharmaciesForTest, setPharmacySource } from '../data/pharmacies'
 import { setPublishedForTest } from '../map/published'
 import type { MapLayer } from '../domain/types'
 import { layersOn, MAP_LAYERS, toggleLayer } from '../store/actions'
@@ -227,6 +227,23 @@ it('hides the places of a care layer that is off, and pharmacies until asked', a
   expect(screen.getByRole('button', { name: 'โรงพยาบาลรัฐตัวอย่าง' })).toBeInTheDocument()
   await user.click(chip('hospital'))
   expect(screen.queryByRole('button', { name: 'โรงพยาบาลรัฐตัวอย่าง' })).toBeNull()
+})
+it('says on the map that pharmacies show one level in, and says so when their file cannot be read', async () => {
+  const user = userEvent.setup()
+  setPharmacySource(() => Promise.resolve(FIXTURE_PHARMACIES))
+  const view = openApp('/app')
+  expect(th.map.pharmaciesZoom).toBeTruthy()
+  expect(screen.queryByText(th.map.pharmaciesZoom)).toBeNull()
+  await user.click(chip('pharmacy'))
+  expect(screen.getByText(th.map.pharmaciesZoom)).toBeInTheDocument()
+  await user.click(view.container.querySelector('[data-many]') as HTMLElement)
+  await waitFor(() => expect(screen.queryByText(th.map.pharmaciesZoom)).toBeNull())
+  view.unmount()
+  setPharmacySource(() => Promise.reject(new Error('offline')))
+  resetPharmaciesForTest()
+  setPharmacySource(() => Promise.reject(new Error('offline')))
+  openApp('/app')
+  expect(await screen.findByText(th.care.pharmaciesFailed)).toBeInTheDocument()
 })
 it('shows pharmacies only when 💊 is on and only below city level, each opening its own sheet', async () => {
   const user = userEvent.setup()

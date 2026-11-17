@@ -8,8 +8,11 @@ import { withDistrict, type CarePoint, type CarePointData } from './carePoints'
  */
 type Load = () => Promise<CarePointData[]>
 
+/** How long a read may take before it counts as failed: a slow network says so instead of waiting forever. */
+const WAIT_MS = 20_000
+
 const fromServer: Load = async () => {
-  const res = await fetch(`${import.meta.env.BASE_URL}care/pharmacies.json`)
+  const res = await fetch(`${import.meta.env.BASE_URL}care/pharmacies.json`, { signal: AbortSignal.timeout(WAIT_MS) })
   if (!res.ok) throw new Error(`pharmacies: ${res.status}`)
   return (await res.json()) as CarePointData[]
 }
@@ -48,10 +51,17 @@ export function resetPharmaciesForTest(): void {
 function read(): void {
   if (state.read || state.reading) return
   change({ reading: true, failed: false })
-  source().then(
-    (list) => change({ points: list.map(withDistrict), read: true, reading: false }),
-    () => change({ failed: true, reading: false }),
-  )
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const tooLate = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('pharmacies: no answer')), WAIT_MS)
+  })
+  Promise.race([source(), tooLate])
+    .then((list) => {
+      if (!Array.isArray(list)) throw new Error('pharmacies: not a list')
+      change({ points: list.map(withDistrict), read: true, reading: false })
+    })
+    .catch(() => change({ failed: true, reading: false }))
+    .finally(() => clearTimeout(timer))
 }
 
 /** The pharmacies while 💊 is on, with whether the file could not be read; nothing while it is off. */

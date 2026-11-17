@@ -44,7 +44,8 @@ export interface CarePoint extends CarePointData {
 export const withDistrict = (p: CarePointData): CarePoint => ({ ...p, districtId: areaAt(toXY(p.lat, p.lon))?.id ?? '' })
 
 /** Whether somebody has confirmed the point. Only a confirmed point is a big pin with its full detail (redesign spec 5.8). */
-export const isVerified = (p: CarePointData): boolean => p.verified !== null
+// A point whose data names no verification at all is not confirmed either, as the launch check reads it.
+export const isVerified = (p: CarePointData): boolean => p.verified != null
 
 /**
  * Every point that ships with the app, confirmed or not: the registry, then the BMA's health

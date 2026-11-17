@@ -88,3 +88,30 @@ it('falls back to the first place when no district is known', () => {
   expect(nearestFor('bkk')?.id).toBe(orderedCarePoints()[0].id)
   expect(nearestFor('bang_rak')?.id).toBe('cp4')
 })
+
+// ---- final review --------------------------------------------------------------------------------
+// "Call first" needs a number to call: the registry's numbers come from the pages it was gathered from (docs/care-points-to-verify.md).
+it('gives every PEP place that ships a number to call, and every number as whole digits', () => {
+  const pep = ALL_CARE_POINTS.filter((p) => p.pep)
+  expect(pep.length).toBeGreaterThan(0)
+  for (const p of pep) expect(p.phone, p.id).toMatch(/^0\d{8,9}$/)
+  for (const p of ALL_CARE_POINTS.filter((c) => c.phone !== undefined)) expect(p.phone, p.id).toMatch(/^0\d{8,9}$/)
+  expect(ALL_CARE_POINTS.filter((p) => p.phone).length).toBeGreaterThanOrEqual(22 + 63 + 3)
+})
+it('counts a point whose data names no verification as not confirmed, as the launch check does', () => {
+  expect(isVerified({ ...FIXTURE_POINTS[0], verified: undefined } as unknown as CarePoint)).toBe(false)
+  for (const p of ALL_CARE_POINTS) expect('verified' in p, p.id).toBe(true)
+})
+it('puts the BMA centres the registry lists where the BMA’s own list puts them, not at a guess on the street', () => {
+  const at: Record<string, [number, number, string]> = {
+    'bma-hc3-bangsue': [13.8024555, 100.5339661, 'bang_sue'],
+    'bma-hc9-prachathipatai': [13.7611791, 100.5036559, 'phra_nakhon'],
+    'bma-hc25-huaikhwang': [13.77714885, 100.5799268, 'huai_khwang'],
+    'bma-hc43-minburi': [13.8133, 100.73072, 'min_buri'],
+    'bma-hc61-saimai': [13.92873, 100.65929, 'sai_mai'],
+  }
+  for (const [id, [lat, lon, district]] of Object.entries(at)) {
+    const p = ALL_CARE_POINTS.find((c) => c.id === id)!
+    expect([p.lat, p.lon, p.districtId], id).toEqual([lat, lon, district])
+  }
+})
