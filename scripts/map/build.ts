@@ -8,14 +8,16 @@ import { PbfReader } from 'pbf'
 import type { CityData, Label, LabelKind, Line, Manifest, RoadClass, Shape, TileData, TileRef, ZoneData } from '../../src/map/types.ts'
 // The made-up points of the tests: the clearance check keeps them away from real clinics and hospitals.
 import { FIXTURE_POINTS as CARE_POINTS } from '../../src/test/carePoints.ts'
-import { DISTRICTS } from '../../src/map/districts.ts'
+import { DISTRICTS } from '../../src/domain/districts.ts'
+import { DISTRICTS as GROUPED } from '../../src/map/districts.ts'
 import { labelKind, roadClass } from './classify.ts'
-import { isClosed, lengthOf, simplify, simplifyRing, stitch, type LatLon } from './geometry.ts'
+import { centroid, isClosed, lengthOf, simplify, simplifyRing, stitch, type LatLon } from './geometry.ts'
 import { boundsOf, idOf, SETS, tileAt, type TileId } from './sets.ts'
 
 const CACHE = new URL('./.cache/', import.meta.url)
 const PUBLIC = new URL('../../public/map/', import.meta.url)
 const ZONES_FILE = new URL('../../src/map/data/zones.json', import.meta.url)
+const DISTRICTS_FILE = new URL('../../src/map/data/districts.json', import.meta.url)
 const OUTLINE_FILE = new URL('../../src/map/data/outline.json', import.meta.url)
 
 const ORIGIN = { lat: 13.75, lon: 100.55 }
@@ -210,7 +212,7 @@ city.labels = [
 ]
 
 // ---- districts and the six zones ---------------------------------------------------------------
-const GROUPS = DISTRICTS
+const GROUPS = GROUPED
 const NAMES: Record<string, string> = { north: 'กรุงเทพเหนือ', central: 'กรุงเทพกลาง', east: 'กรุงเทพตะวันออก', south: 'กรุงเทพใต้', thon_north: 'กรุงธนเหนือ', thon_south: 'กรุงธนใต้' }
 /** Where each zone's name is written at city level, chosen so the names clear the care points. */
 const ANCHORS: Record<string, [number, number]> = { north: [13.94, 100.62], central: [13.797, 100.565], east: [13.845, 100.72], south: [13.688, 100.615], thon_north: [13.81, 100.415], thon_south: [13.63, 100.43] }
@@ -223,6 +225,7 @@ interface Member {
 }
 const tidy = (way: LatLon[], tolerance: number): number[] => (isClosed(way) ? simplifyRing(way.map(xy), tolerance) : simplify(way.map(xy), tolerance)).flat().map(Math.round)
 const districtRings = new Map<string, LatLon[][]>() // zone -> rings of its districts
+const ringsById = new Map<string, LatLon[][]>() // district id -> its own rings
 const owners = new Map<number, { geometry: LatLon[]; zones: string[] }>() // boundary way -> zones of the districts it borders
 const relations = JSON.parse(await readFile(new URL('districts.json', CACHE), 'utf8')).elements as { tags?: Record<string, string>; members: Member[] }[]
 for (const rel of relations) {
@@ -234,6 +237,8 @@ for (const rel of relations) {
   const ringsOfDistrict = stitch(outer.map((m) => m.geometry!)).filter(isClosed)
   city.districts.push({ name, zone, rings: ringsOfDistrict.map((r) => tidy(r, 10)) })
   districtRings.set(zone, [...(districtRings.get(zone) ?? []), ...ringsOfDistrict])
+  const district = DISTRICTS.find((d) => d.name === name)
+  if (district) ringsById.set(district.id, [...(ringsById.get(district.id) ?? []), ...ringsOfDistrict])
   for (const m of outer) {
     if (!owners.has(m.ref)) owners.set(m.ref, { geometry: m.geometry!, zones: [] })
     owners.get(m.ref)!.zones.push(zone)
@@ -247,6 +252,19 @@ const zones: ZoneData[] = Object.keys(GROUPS).map((id) => ({
   // An edge is on the zone's outline when exactly one of the zone's districts touches it.
   edges: stitch([...owners.values()].filter((o) => o.zones.filter((z) => z === id).length === 1).map((o) => o.geometry)).map((c) => tidy(c, 10)),
 }))
+
+// One area per district, in the order of the district list: what the map paints and what a tap picks.
+const missing = DISTRICTS.filter((d) => !ringsById.has(d.id)).map((d) => d.name)
+if (missing.length) {
+  console.error('districts with no outline in the cache:', missing.join(', '))
+  process.exit(1)
+}
+const areas: ZoneData[] = DISTRICTS.map(({ id, name }) => {
+  const rings = ringsById.get(id)!
+  const largest = rings.map((r) => r.map(xy)).sort((a, b) => centroid(b)[2] - centroid(a)[2])[0]
+  const mean = (i: 0 | 1) => Math.round(largest.reduce((sum, p) => sum + p[i], 0) / largest.length)
+  return { id, name, label: [mean(0), mean(1)], rings: rings.map((r) => tidy(r, 40)), edges: rings.map((r) => tidy(r, 10)) }
+})
 
 // The city's own outline: the edges that only one district touches. Drawn when the whole city is one area.
 const outline = stitch([...owners.values()].filter((o) => o.zones.length === 1).map((o) => o.geometry)).map((c) => tidy(c, 10))
@@ -304,6 +322,8 @@ const manifest: Manifest = {
 }
 total += await save('index.json', manifest)
 await writeFile(ZONES_FILE, `${JSON.stringify(zones)}\n`)
+await writeFile(DISTRICTS_FILE, `${JSON.stringify(areas)}\n`)
+console.log(`districts.json ${(JSON.stringify(areas).length / 1e6).toFixed(2)} MB`)
 await writeFile(OUTLINE_FILE, `${JSON.stringify(outline)}\n`)
 
 console.log(sizes.join('\n'))

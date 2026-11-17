@@ -1,7 +1,10 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { expect, it } from 'vitest'
 import { pointInRings } from '../../scripts/map/geometry.ts'
+import { DISTRICT_IDS, districtName } from '../domain/districts'
 import { ZONE_IDS } from '../store/seed'
+import { areaAt, AREAS } from './areas'
+import { toXY } from './geo'
 import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
 import zones from './data/zones.json'
 import type { CityData, LabelKind, Manifest, TileData } from './types'
@@ -29,6 +32,18 @@ it('has six zones made of all fifty districts', () => {
   expect(zones.map((z) => z.id).sort()).toEqual([...ZONE_IDS].sort())
   expect(zones.map((z) => z.name).sort()).toEqual(['กรุงธนเหนือ', 'กรุงธนใต้', 'กรุงเทพกลาง', 'กรุงเทพตะวันออก', 'กรุงเทพเหนือ', 'กรุงเทพใต้'].sort())
   expect(city.districts).toHaveLength(50)
+})
+it('carries one shape for each of the 50 districts', () => {
+  expect(AREAS.map((a) => a.id).sort()).toEqual([...DISTRICT_IDS].sort())
+  for (const a of AREAS) {
+    expect(a.rings.length, a.id).toBeGreaterThan(0)
+    expect(a.name).toBe(districtName(a.id))
+  }
+})
+it('finds the district under a point, and none outside the city', () => {
+  expect(areaAt(toXY(13.7275, 100.5325))?.id).toBe('bang_rak')
+  expect(areaAt(toXY(13.835, 100.565))?.id).toBe('chatuchak')
+  expect(areaAt(toXY(13.0, 100.0))).toBeUndefined()
 })
 it('labels only streets, lanes, stations, parks, water, districts, towns, public offices and places of worship', () => {
   const tiles = [...manifest.district, ...manifest.street].map((ref) => read<TileData>(ref.file))

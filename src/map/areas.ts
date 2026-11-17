@@ -1,3 +1,4 @@
+import districts from './data/districts.json'
 import outline from './data/outline.json'
 import data from './data/zones.json'
 import { inRings, type XY } from './geo'
@@ -20,6 +21,24 @@ export const CITY_EDGES: number[][] = outline
 
 export function zoneAt(p: XY): Zone | undefined {
   return ZONES.find((zone) => inRings(p, zone.rings))
+}
+
+/** One of Bangkok's 50 districts as the map draws it: the area every count and sheet is about. Baked by scripts/map/build.ts. */
+export interface Area {
+  id: string
+  name: string
+  /** Where the district's name is written. */
+  label: [number, number]
+  rings: number[][]
+  /** The district's outline, as closed runs. */
+  edges: number[][]
+}
+
+/** In the order of the district list. */
+export const AREAS: Area[] = districts as Area[]
+
+export function areaAt(p: XY): Area | undefined {
+  return AREAS.find((area) => inRings(p, area.rings))
 }
 
 /** An SVG path in metres; the map layer scales it to the screen. */
