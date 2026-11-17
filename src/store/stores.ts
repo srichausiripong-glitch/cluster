@@ -1,4 +1,4 @@
-import type { DiseaseGroup, PendingReport, ReportSource } from '../domain/types'
+import type { DiseaseGroup, MapLayer, PendingReport, ReportSource } from '../domain/types'
 import { createPartyStore } from './partyStore'
 
 export interface SignalCard {
@@ -26,6 +26,8 @@ export interface PhoneState {
   symptomsNextWeek?: string | null
   /** The district this phone checks in for, so the next check-in is one press. Absent until the first; optional for the same reason. */
   myDistrict?: string
+  /** The map layers this person switched on or off; the rest keep their defaults. Optional for stores kept before it. */
+  layers?: Partial<Record<MapLayer, boolean>>
 }
 /** The key carries a version: a change of stored shape starts from empty instead of breaking the page. */
 export const STORE_KEYS = {

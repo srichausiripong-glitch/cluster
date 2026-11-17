@@ -1,5 +1,9 @@
 export type DiseaseGroup = 'mpox' | 'gono_chlam' | 'syphilis' | 'hiv'
 export type ReportSource = 'lab_result' | 'hiv_self_test' | 'symptoms'
+/** The four layers of care points on the map (redesign spec 5.8). */
+export type CareLayer = 'sti' | 'health_centre' | 'hospital' | 'pharmacy'
+/** Everything the map can show or hide: the confirmed signal, symptoms, and the four care layers (redesign spec 5.1). */
+export type MapLayer = 'confirmed' | 'symptoms' | CareLayer
 export type LifecycleStep = 'new' | 'followup' | 'expiring' | 'expired'
 /** How long ago the last contact was. `older` also covers "not sure". */
 export type ExposureBand = 'h72' | 'w2' | 'w4' | 'm3' | 'older'

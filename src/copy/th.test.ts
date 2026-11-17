@@ -60,3 +60,6 @@ it('calls the self-care tab ของฉัน wherever the copy points to it', 
   expect(th.me.title).toBe('ของฉัน')
   for (const s of strings(th)) expect(s).not.toContain('"ดูแลตัวเอง"')
 })
+it('lists the layer switches among what the phone keeps', () => {
+  expect(th.privacy.phone).toContain('ชั้นแผนที่')
+})

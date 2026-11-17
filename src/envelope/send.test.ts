@@ -143,3 +143,14 @@ it('leaves no sealed envelope behind when the phone is wiped', async () => {
   wipePhone()
   expect(localStorage.getItem('cluster.envelope-outbox')).toBeNull()
 })
+
+it('records in its claim which waiting report it is taking', async () => {
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: 's-claim' } }))
+  let claimed: unknown = null
+  const solve = async () => {
+    claimed = JSON.parse(localStorage.getItem('cluster.envelope-claim') ?? 'null')
+    return '0000000042'
+  }
+  expect(await sendIfDue(LATE, { ...deps(), solve })).toBe('sent')
+  expect(claimed).toMatchObject({ week: WEEK, savedAt: 's-claim' })
+})

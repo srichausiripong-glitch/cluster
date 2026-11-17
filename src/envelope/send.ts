@@ -56,14 +56,14 @@ function writeOutbox(box: Outbox | null) {
   }
 }
 
-function readClaim(): { week: string; at: number } | null {
+function readClaim(): { week: string; at: number; savedAt?: string | null } | null {
   try {
     return JSON.parse(localStorage.getItem(CLAIM) ?? 'null')
   } catch {
     return null
   }
 }
-function writeClaim(claim: { week: string; at: number } | null) {
+function writeClaim(claim: { week: string; at: number; savedAt: string | null } | null) {
   try {
     if (claim) localStorage.setItem(CLAIM, JSON.stringify(claim))
     else localStorage.removeItem(CLAIM)
@@ -99,13 +99,14 @@ export async function sendIfDue(now: number, deps: SendDeps): Promise<SendResult
   // No await between reading the claim and writing it: another tab cannot slip in between.
   const claim = readClaim()
   if (claim && claim.week === key.week && now - claim.at < CLAIM_MS) return 'already-sent'
-  writeClaim({ week: key.week, at: now })
+  // The claim names the waiting report it takes, so a cancel meanwhile can see it is too late.
+  const pending = key.intakeOpen === false ? null : phone.get().pending
+  const savedAt = pending?.savedAt ?? null
+  writeClaim({ week: key.week, at: now, savedAt })
   // Keep the claim fresh while a slow phone solves, so no other tab takes the week meanwhile.
-  const keepClaim = setInterval(() => writeClaim({ week: key.week, at: Date.now() }), CLAIM_MS / 4)
+  const keepClaim = setInterval(() => writeClaim({ week: key.week, at: Date.now(), savedAt }), CLAIM_MS / 4)
 
   try {
-    const pending = key.intakeOpen === false ? null : phone.get().pending
-    const savedAt = pending?.savedAt ?? null
     let box = readOutbox()
     if (!box || box.week !== key.week || box.savedAt !== savedAt) {
       const plain = makePlain(pending, deps.rand, b64url(crypto.getRandomValues(new Uint8Array(16))))
@@ -129,4 +130,15 @@ export async function sendIfDue(now: number, deps: SendDeps): Promise<SendResult
   } finally {
     clearInterval(keepClaim)
   }
+}
+
+/**
+ * Whether this week's envelope is taking the waiting report saved at `savedAt`: a send in progress
+ * claimed it, or it is sealed and waiting for the server's answer. Saying it was cancelled would
+ * then be untrue (round 2 plan, decision 10).
+ */
+export function takingNow(savedAt: string, now = Date.now()): boolean {
+  const claim = readClaim()
+  if (claim && claim.savedAt === savedAt && now - claim.at < CLAIM_MS) return true
+  return readOutbox()?.savedAt === savedAt
 }
