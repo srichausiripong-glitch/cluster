@@ -55,10 +55,10 @@ it('labels every signal as unconfirmed user reports, and shows testing only in t
   const sheet = within(await screen.findByRole('dialog'))
   expect(sheet.getByText(th.map.unconfirmed)).toBeInTheDocument()
   expect(sheet.getByText(th.map.legendWhat)).toBeInTheDocument()
-  expect(th.map.legendWhat).toBe('นับจากรายงานของผู้ใช้ที่เลือกย่านนี้เป็นย่านที่ใช้ชีวิต ไม่ใช่สถานที่ติดเชื้อ')
+  expect(th.map.legendWhat).toBe('นับจากรายงานของผู้ใช้ที่เลือกเขตนี้เป็นเขตที่ใช้ชีวิต ไม่ใช่สถานที่ติดเชื้อ')
   expect(sheet.getByText(`${th.map.testing}: ${th.map.testingLevel.medium}`)).toBeInTheDocument()
   expect(sheet.getByText(th.map.testingNotSafe)).toBeInTheDocument()
-  expect(th.map.testingNotSafe).toBe('มีคนตรวจมากไม่ได้แปลว่าย่านนี้ปลอดภัย แปลว่ามีคนดูแลตัวเองมาก')
+  expect(th.map.testingNotSafe).toBe('มีคนตรวจมากไม่ได้แปลว่าเขตนี้ปลอดภัย แปลว่ามีคนดูแลตัวเองมาก')
 })
 it('says reports are closed for now, in place of the map box, while intake is closed', async () => {
   const user = userEvent.setup()

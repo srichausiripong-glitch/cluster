@@ -134,6 +134,6 @@ it('forgets the remembered district from the self-care page, and with everything
   expect(phone.get().myDistrict).toBeUndefined()
 })
 
-it('lists the remembered zone among what the phone keeps on the privacy page', () => {
-  expect(th.privacy.phone).toContain('ย่านที่ใช้เช็กอิน')
+it('lists the remembered district among what the phone keeps on the privacy page', () => {
+  expect(th.privacy.phone).toContain('เขตที่ใช้ครั้งล่าสุด')
 })
