@@ -36,12 +36,20 @@ export function DotBody({ layer }: { layer: CareLayer }) {
   )
 }
 
-/** Several care points too close to tell apart at this level: one disc with their number. */
-export function ManyBody({ count }: { count: number }) {
+/**
+ * Several care points too close to tell apart at this level: one disc with their number. It is
+ * pink, the colour of a confirmed place's pin, only when a confirmed place is among them; else white,
+ * like an unconfirmed place's dot (redesign spec 5.8).
+ */
+export function ManyBody({ count, confirmed }: { count: number; confirmed: boolean }) {
   return (
     <>
       <circle cx="2.5" cy="2.5" r="16" fill="var(--color-ink)" />
-      <circle data-pin-body r="16" fill="var(--color-care)" stroke="var(--color-ink)" strokeWidth="2.4" />
+      {confirmed ? (
+        <circle data-pin-body r="16" fill="var(--color-care)" stroke="var(--color-ink)" strokeWidth="2.4" />
+      ) : (
+        <circle data-dot r="16" fill="var(--color-surface)" stroke="var(--color-ink)" strokeWidth="2.4" />
+      )}
       <text y="5.4" textAnchor="middle" fontSize="16" fontWeight="700" fill="var(--color-ink)">
         {count}
       </text>

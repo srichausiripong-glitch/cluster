@@ -449,7 +449,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
                 <circle data-hit cy={pin ? -22 : 0} r={pin ? 24 : 22} fill="transparent" />
                 <circle className="map-pin-ring" cy={pin ? -26 : 0} r={pin ? 20 : one ? 14 : 22} fill="none" stroke="var(--color-ink)" strokeWidth="2.5" />
                 <g className={fresh ? 'pop-in' : undefined} style={fresh ? { animationDelay: `${150 + i * 60}ms` } : undefined}>
-                  {one ? pin ? <PinBody layer={m.point.layer} /> : <DotBody layer={m.point.layer} /> : <ManyBody count={m.points.length} />}
+                  {one ? pin ? <PinBody layer={m.point.layer} /> : <DotBody layer={m.point.layer} /> : <ManyBody count={m.points.length} confirmed={m.points.some(isVerified)} />}
                 </g>
               </g>
             )

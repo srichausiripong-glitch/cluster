@@ -2,7 +2,7 @@ import { ChevronRight, Waves, X } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { th } from '../copy/th'
-import { CARE_POINTS, canTest, nearestFor, nearSort, type CarePoint } from '../data/carePoints'
+import { CARE_POINTS, canTest, nearSort, type CarePoint } from '../data/carePoints'
 import { usePharmacies } from '../data/pharmacies'
 import { Emoji } from '../design/Emoji'
 import { Mascot } from '../design/Logo'
@@ -73,10 +73,11 @@ export function CareList() {
   const district = asked && DISTRICT_IDS.includes(asked) ? asked : null
   const all = [...CARE_POINTS, ...pharmacies.points]
   const shown = all.filter((p) => on[p.layer] && (!find || canTest(p)))
-  const nearest = find || district ? undefined : nearestFor(myDistrict ?? null, shown)
-  const inMine = nearest !== undefined && myDistrict !== undefined && nearest.districtId === myDistrict
   const sorted = nearSort(shown, district ?? myDistrict ?? null)
   const here = district ? sorted.filter((p) => p.districtId === district) : sorted
+  // Without a filter the list begins at the nearest place, so it is named there, once (redesign spec 5.7).
+  const nearest = find || district ? undefined : here.at(0)
+  const inMine = nearest !== undefined && myDistrict !== undefined && nearest.districtId === myDistrict
   const nearby = district ? sorted.filter((p) => NEIGHBOURS[district].includes(p.districtId)) : []
 
   const pick = () => {
@@ -128,13 +129,6 @@ export function CareList() {
         </Go>
       )}
 
-      {nearest && (
-        <div>
-          <p className="mb-1 text-[13px] font-semibold text-muted">{inMine ? th.care.inMyDistrict : th.care.nearest}</p>
-          <CarePointRow point={nearest} onOpen={() => setPointId(nearest.id)} />
-        </div>
-      )}
-
       {pharmacies.failed && <p className={`px-3 py-2 text-[14px] ${NOTE}`}>{th.care.pharmaciesFailed}</p>}
 
       {CARE_POINTS.length === 0 ? (
@@ -151,7 +145,12 @@ export function CareList() {
         </div>
       ) : (
         <>
-          {here.length > 0 && <Places label={district ? districtLabel(district) : th.care.listTitle} points={here} onOpen={setPointId} />}
+          {here.length > 0 && (
+            <div>
+              {nearest && <p className="mb-1 text-[13px] font-semibold text-muted">{inMine ? th.care.inMyDistrict : th.care.nearest}</p>}
+              <Places label={district ? districtLabel(district) : th.care.listTitle} points={here} onOpen={setPointId} />
+            </div>
+          )}
           {nearby.length > 0 && (
             <section className="space-y-2">
               <h2 className="text-[15px] font-bold">{th.care.nearby}</h2>

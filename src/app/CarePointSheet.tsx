@@ -95,7 +95,8 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
           <p className="mt-2 text-[13px] text-muted">{th.care.fetched.replace('{date}', formatThaiDate(new Date(point.fetched)))}</p>
         </>
       )}
-      <div className="mt-3 flex gap-2">
+      {/* Kept at the foot of the sheet, so a short screen still shows how to call first and the way there. */}
+      <div className="sticky bottom-0 -mx-4 mt-3 flex gap-2 border-t-2 border-ink bg-surface px-4 pb-1 pt-2">
         {point.phone && (
           <a href={`tel:${point.phone}`} className={`flex-1 ${QUIET_LINK}`}>
             <Emoji name="phone" />

@@ -35,6 +35,11 @@ it('offers a call and the way there, the way there in a new tab', () => {
   expect(way).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=13.62,100.44')
   expect(way).toHaveAttribute('target', '_blank')
 })
+it('keeps the call and the way there at the foot of the sheet, in view on a short screen too', () => {
+  const sheet = open('cu1')
+  expect(sheet.getByRole('link', { name: th.care.call }).closest('.sticky')).not.toBeNull()
+  expect(sheet.getByRole('link', { name: th.care.directions }).closest('.sticky')).not.toBeNull()
+})
 it('offers no call button and no empty rows for a place without a phone or an address', () => {
   const sheet = open('cu2')
   expect(sheet.queryByRole('link', { name: th.care.call })).toBeNull()

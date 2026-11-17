@@ -147,6 +147,18 @@ it('draws an unverified place as a small dot with its emoji, never as a pin', ()
   expect(Number(hit.getAttribute('r'))).toBeGreaterThanOrEqual(22)
   expect(Number(hit.getAttribute('cy') ?? 0)).toBe(0)
 })
+it('draws a group of unconfirmed places white, so only a group holding a confirmed place is pink', () => {
+  const near = { ...FIXTURE_UNVERIFIED[1], id: 'cu3', name: 'โรงพยาบาลทดสอบสองตัวอย่าง', lat: 13.881, lon: 100.721 }
+  setCarePoints([...FIXTURE_UNVERIFIED, near])
+  const view = openApp('/app')
+  const group = screen.getByRole('button', { name: th.map.many.replace('{n}', '2') })
+  expect(group.querySelector('[data-pin-body]')).toBeNull()
+  expect(group.querySelector('[data-dot]')).not.toBeNull()
+  view.unmount()
+  setCarePoints(FIXTURE_POINTS)
+  openApp('/app')
+  expect(many().querySelector('[data-pin-body]')).toHaveAttribute('fill', 'var(--color-care)')
+})
 
 it('goes one level in on a double click, at the place that was clicked', async () => {
   openApp('/app')

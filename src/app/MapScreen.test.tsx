@@ -367,6 +367,12 @@ it('names the nearest place as in your district when the phone remembers one wit
   openApp('/app/list')
   expect(screen.getByText(th.care.inMyDistrict)).toBeInTheDocument()
 })
+it('shows the nearest place once, as the first of the list', () => {
+  phone.update((s) => ({ ...s, myDistrict: 'bang_rak' }))
+  openApp('/app/list')
+  expect(screen.getAllByRole('button', { name: /คลินิกชุมชนสีลมตัวอย่าง/ })).toHaveLength(1)
+  expect(screen.getAllByRole('listitem')[0]).toHaveTextContent('คลินิกชุมชนสีลมตัวอย่าง')
+})
 it('closes the city sheet on the list when it leads to the places to test', async () => {
   const user = userEvent.setup()
   openApp('/app/list')
