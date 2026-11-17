@@ -113,3 +113,9 @@ it('leaves a district below the threshold unmarked, and hatches only the city', 
   paintGround(city.ctx, scene([area('bkk', 'below_threshold')], { phase: 1 }))
   expect(city.sets.filter((s) => s.prop === 'strokeStyle').map((s) => s.value)).toContain(PALETTE.signalSoft)
 })
+
+it('draws no signal edge around a district below the threshold', () => {
+  const f = fakeCtx()
+  paintLines(f.ctx, scene([area('bang_rak', 'below_threshold')]))
+  expect(f.sets.filter((s) => s.prop === 'strokeStyle').map((s) => s.value)).not.toContain(PALETTE.signalEdge)
+})

@@ -228,3 +228,12 @@ it('shows the symptoms level of a district in its sheet, under the district name
   expect(sheet.getByText(`${th.map.symptoms}: ${th.map.symptomsLevel.medium}`)).toBeInTheDocument()
   expect(sheet.getByRole('heading', { name: 'สัญญาณของเขตบางรัก' })).toBeInTheDocument()
 })
+
+it('keys "ยังไม่ถึงเกณฑ์" with the plain look the map draws for a district, not a hatch', async () => {
+  const user = userEvent.setup()
+  publish('shown')
+  openApp('/app')
+  const sheet = await openSignal(user)
+  const row = sheet.getAllByText(th.map.state.below_threshold).map((el) => el.closest('li')).find((li) => li !== null)!
+  expect(row.querySelector('path')?.getAttribute('d')).toBe('')
+})

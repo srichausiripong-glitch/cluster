@@ -346,7 +346,7 @@ function areaEdges(ctx: Ctx, s: Scene) {
   const p = s.palette
   if (s.phase === 1) strokeAll(ctx, s, AREA_EDGES, 1, p.ink, { alpha: 0.3, dash: [2, 4], cap: 'butt' })
   for (const { rings, edges, area } of painted(s)) {
-    const state = area?.state ?? 'no_data'
+    const state = area ? drawnState(area) : 'no_data'
     let line: { width: number; dash?: number[]; cap?: CanvasLineCap; color: string; alpha?: number }
     if (!s.showSignal) line = { width: 1, dash: [2, 4], cap: 'butt', color: p.ink, alpha: 0.35 }
     else if (state === 'shown') line = { ...EDGE[area?.step ?? 'mixed'], color: p.signalEdge }

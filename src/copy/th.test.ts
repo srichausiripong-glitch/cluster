@@ -40,3 +40,13 @@ it('names the below-threshold state without saying that anyone reported', () => 
   expect(BANNED_WORDS).toContain('เขตปลอดภัย')
 })
 
+it('says the symptoms way can go to the map, apart from confirmed results', () => {
+  expect(th.report.wayHint.symptoms).toBe('ส่งขึ้นแผนที่ของเขตได้ แยกจากผลยืนยัน และพาไปหาที่ตรวจ')
+})
+it('never calls an area a โซน either', () => {
+  expect(JSON.stringify(th)).not.toContain('โซน')
+})
+it('lists on the privacy page that the phone keeps when it may next send a check-in or symptoms', () => {
+  expect(th.privacy.phone).toContain('"มีอาการ"')
+  expect(th.privacy.phone).toContain('ลบเองเมื่อถึงสัปดาห์นั้น')
+})

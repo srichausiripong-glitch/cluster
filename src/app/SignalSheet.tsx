@@ -110,9 +110,10 @@ export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint 
 
       <h3 className="mb-2 mt-4 text-[13px] font-medium text-muted">{th.map.key}</h3>
       <ul className="grid grid-cols-2 gap-x-3 gap-y-2 text-[13px]">
+        {/* Keyed as drawn: a district below the threshold has no mark (redesign spec 5.7), so no hatch is taught. */}
         {QUIET_STATES.map((state) => (
           <li key={state} className="flex items-center gap-2">
-            <QuietSwatch state={state} />
+            <QuietSwatch state={state === 'below_threshold' ? 'no_data' : state} />
             <span>{th.map.state[state]}</span>
           </li>
         ))}

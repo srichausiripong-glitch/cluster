@@ -6,7 +6,7 @@ import App from '../App'
 import { BANNED_WORDS, th } from '../copy/th'
 import { DISTRICTS } from '../domain/districts'
 import { shiftWeek } from '../domain/weeks'
-import { cancelPending, currentWeek, dropStaleAreas, queueReport, saveCard, wipePhone } from '../store/actions'
+import { cancelPending, clearPassedWaits, currentWeek, dropStaleAreas, queueReport, saveCard, wipePhone } from '../store/actions'
 import { phone } from '../store/stores'
 
 const open = (path = '/app/report') =>
@@ -219,4 +219,36 @@ it('opens the privacy notice in a new tab, so the report being filled in stays p
   open()
   await toConsent(user)
   expect(screen.getByRole('link', { name: th.privacy.title })).toHaveAttribute('target', '_blank')
+})
+
+it('frees the four-week wait of a waiting report that was dropped for its old area', () => {
+  wipePhone()
+  queueReport({ kind: 'tested', zone: 'central', savedAt: 'x' })
+  dropStaleAreas()
+  expect(phone.get().testedNextWeek).toBeNull()
+  queueReport({ kind: 'symptoms', zone: 'central', savedAt: 'x' })
+  dropStaleAreas()
+  expect(phone.get().symptomsNextWeek).toBeNull()
+})
+it('frees the four-week wait of a waiting report that a new report replaces', () => {
+  wipePhone()
+  queueReport({ kind: 'tested', zone: 'bang_rak', savedAt: 'x' })
+  queueReport({ kind: 'syphilis', zone: 'bang_rak', savedAt: 'y' })
+  expect(phone.get().testedNextWeek).toBeNull()
+  queueReport({ kind: 'symptoms', zone: 'bang_rak', savedAt: 'z' })
+  queueReport({ kind: 'tested', zone: 'bang_rak', savedAt: 'w' })
+  expect(phone.get().symptomsNextWeek).toBeNull()
+  expect(phone.get().testedNextWeek).toBe(shiftWeek(currentWeek(), 4))
+})
+it('forgets a four-week wait once its week has come, so the phone keeps no lasting sign of a report', () => {
+  wipePhone()
+  phone.update((s) => ({ ...s, testedNextWeek: '2020-W01', symptomsNextWeek: '2020-W01' }))
+  clearPassedWaits()
+  expect(phone.get().testedNextWeek).toBeNull()
+  expect(phone.get().symptomsNextWeek).toBeNull()
+  const later = shiftWeek(currentWeek(), 2)
+  phone.update((s) => ({ ...s, testedNextWeek: later, symptomsNextWeek: later }))
+  clearPassedWaits()
+  expect(phone.get().testedNextWeek).toBe(later)
+  expect(phone.get().symptomsNextWeek).toBe(later)
 })
