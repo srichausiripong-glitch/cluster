@@ -10,6 +10,10 @@ import { Sheet } from '../design/primitives/Sheet'
 import { districtName } from '../domain/districts'
 import { buildIcs } from '../domain/ics'
 import { cancelPending, forgetMyDistrict, setMyDistrict, wipePhone } from '../store/actions'
+import { districtLabel } from '../domain/districts'
+import { useAreas } from '../map/published'
+import { follow, unfollow, type FollowResult } from '../push/follow'
+import { FOLLOW_NOTE } from './followNote'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 import { DistrictPicker } from './DistrictPicker'
@@ -31,14 +35,18 @@ function downloadReminder() {
 
 /** 🙂 ของฉัน: what this phone keeps, to see, change, cancel or wipe (redesign spec 5.2, 5.10). */
 export function SelfCare() {
-  const { card, pending, myDistrict } = usePartyStore(phone)
+  const { card, pending, myDistrict, follow: followed } = usePartyStore(phone)
+  const { byId } = useAreas()
+  const [followPicking, setFollowPicking] = useState(false)
+  const [followPicked, setFollowPicked] = useState<string | null>(null)
+  const [followResult, setFollowResult] = useState<FollowResult | null>(null)
   const myDistrictName = myDistrict ? districtName(myDistrict) : ''
   const [changing, setChanging] = useState(false)
   const [picked, setPicked] = useState<string | null>(null)
   const [tooLate, setTooLate] = useState(false)
   const days = card ? Math.max(0, Math.floor((Date.now() - new Date(card.sentAt).getTime()) / 86_400_000)) : 0
   const left = card ? Math.max(0, CARD_DAYS[card.group] - days) : 0
-  const empty = !card && !pending && !myDistrictName
+  const empty = !card && !pending && !myDistrictName && !followed
 
   // Never says a report was cancelled that this week's envelope is taking (round 2 plan, decision 10).
   const cancel = () => setTooLate(cancelPending() === 'sending')
@@ -49,6 +57,25 @@ export function SelfCare() {
   const useDistrict = () => {
     if (picked) setMyDistrict(picked)
     setChanging(false)
+  }
+  const pickFollow = () => {
+    setFollowPicked(followed ?? myDistrict ?? null)
+    setFollowPicking(true)
+  }
+  const useFollow = async () => {
+    setFollowPicking(false)
+    if (!followPicked) return
+    const area = byId(followPicked)
+    setFollowResult(await follow(followPicked, { state: area.state, density: area.density, symptoms: area.symptoms, testing: area.testing }))
+  }
+  const stopFollowing = () => {
+    setFollowResult(null)
+    void unfollow()
+  }
+  // A wipe stops the weekly notification too; the quick exit does not (redesign spec 5.11).
+  const wipe = () => {
+    void unfollow()
+    wipePhone()
   }
 
   return (
@@ -110,6 +137,41 @@ export function SelfCare() {
       )}
 
       <Card>
+        <div>
+          <h2 className="flex items-center gap-1.5 font-bold">
+            <Emoji name="bell" />
+            {th.follow.title}
+          </h2>
+          {followed ? (
+            <>
+              <p className="mt-1">{districtLabel(followed)}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={pickFollow}>
+                  {th.picker.change}
+                </Button>
+                <Button variant="secondary" onClick={stopFollowing}>
+                  {th.follow.stop}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mt-1 text-muted">{th.follow.none}</p>
+              <Button variant="secondary" className="mt-2" onClick={pickFollow}>
+                <Emoji name="bell" />
+                {th.follow.start}
+              </Button>
+            </>
+          )}
+          {followResult && followResult !== 'following' && (
+            <p role="status" className="mt-1 text-[13px] text-muted">
+              {FOLLOW_NOTE[followResult]}
+            </p>
+          )}
+        </div>
+      </Card>
+
+      <Card>
         <h2 className="flex items-center gap-1.5 font-bold">
           <Emoji name="alarm" />
           {th.me.reminder}
@@ -121,7 +183,7 @@ export function SelfCare() {
       </Card>
 
       <Card>
-        <Button variant="secondary" onClick={wipePhone}>
+        <Button variant="secondary" onClick={wipe}>
           <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
           {th.me.wipe}
         </Button>
@@ -142,6 +204,16 @@ export function SelfCare() {
         {th.me.harm}
       </Go>
 
+      <Sheet open={followPicking} onClose={() => setFollowPicking(false)} title={th.follow.title} tall>
+        <div className="space-y-3">
+          <DistrictPicker district={followPicked} onDistrict={setFollowPicked} name="follow-district" />
+          <div className="sticky bottom-0 -mx-4 border-t-2 border-ink bg-surface px-4 pb-1 pt-2">
+            <Button size="lg" className="w-full" disabled={!followPicked} onClick={useFollow}>
+              {th.picker.use}
+            </Button>
+          </div>
+        </div>
+      </Sheet>
       <Sheet open={changing} onClose={() => setChanging(false)} title={th.tested.title} tall>
         <div className="space-y-3">
           <DistrictPicker district={picked} onDistrict={setPicked} name="my-district" />

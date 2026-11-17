@@ -1,4 +1,4 @@
-import type { AreaState, DensityBand } from '../domain/types'
+import type { PublishedArea } from '../domain/types'
 import { phone } from '../store/stores'
 
 /**
@@ -8,7 +8,7 @@ import { phone } from '../store/stores'
  */
 
 /** What the phone last saw of the followed district: its state and its three rows (the age of a signal never counts). */
-export type Seen = { state: AreaState; density: DensityBand | null; symptoms: DensityBand | null; testing: DensityBand | null }
+export type Seen = Pick<PublishedArea, 'state' | 'density' | 'symptoms' | 'testing'>
 type Saved = { district: string; seen: Seen | null }
 type Subscription = { endpoint: string; unsubscribe(): Promise<boolean> }
 

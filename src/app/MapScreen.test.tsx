@@ -14,6 +14,7 @@ import type { MapLayer } from '../domain/types'
 import { layersOn, MAP_LAYERS, toggleLayer } from '../store/actions'
 import { phone } from '../store/stores'
 import { FIXTURE_PHARMACIES, FIXTURE_POINTS as CARE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
+import { fakePush } from '../test/fakePush'
 
 const openApp = (path: string) =>
   render(
@@ -25,7 +26,10 @@ const area = (areaId: string, state: PublishedArea['state'], density: PublishedA
 /** What the weekly file says: the city thin and new, as twelve fresh reports would make it; the zones in every state. */
 const SHOWN = [area('bkk', 'shown', 'thin', 'new'), area('bang_rak', 'shown', 'dense', 'new'), area('ratchathewi', 'shown', 'medium', 'followup'), area('chatuchak', 'shown', 'thin', 'expiring'), area('bang_kapi', 'below_threshold'), area('bangkok_yai', 'no_data'), area('bang_khae', 'no_data')]
 const publish = (which: 'shown' | 'below') => setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: which === 'shown' ? SHOWN : [area('bkk', 'below_threshold'), area('bang_rak', 'below_threshold')] })
-afterEach(() => setPublishedForTest(null))
+afterEach(() => {
+  setPublishedForTest(null)
+  vi.unstubAllGlobals()
+})
 const openSignal = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole('button', { name: th.map.openSignal }))
   return within(screen.getByRole('dialog'))
@@ -455,4 +459,62 @@ it('marks a layer that is on with a tick, not by colour alone', () => {
     if (layer === 'pharmacy') expect(tick, layer).toBeNull()
     else expect(tick, layer).not.toBeNull()
   }
+})
+
+// ---- round 4: follow a district (redesign spec 5.11) ------------------------------------------------
+it('follows a district from its sheet without sending the district anywhere', async () => {
+  const user = userEvent.setup()
+  const push = fakePush()
+  openApp('/app')
+  const sheet = await openArea(user, 'บางรัก')
+  await user.click(sheet.getByRole('button', { name: th.follow.button }))
+  expect(await sheet.findByRole('button', { name: th.follow.following })).toHaveAttribute('aria-pressed', 'true')
+  expect(phone.get().follow).toBe('bang_rak')
+  expect(push.calls.map((c) => c.method)).toEqual(['GET', 'POST'])
+  expect(JSON.stringify(push.calls)).not.toContain('bang_rak')
+})
+it('offers to follow another district instead, and stops following from the same press', async () => {
+  const user = userEvent.setup()
+  fakePush()
+  phone.update((s) => ({ ...s, follow: 'bang_rak' }))
+  const view = openApp('/app')
+  let sheet = await openArea(user, 'จตุจักร')
+  expect(sheet.getByRole('button', { name: th.follow.instead })).toHaveAttribute('aria-pressed', 'false')
+  view.unmount()
+  openApp('/app')
+  sheet = await openArea(user, 'บางรัก')
+  await user.click(sheet.getByRole('button', { name: th.follow.following }))
+  expect(await sheet.findByRole('button', { name: th.follow.button })).toBeInTheDocument()
+  expect(phone.get().follow).toBeUndefined()
+})
+it('explains on an iPhone not added to the home screen that following needs the home screen, and sends nothing', async () => {
+  const user = userEvent.setup()
+  const push = fakePush({ support: () => 'home-screen' })
+  openApp('/app')
+  const sheet = await openArea(user, 'บางรัก')
+  await user.click(sheet.getByRole('button', { name: th.follow.button }))
+  expect(await sheet.findByText(th.follow.homeScreen)).toBeInTheDocument()
+  expect(push.calls).toEqual([])
+  expect(phone.get().follow).toBeUndefined()
+})
+it('says how to allow notifications when they are refused', async () => {
+  const user = userEvent.setup()
+  fakePush({ permission: async () => 'denied' })
+  openApp('/app')
+  const sheet = await openArea(user, 'บางรัก')
+  await user.click(sheet.getByRole('button', { name: th.follow.button }))
+  expect(await sheet.findByText(th.follow.denied)).toBeInTheDocument()
+})
+it('says behind ⓘ that following sends only the push address, never the district', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  const sheet = await openArea(user, 'บางรัก')
+  await user.click(sheet.getByRole('button', { name: th.follow.only }))
+  for (const line of th.follow.details) expect(sheet.getByText(line)).toBeInTheDocument()
+  expect(sheet.getAllByRole('link', { name: th.privacy.title }).at(-1)).toHaveAttribute('target', '_blank')
+})
+it('opens the followed district’s sheet when the app is opened from the notification', () => {
+  phone.update((s) => ({ ...s, follow: 'bang_rak' }))
+  openApp('/app#follow')
+  expect(screen.getByRole('dialog', { name: 'เขตบางรัก' })).toBeInTheDocument()
 })

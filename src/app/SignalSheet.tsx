@@ -6,6 +6,7 @@ import { OFFICIAL } from '../data/official'
 import { Emoji } from '../design/Emoji'
 import type { EmojiName } from '../design/emojiCodes'
 import { QUIET_LINK } from '../design/look'
+import { FollowButton } from './FollowButton'
 import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
 import { districtLabel } from '../domain/districts'
@@ -160,6 +161,8 @@ export function SignalSheet({ area, open, onClose }: Props) {
         {hasPlace ? th.map.sheet.careHere : th.map.sheet.findCare}
         <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
       </Go>
+      {/* What the phone saw of the district when it began to follow it: the state and the three rows, as published. */}
+      {!isCity && <FollowButton district={area.areaId} seen={{ state: area.state, density: area.density, symptoms: area.symptoms, testing: area.testing }} />}
 
       {OFFICIAL.length > 0 && (
         <>

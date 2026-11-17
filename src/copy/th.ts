@@ -248,6 +248,22 @@ export const th = {
     forgetDistrict: 'ลืมเขตนี้',
     kind: { tested: 'ไปเช็กมา ไม่เจออะไร', gono_chlam: 'หนองในและคลามิเดีย', syphilis: 'ซิฟิลิส', symptoms: 'มีอาการ' },
   },
+  /** Following one district (redesign spec 5.11): 🔔 in a district's sheet and in ของฉัน. */
+  follow: {
+    button: 'ติดตามเขตนี้',
+    following: 'ติดตามอยู่',
+    instead: 'ติดตามเขตนี้แทน',
+    stop: 'เลิกติดตาม',
+    title: 'เขตที่ติดตาม',
+    none: 'ยังไม่ได้ติดตามเขตใด',
+    start: 'ติดตามเขต',
+    homeScreen: 'บน iPhone ต้องเพิ่มแอปไปยังหน้าจอโฮมก่อน จึงรับแจ้งเตือนได้',
+    unsupported: 'เบราว์เซอร์นี้รับแจ้งเตือนไม่ได้',
+    denied: 'เครื่องนี้ปิดการแจ้งเตือนของแอปไว้ เปิดได้ที่การตั้งค่าของเบราว์เซอร์',
+    failed: 'ติดตามไม่สำเร็จ ลองใหม่อีกครั้ง',
+    only: 'ส่งแค่ที่อยู่สำหรับส่งแจ้งเตือนของเครื่องนี้ ไม่ส่งเขต',
+    details: ['แจ้งเตือนสัปดาห์ละครั้ง วันจันทร์เที่ยง', 'แจ้งเตือนไม่มีชื่อเขตหรือชื่อโรค', 'เครื่องของคุณเทียบเขตที่ติดตามเอง เซิร์ฟเวอร์ไม่รู้ว่าคุณติดตามเขตไหน'],
+  },
   /** The weekly notification of a followed district: no district or disease name (redesign spec 5.11). public/sw.js holds the same lines. */
   weekly: { title: 'Cluster', changed: 'เขตที่คุณติดตามมีอัปเดต', same: 'แผนที่สัปดาห์นี้อัปเดตแล้ว' },
   privacy: {

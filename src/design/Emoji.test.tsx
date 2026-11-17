@@ -4,7 +4,7 @@ import { Emoji } from './Emoji'
 import { EMOJI_NAMES } from './emojiCodes'
 
 it('draws every emoji the app names from a file of its own origin, so every phone shows the same picture', () => {
-  expect(EMOJI_NAMES).toHaveLength(26)
+  expect(EMOJI_NAMES).toHaveLength(27)
   for (const name of EMOJI_NAMES) {
     const { container, unmount } = render(<Emoji name={name} />)
     const src = container.querySelector('img')!.getAttribute('src')

@@ -1,5 +1,6 @@
 import { ChevronRight, Waves } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { th } from '../copy/th'
 import { PRESS } from '../design/look'
 import type { Level } from '../map/geo'
@@ -10,6 +11,7 @@ import { usePharmacies } from '../data/pharmacies'
 import type { CareLayer } from '../domain/types'
 import { districtName } from '../domain/districts'
 import { CarePointSheet } from './CarePointSheet'
+import { useGo } from './Go'
 import { SignalSheet } from './SignalSheet'
 import { StatusCard } from './StatusCard'
 import { LayerChips } from './LayerChips'
@@ -19,7 +21,10 @@ import { phone } from '../store/stores'
 
 export function MapScreen() {
   const { districts, city, byId } = useAreas()
-  const on = layersOn(usePartyStore(phone))
+  const stored = usePartyStore(phone)
+  const on = layersOn(stored)
+  const location = useLocation()
+  const go = useGo()
   const [areaId, setAreaId] = useState<string | null>(null)
   const [pointId, setPointId] = useState<string | null>(null)
   const [seen, setSeen] = useState<{ level: Level; areaId: string | null }>({ level: 'city', areaId: null })
@@ -33,7 +38,13 @@ export function MapScreen() {
     return [...CARE_POINTS, ...pharmacies.points].filter((p) => shown[p.layer])
   }, [sti, health_centre, hospital, pharmacy, atCity, pharmacies.points])
 
-  const selected = areaId === null ? null : byId(areaId)
+  // Opened from the weekly notification (/app#follow): the followed district's sheet, from this phone's own store (redesign spec 5.11).
+  const openId = areaId ?? (location.hash === '#follow' ? (stored.follow ?? null) : null)
+  const selected = openId === null ? null : byId(openId)
+  const closeArea = () => {
+    setAreaId(null)
+    if (location.hash) go('/app')
+  }
   // Below city level, the state box speaks for the district in the middle of the map.
   const inView = seen.level !== 'city' && seen.areaId ? seen.areaId : null
   const place = inView
@@ -49,7 +60,7 @@ export function MapScreen() {
         phase={2}
         showSignal={on.confirmed}
         showSymptoms={on.symptoms}
-        selectedArea={areaId}
+        selectedArea={openId}
         selectedPoint={pointId}
         onSelectArea={setAreaId}
         onSelectCarePoint={setPointId}
@@ -82,7 +93,7 @@ export function MapScreen() {
         </div>
       </div>
 
-      {selected && <SignalSheet area={selected} open onClose={() => setAreaId(null)} />}
+      {selected && <SignalSheet area={selected} open onClose={closeArea} />}
       <CarePointSheet point={points.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
     </div>
   )

@@ -4,7 +4,7 @@ import { follow, setPushPlatformForTest, unfollow, type PushPlatform, type Seen 
 
 // Following a district on the phone (redesign spec 5.11): only a push address leaves it; the district stays.
 
-const SEEN: Seen = { state: 'shown', density: 'thin', symptoms: null, testing: 'thin' }
+const SEEN: Seen = { state: 'shown', density: 'thin', symptoms: null, testing: 'low' }
 const ENDPOINT = 'https://fcm.googleapis.com/fcm/send/abc'
 type Sub = { endpoint: string; unsubscribe: Mock<() => Promise<boolean>> }
 
