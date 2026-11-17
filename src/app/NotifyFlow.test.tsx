@@ -130,7 +130,7 @@ it('can be opened again from the self-care screen, as the "later" answer promise
       <App />
     </MemoryRouter>,
   )
-  expect(screen.getByRole('link', { name: th.report.goNotify })).toHaveAttribute('href', '/app/notify')
+  expect(screen.getByRole('link', { name: th.report.tell })).toHaveAttribute('href', '/app/notify')
 })
 it('turns "let a clinic tell them" into advice and the list of care points, with no slip and no QR code', async () => {
   const user = userEvent.setup()

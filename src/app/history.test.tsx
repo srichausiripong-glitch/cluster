@@ -34,12 +34,14 @@ it('replaces the page with a blank one on the quick exit', async () => {
   expect(replace).toHaveBeenCalledWith('about:blank')
   vi.unstubAllGlobals()
 })
-it('says on the help page what the quick exit cannot erase', () => {
+it('says on the help page, behind ⓘ, what the quick exit cannot erase', async () => {
+  const user = userEvent.setup()
   window.history.replaceState(null, '', '/app/help')
   render(
     <BrowserRouter>
       <App />
     </BrowserRouter>,
   )
+  await user.click(screen.getByRole('button', { name: th.help.exitMore }))
   expect(screen.getByText(th.help.historyNote)).toBeInTheDocument()
 })

@@ -58,3 +58,7 @@ it('offers a way back into the app and the quick exit on the privacy and terms p
     view.unmount()
   }
 })
+it('sets no age limit on the terms page', () => {
+  open('/terms')
+  expect(screen.queryByText(/อายุ/)).toBeNull()
+})

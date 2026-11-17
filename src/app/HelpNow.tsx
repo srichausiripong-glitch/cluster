@@ -5,6 +5,7 @@ import { th } from '../copy/th'
 import { PRESS, TEXT_LINK } from '../design/look'
 import { Banner } from '../design/primitives/Banner'
 import { Card } from '../design/primitives/Card'
+import { More } from './More'
 import { CARE_POINTS } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
@@ -50,7 +51,9 @@ export function HelpNow() {
         </p>
       </Card>
 
-      <p className="box p-3 text-[13px] text-muted">{th.help.historyNote}</p>
+      <More summary={th.help.exitMore}>
+        <p>{th.help.historyNote}</p>
+      </More>
       <p className="flex flex-wrap gap-x-4 text-[13px]">
         <Go to="/privacy" className={TEXT_LINK}>
           {th.privacy.title}

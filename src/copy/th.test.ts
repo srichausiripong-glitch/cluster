@@ -15,7 +15,11 @@ it('pins the copy the spec fixes', () => {
   expect(th.map.step).toMatchObject({ new: 'เพิ่งรายงาน', followup: 'ช่วงติดตามผู้สัมผัส', expiring: 'ใกล้หมดอายุ', mixed: 'ผสม' })
   // Redesign spec 5.5: a district below the threshold reads "ยังไม่ถึงเกณฑ์" whether it had none or a few.
   expect(th.map.state.below_threshold).toBe('ยังไม่ถึงเกณฑ์')
-  expect(th.report.cta).toBe('ส่งสัญญาณ')
+  // Redesign spec 5.1–5.3, 5.7, 5.9: the status card, its flows, the district sheet, and no age limit.
+  expect([th.home.ask, th.home.clear, th.home.found]).toEqual(['ตรวจล่าสุดเป็นไง?', 'ไม่เจอ', 'เจอ / มีอาการ'])
+  expect([th.report.askFound, th.report.askSource, th.report.skip]).toEqual(['เจออะไร?', 'รู้จากไหน?', 'ไม่ส่ง แค่หาที่รักษา'])
+  expect(th.care.anyAge).toBe('ทุกวัยตรวจได้')
+  expect(th.map.sheet.from).toBe('จากรายงานผู้ใช้ · ไม่ใช่ที่ติดเชื้อ')
 })
 it('uses none of the banned words anywhere in the copy or the advice', () => {
   const groups: (DiseaseGroup | null)[] = [null, 'mpox', 'gono_chlam', 'syphilis', 'hiv']
@@ -64,4 +68,14 @@ it('calls the self-care tab ของฉัน wherever the copy points to it', 
 })
 it('lists the layer switches among what the phone keeps', () => {
   expect(th.privacy.phone).toContain('ชั้นแผนที่')
+})
+it('has no check-in, send-signal or age-limit words left in the copy', () => {
+  for (const s of strings(th)) {
+    expect(s).not.toContain('เช็กอิน')
+    expect(s).not.toContain('ส่งสัญญาณ')
+    expect(s).not.toMatch(/อายุ\s*20|20 ปี/)
+  }
+})
+it('puts no ปลอดภัย on a button', () => {
+  for (const s of [th.notify.safeYes, th.home.clear, th.home.found, ...Object.values(th.report.found)]) expect(s).not.toContain('ปลอดภัย')
 })
