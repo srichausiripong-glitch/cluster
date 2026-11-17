@@ -71,6 +71,18 @@ export function HelpNow() {
             {th.help.emojiLicense}
           </a>
         </span>
+        <span>
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className={TEXT_LINK}>
+            {th.help.creditOsm}
+          </a>
+          {' · '}
+          <a href="https://opendatacommons.org/licenses/odbl/" target="_blank" rel="noreferrer" className={TEXT_LINK}>
+            {th.help.creditOsmLicense}
+          </a>
+        </span>
+        <a href="https://data.bangkok.go.th" target="_blank" rel="noreferrer" className={TEXT_LINK}>
+          {th.help.creditBma}
+        </a>
       </p>
 
       <section>

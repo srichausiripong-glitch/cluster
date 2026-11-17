@@ -95,6 +95,10 @@ export const th = {
     hotlines: 'สายด่วน',
     emojiCredit: 'อีโมจิจาก OpenMoji',
     emojiLicense: 'CC BY-SA 4.0',
+    /** The pharmacy file is derived from OpenStreetMap, and is published under the ODbL (redesign spec 3, 5.8). */
+    creditOsm: 'ร้านยาจาก OpenStreetMap',
+    creditOsmLicense: 'ODbL',
+    creditBma: 'ศูนย์บริการสาธารณสุขและโรงพยาบาลจากข้อมูลเปิดกรุงเทพมหานคร',
     historyNote: 'ปุ่มออกเร็วพาไปหน้าว่างทันที และกดย้อนกลับแล้วไม่กลับเข้าแอป แต่ประวัติการเข้าชมของเบราว์เซอร์ยังมีชื่อเว็บไซต์นี้ ลบได้จากการตั้งค่าของเบราว์เซอร์',
     lines: [
       { number: '1663', who: 'ปรึกษาเรื่องเอชไอวีและท้องไม่พร้อม', hours: 'ทุกวัน 09:00-21:00' },

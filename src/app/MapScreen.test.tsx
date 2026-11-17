@@ -127,6 +127,13 @@ it('lists PEP places of both trust levels on the help page, verified first, the 
   expect(rows[at('ศูนย์บริการสาธารณสุขทดสอบตัวอย่าง')]).toContain(th.care.unverifiedTag)
   expect(rows[at('คลินิกกาชาดตัวอย่าง')]).not.toContain(th.care.unverifiedTag)
 })
+it('credits OpenStreetMap under the ODbL and the BMA’s open data on the help page', () => {
+  expect([th.help.creditOsm, th.help.creditOsmLicense, th.help.creditBma].every(Boolean)).toBe(true)
+  openApp('/app/help')
+  expect(screen.getByRole('link', { name: th.help.creditOsm })).toHaveAttribute('href', 'https://www.openstreetmap.org/copyright')
+  expect(screen.getByRole('link', { name: th.help.creditOsmLicense })).toHaveAttribute('href', 'https://opendatacommons.org/licenses/odbl/')
+  expect(screen.getByRole('link', { name: th.help.creditBma })).toHaveAttribute('href', 'https://data.bangkok.go.th')
+})
 it('credits the emoji set on the help page, with a link to its licence', () => {
   openApp('/app/help')
   expect(screen.getByRole('link', { name: th.help.emojiCredit })).toHaveAttribute('href', 'https://openmoji.org')
