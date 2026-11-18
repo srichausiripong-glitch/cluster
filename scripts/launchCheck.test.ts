@@ -14,7 +14,7 @@ const ENV = {
   VAPID_SUBJECT: 'mailto:ops@example.org',
 }
 const point = (verified: boolean) => ({ id: 'p', source: 'https://example.org/care', fetched: '2026-11-17', verified: verified ? { date: '2026-11-20', by: 'x', method: 'phone' } : null })
-const DATA = { carePoints: [point(true)], clinical: [{ id: 'a', status: 'signed' }] }
+const DATA = { carePoints: [point(true)], clinical: [{ id: 'a', source: { name: 'WHO', url: 'https://www.who.int/x' } }] }
 
 it('passes when everything is ready', () => {
   expect(launchCheck(ENV, DATA)).toEqual([])
@@ -78,4 +78,9 @@ it('refuses a push key or contact the push services would turn away', () => {
   expect(reasons({ VAPID_PRIVATE_JWK: '{"kty":"EC"}' })).toContain('VAPID_PRIVATE_JWK')
   expect(reasons({ VAPID_PRIVATE_JWK: 'not json' })).toContain('VAPID_PRIVATE_JWK')
   expect(reasons({})).toBe('')
+})
+it('takes a clinical text with a trusted source, and refuses one without', () => {
+  const check = (clinical: unknown[]) => launchCheck(ENV, { ...DATA, clinical: clinical as never }).join('\n')
+  expect(check([{ id: 'a', source: { name: 'WHO', url: 'https://www.who.int/x' } }])).toBe('')
+  for (const source of [undefined, { url: 'http://www.who.int/x' }, { url: 'https://example.org/x' }]) expect(check([{ id: 'a', source }]), JSON.stringify(source)).toContain('clinical text a')
 })

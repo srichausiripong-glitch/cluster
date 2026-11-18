@@ -31,5 +31,5 @@ it('asks for a full set of tests when the link names no disease, and never point
 it('uses the blood-test advice for a syphilis contact older than three months', () => {
   const steps = adviceFor('syphilis', 1, 'older').steps.join(' ')
   expect(steps).not.toContain('แม้ผลเลือดปกติ')
-  expect(steps).toContain('12 สัปดาห์')
+  expect(steps).toContain('เจาะเลือดตรวจซิฟิลิสตอนนี้')
 })

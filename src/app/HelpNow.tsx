@@ -1,14 +1,14 @@
 import { Clock, Phone } from 'lucide-react'
 import { useState } from 'react'
-import { clinical, isSigned } from '../copy/clinical'
+import { clinical } from '../copy/clinical'
 import { th } from '../copy/th'
 import { PRESS, TEXT_LINK } from '../design/look'
-import { Banner } from '../design/primitives/Banner'
 import { Card } from '../design/primitives/Card'
 import { More } from './More'
 import { CARE_POINTS, orderedCarePoints } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
+import { Guidance } from './Guidance'
 import { Go } from './Go'
 
 export function HelpNow() {
@@ -20,18 +20,11 @@ export function HelpNow() {
       <h1 className="text-[20px] font-bold">{th.help.title}</h1>
 
       <section className="rounded-md bg-urgent p-4 text-white">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* The block where time matters stays black with white words; its title is yellow. */}
-          <h2 className="flex items-center gap-2 text-[17px] font-bold text-yellow">
-            <Clock size={20} strokeWidth={2} aria-hidden="true" />
-            {th.help.pepTitle}
-          </h2>
-          {!isSigned('help.pep') && (
-            <span role="note" className="rounded-sm border border-white/70 px-2 py-0.5 text-[12px]">
-              {th.draftClinical}
-            </span>
-          )}
-        </div>
+        {/* The block where time matters stays black with white words; its title is yellow. */}
+        <h2 className="flex items-center gap-2 text-[17px] font-bold text-yellow">
+          <Clock size={20} strokeWidth={2} aria-hidden="true" />
+          {th.help.pepTitle}
+        </h2>
         <p data-clinical="help.pep" className="mt-1 text-white/85">
           {clinical('help.pep').text}
         </p>
@@ -40,16 +33,15 @@ export function HelpNow() {
             <CarePointRow key={p.id} point={p} tone="dark" onOpen={() => setPointId(p.id)} />
           ))}
         </div>
+        <Guidance ids={['help.pep']} tone="dark" />
       </section>
 
       <Card>
-        <div className="mb-1 flex flex-wrap items-center gap-2">
-          <h2 className="text-[17px] font-bold">{th.help.mpoxTitle}</h2>
-          {!isSigned('help.mpoxVaccine') && <Banner tone="draft">{th.draftClinical}</Banner>}
-        </div>
+        <h2 className="mb-1 text-[17px] font-bold">{th.help.mpoxTitle}</h2>
         <p data-clinical="help.mpoxVaccine" className="text-muted">
           {clinical('help.mpoxVaccine').text}
         </p>
+        <Guidance ids={['help.mpoxVaccine']} />
       </Card>
 
       <More summary={th.help.exitMore}>

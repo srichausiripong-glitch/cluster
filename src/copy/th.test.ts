@@ -11,7 +11,7 @@ function strings(value: unknown, out: string[] = []): string[] {
 }
 
 it('pins the copy the spec fixes', () => {
-  expect(th.draftClinical).toBe('ร่าง รอแพทย์ลงนาม')
+  expect(th.guidance).toEqual({ note: 'คำแนะนำทั่วไป ไม่ใช่การวินิจฉัย', sources: 'ที่มา:' })
   expect(th.map.step).toMatchObject({ new: 'เพิ่งรายงาน', followup: 'ช่วงติดตามผู้สัมผัส', expiring: 'ใกล้หมดอายุ', mixed: 'ผสม' })
   // Redesign spec 5.5: a district below the threshold reads "ยังไม่ถึงเกณฑ์" whether it had none or a few.
   expect(th.map.state.below_threshold).toBe('ยังไม่ถึงเกณฑ์')

@@ -3,7 +3,8 @@ export const BANNED_WORDS = ['ปลอดเชื้อ', 'สะอาด', '
 
 /** Every UI string. Candidates only: Thai wording must be tested and signed with community partners (spec 3). */
 export const th = {
-  draftClinical: 'ร่าง รอแพทย์ลงนาม',
+  /** The line under every block of clinical advice (2026-11-18 design, decision 2). */
+  guidance: { note: 'คำแนะนำทั่วไป ไม่ใช่การวินิจฉัย', sources: 'ที่มา:' },
   common: {
     back: 'ย้อนกลับ', backToApp: 'กลับเข้าแอป', copied: 'คัดลอกแล้ว', quickExit: 'ออกเร็ว', openList: 'ดูจุดบริการทั้งหมด',
   },

@@ -1,7 +1,7 @@
 import { clinical } from '../copy/clinical'
 import type { Advice, DiseaseGroup, ExposureBand } from './types'
 
-/** Builds the advice from register ids, so every sentence carries its sign-off status. */
+/** Builds the advice from register ids, so every sentence carries its source. */
 const advice = (title: string, steps: string[], urgent: boolean): Advice => ({
   title: clinical(title).text,
   steps: steps.map((id) => clinical(id).text),
@@ -11,7 +11,7 @@ const advice = (title: string, steps: string[], urgent: boolean): Advice => ({
 
 /**
  * Advice per disease group and tier, from spec section 6. Every sentence lives in the clinical
- * register (src/copy/clinical.ts) and is shown as a draft until a physician signs it there.
+ * register (src/copy/clinical.ts), with the public page that backs it.
  *
  * A link for contact within 72 hours always says "go today", whether or not it names a
  * disease. If only HIV links did, the urgency itself would name the disease.

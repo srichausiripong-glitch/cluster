@@ -1,6 +1,6 @@
 // The gate before a deploy (v1 spec 7.4, redesign spec 5.8): refuses while any care point lacks its
 // source or the day it was copied, a confirmed one does not say how it was confirmed, any clinical
-// text is unsigned, or a setting the real app needs is missing.   npm run launch-check
+// text lacks an https source from a trusted publisher, or a setting the real app needs is missing.   npm run launch-check
 import { existsSync, readFileSync } from 'node:fs'
 import { CLINICAL } from '../src/copy/clinical.ts'
 import { launchCheck } from './launchCheck.ts'

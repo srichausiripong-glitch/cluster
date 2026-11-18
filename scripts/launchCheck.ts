@@ -1,7 +1,9 @@
+import { SOURCE_HOSTS } from '../src/copy/clinical.ts'
+
 /** What the launch check reads: the deploy's settings, every care point that ships, and the clinical register. */
 export interface LaunchData {
   carePoints: { id: string; verified: unknown; source?: unknown; fetched?: unknown; pep?: unknown }[]
-  clinical: { id: string; status: string }[]
+  clinical: { id: string; source?: { url?: unknown } }[]
 }
 const DAY = /^\d{4}-\d{2}-\d{2}$/
 const METHODS: unknown[] = ['phone', 'visit', 'partner']
@@ -21,6 +23,16 @@ function carePointReasons(p: LaunchData['carePoints'][number]): string[] {
   if (!whole) reasons.push(`care point ${p.id} is marked verified without saying when, by whom and how`)
   else if (p.pep === true && v.method !== 'phone') reasons.push(`care point ${p.id} gives PEP, so it must be verified by phone`)
   return reasons
+}
+/** A clinical text is general guidance backed by a public page on an allowed publisher (2026-11-18 design, decision 2). */
+function trustedSource(url: unknown): boolean {
+  if (typeof url !== 'string') return false
+  try {
+    const { protocol, hostname } = new URL(url)
+    return protocol === 'https:' && SOURCE_HOSTS.some((h) => hostname === h || hostname.endsWith(`.${h}`))
+  } catch {
+    return false
+  }
 }
 const REQUIRED = ['VITE_CONTROLLER_NAME', 'VITE_CONTACT_EMAIL', 'ENVELOPE_PRIVATE_JWK', 'SESSION_SECRET', 'DATABASE_URL', 'CRON_SECRET'] as const
 /** Needed by a real deploy only: a preview may try everything else without the push key (round 4 plan, decision 2). */
@@ -44,7 +56,7 @@ export function launchCheck(env: Record<string, string | undefined>, data: Launc
   if (preview) data = { carePoints: [{ id: 'preview', verified: null, source: 'https://example.org', fetched: '2026-01-01' }], clinical: [] }
   if (data.carePoints.length === 0) reasons.push('no care point to show')
   for (const p of data.carePoints) reasons.push(...carePointReasons(p))
-  for (const t of data.clinical) if (t.status !== 'signed') reasons.push(`clinical text ${t.id} is not signed by a physician`)
+  for (const t of data.clinical) if (!trustedSource(t.source?.url)) reasons.push(`clinical text ${t.id} needs an https source from a trusted publisher`)
   for (const name of REQUIRED) if (!env[name]?.trim()) reasons.push(`${name} is not set`)
   if (!preview) {
     for (const name of PRODUCTION_ONLY) if (!env[name]?.trim()) reasons.push(`${name} is not set`)

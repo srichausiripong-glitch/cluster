@@ -98,10 +98,10 @@ it('says where a class B care point is, in plain words', async () => {
   expect(sheet.getByText(th.care.klassBNote)).toBeInTheDocument()
   expect(sheet.queryByText(/อนุมัติ/)).toBeNull()
 })
-it('labels the 72-hour block as a draft and opens a PEP care point from it', async () => {
+it('marks the 72-hour block as general guidance and opens a PEP care point from it', async () => {
   const user = userEvent.setup()
   openApp('/app/help')
-  expect(screen.getAllByText(th.draftClinical)).toHaveLength(2)
+  expect(screen.getAllByText(new RegExp(th.guidance.note))).toHaveLength(2)
   await user.click(screen.getByRole('button', { name: /คลินิกกาชาดตัวอย่าง/ }))
   expect(screen.getByRole('dialog', { name: 'คลินิกกาชาดตัวอย่าง' })).toBeInTheDocument()
 })

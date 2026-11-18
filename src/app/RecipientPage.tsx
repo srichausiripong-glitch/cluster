@@ -2,18 +2,18 @@ import { CalendarPlus, Check as Tick, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { formatThaiDate } from '../copy/format'
-import { clinical, isSigned } from '../copy/clinical'
+import { clinical } from '../copy/clinical'
 import { th } from '../copy/th'
 import { adviceFor } from '../domain/advice'
 import { buildIcs } from '../domain/ics'
 import { decodeNotice } from '../domain/link'
 import { PRESS, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
-import { Banner } from '../design/primitives/Banner'
 import { Button } from '../design/primitives/Button'
 import { Logo } from '../design/Logo'
 import { CARE_POINTS, orderedCarePoints } from '../data/carePoints'
 import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
+import { Guidance } from './Guidance'
 import { QuickExit } from './QuickExit'
 import { Go } from './Go'
 
@@ -68,6 +68,10 @@ function RecipientView({ hash }: { hash: string }) {
   const retestId = `retest.${notice?.group ?? 'none'}`
   const retestDays = clinical(retestId).days ?? []
 
+  const retestShown = namedHiv ? branch === 'within72' || branch === 'later' : true
+  const blockIds = namedHiv ? (branch ? [`recipient.hiv.${branch}`] : []) : [...(notice?.group || advice.urgent ? [advice.ids.title] : []), ...advice.ids.steps]
+  const shownIds = [...blockIds, ...(retestShown ? [retestId] : []), 'recipient.pregnancy']
+
   // When time matters, the places that have PEP come first.
   const urgentCare = namedHiv ? branch === 'within72' : advice.urgent
   const ordered = orderedCarePoints()
@@ -93,10 +97,7 @@ function RecipientView({ hash }: { hash: string }) {
           {namedHiv ? (
             // A named HIV notice asks first, then shows only the branch that applies (spec 6).
             <section className="step-in box p-4">
-              <div className="mb-1 flex flex-wrap items-center gap-2">
-                <h2 className="text-[20px] font-bold">{th.group.hiv}</h2>
-                {!isSigned(...HIV_BRANCHES.map((k) => `recipient.hiv.${k}`), retestId) && <Banner tone="draft">{th.draftClinical}</Banner>}
-              </div>
+              <h2 className="mb-1 text-[20px] font-bold">{th.group.hiv}</h2>
               <p className="text-[13px] text-muted">{meta}</p>
               <p className="mt-2">{th.recipient.hivLead}</p>
               <h3 className="mb-2 mt-3 font-bold">{th.recipient.hivAsk}</h3>
@@ -134,13 +135,6 @@ function RecipientView({ hash }: { hash: string }) {
                     {advice.title}
                   </h2>
                 )}
-                {isSigned(advice.ids.title, ...advice.ids.steps, retestId) ? null : advice.urgent ? (
-                  <span role="note" className="rounded-sm border border-white/70 px-2 py-0.5 text-[12px]">
-                    {th.draftClinical}
-                  </span>
-                ) : (
-                  <Banner tone="draft">{th.draftClinical}</Banner>
-                )}
               </div>
               {meta && <p className={`text-[13px] ${advice.urgent ? 'text-white/85' : 'text-muted'}`}>{meta}</p>}
               <h3 className="mb-1 mt-3 text-[13px] font-bold">{th.recipient.todo}</h3>
@@ -158,6 +152,8 @@ function RecipientView({ hash }: { hash: string }) {
           <p data-clinical="recipient.pregnancy" className="rounded-md border-2 border-ink bg-bg p-3 text-[13px]">
             {clinical('recipient.pregnancy').text}
           </p>
+          {/* One line for the page: every sentence shown above, its sources each once. */}
+          <Guidance ids={shownIds} />
 
 
           <Button variant="secondary" className="w-full" onClick={() => downloadCalendar(retestDays)}>
