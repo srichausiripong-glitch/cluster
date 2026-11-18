@@ -5,6 +5,7 @@ import { PRESS } from '../design/look'
 import { districtLabel } from '../domain/districts'
 import { PointMark } from '../map/legend'
 import { isVerified, type CarePoint } from '../data/carePoints'
+import { hoursLine } from './hoursText'
 
 
 /** What kind of place this is, in words. A pharmacy is a pharmacy, even where it may list what it offers. */
@@ -26,6 +27,7 @@ export function CarePointRow({ point, onOpen, tone = 'light' }: Props) {
   const sub = tone === 'dark' ? 'text-white/85' : 'text-muted'
   const verified = isVerified(point)
   const detail = verified && point.klass === 'A' ? [point.hours, point.cost].filter(Boolean).join(' · ') : ''
+  const hours = hoursLine(point.open)
   const body = (
     <>
       <PointMark point={point} />
@@ -35,6 +37,8 @@ export function CarePointRow({ point, onOpen, tone = 'light' }: Props) {
           {districtLabel(point.districtId)} · {carePointType(point)}
         </span>
         {detail && <span className={`block text-[13px] ${sub}`}>{detail}</span>}
+        {/* Only a known status: most places' hours are unknown, and "ไม่ทราบเวลา" on every row says nothing the sheet does not. */}
+        {hours && <span className={`block text-[13px] font-semibold ${tone === 'dark' ? 'text-white' : 'text-ink'}`}>{hours}</span>}
         {verified && point.pep && <span className="mt-1 inline-block rounded-full border-[1.5px] border-ink bg-care-soft px-2.5 py-0.5 text-[12px] font-semibold text-ink">{th.care.pep}</span>}
         {!verified && (
           <span className="mt-1 inline-flex items-center gap-1 rounded-full border-[1.5px] border-ink bg-yellow px-2.5 py-0.5 text-[12px] font-semibold text-ink">

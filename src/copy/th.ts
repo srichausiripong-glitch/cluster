@@ -274,6 +274,22 @@ export const th = {
   },
   /** The weekly notification of a followed district: no district or disease name (redesign spec 5.11). public/sw.js holds the same lines. */
   weekly: { title: 'Cluster', changed: 'เขตที่คุณติดตามมีอัปเดต', same: 'แผนที่สัปดาห์นี้อัปเดตแล้ว', due: 'ถึงวันตรวจที่ตั้งไว้แล้ว' },
+  /** Opening hours (2026-11-18 design, decision 3). Public holidays are not known. */
+  hours: {
+    open: 'เปิดอยู่ · ปิด {time}',
+    allDay: 'เปิด 24 ชั่วโมง',
+    closed: 'ปิดแล้ว',
+    opens: 'เปิด{day} {time}',
+    today: 'วันนี้',
+    unknown: 'ไม่ทราบเวลา',
+    holidays: 'ไม่รวมวันหยุดนักขัตฤกษ์',
+    service: 'เวลาบริการตรวจ',
+    office: 'เวลาทำการ',
+    days: ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'],
+    from: 'เวลาจาก',
+  },
+  /** The list's filters: never kept, they reset when the list opens (2026-11-18 design, decision 3). */
+  filters: { label: 'กรอง', openNow: 'เปิดตอนนี้', pep: 'PEP', free: 'ฟรี', none: 'ไม่มีจุดที่ตรงทุกตัวกรอง', clear: 'ล้างตัวกรอง' },
   /** The one-time note that a "tested" report arrived (2026-11-18 design, decision 2). Never "counted": the phone cannot know that. */
   counted: { sent: 'รายงาน "ไม่เจอ" ของคุณส่งถึงแล้ว', row: '"ไปตรวจ" ของเขต{name}', close: 'ปิด' },
   /** The next-test reminder (2026-11-18 design, decision 1). Names no disease. */

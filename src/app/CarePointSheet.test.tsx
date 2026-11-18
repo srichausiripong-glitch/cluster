@@ -1,6 +1,6 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
 import { withDistrict } from '../data/carePoints'
@@ -118,4 +118,35 @@ it('names the page a phone number was found on, when it is not the place’s own
   expect(sheet.getByRole('link', { name: th.care.call })).toHaveAttribute('href', 'tel:024197380')
   cleanup()
   expect(open('cu1').queryByText(th.care.phoneFrom)).toBeNull()
+})
+
+// ---- opening hours (2026-11-18 design, decision 3) -------------------------------------------------
+afterEach(() => vi.useRealTimers())
+const withHours = withDistrict({ ...FIXTURE_UNVERIFIED[0], open: [{ days: [1, 2, 3, 4, 5], from: '08:00', to: '16:00' }], openSource: 'https://example.go.th/hours', openKind: 'service' })
+const atBangkokWednesday10 = () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-11-18T03:00:00Z'))
+}
+it('shows whether a place is open, which hours they are, and where they come from, with the holiday note', () => {
+  atBangkokWednesday10()
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={withHours} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  const sheet = within(screen.getByRole('dialog'))
+  expect(sheet.getByText(th.hours.service)).toBeInTheDocument()
+  expect(sheet.getByText(th.hours.open.replace('{time}', '16:00'))).toBeInTheDocument()
+  const from = sheet.getByRole('link', { name: 'example.go.th' })
+  expect(from).toHaveAttribute('href', 'https://example.go.th/hours')
+  expect(from).toHaveAttribute('target', '_blank')
+  expect(sheet.getByText(th.hours.holidays)).toBeInTheDocument()
+  cleanup()
+  expect(open('cu2').getByText(th.hours.unknown)).toBeInTheDocument()
+})
+it('marks an unconfirmed place\'s hours with its unconfirmed tag', () => {
+  atBangkokWednesday10()
+  render(<CarePointRow point={withHours} />)
+  expect(screen.getByText(th.hours.open.replace('{time}', '16:00'))).toBeInTheDocument()
+  expect(screen.getByText(th.care.unverifiedTag)).toBeInTheDocument()
 })

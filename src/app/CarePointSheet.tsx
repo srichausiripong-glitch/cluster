@@ -9,6 +9,7 @@ import { Sheet } from '../design/primitives/Sheet'
 import { isVerified, type CarePoint } from '../data/carePoints'
 import { districtLabel } from '../domain/districts'
 import { carePointType } from './CarePointRow'
+import { hoursLine } from './hoursText'
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -57,6 +58,35 @@ const host = (url: string) => {
   }
 }
 
+/** Whether the place is open, which hours they are and where they come from (2026-11-18 design, decision 3). */
+function HoursRow({ point }: { point: CarePoint }) {
+  const line = hoursLine(point.open)
+  return (
+    <Row
+      label={point.openKind === 'service' ? th.hours.service : th.hours.office}
+      value={
+        line ? (
+          <>
+            <span className="block font-semibold">{line}</span>
+            <span className="block text-[13px] text-muted">{th.hours.holidays}</span>
+            {point.openSource && (
+              <span className="flex flex-wrap items-center gap-x-1 text-[13px]">
+                {th.hours.from}
+                <a href={point.openSource} target="_blank" rel="noreferrer" className={`inline-flex min-h-11 items-center gap-1 break-all ${TEXT_LINK}`}>
+                  {host(point.openSource)}
+                  <ExternalLink size={14} strokeWidth={2} className="shrink-0" aria-hidden="true" />
+                </a>
+              </span>
+            )}
+          </>
+        ) : (
+          th.hours.unknown
+        )
+      }
+    />
+  )
+}
+
 /** Where a number found on another page came from, so a person can check it (owner, 18 Nov 2026). */
 function PhoneFrom({ point }: { point: CarePoint }) {
   if (!point.phone || !point.phoneSource) return null
@@ -102,6 +132,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
             {point.verified && <Row label={th.care.verified} value={formatThaiDate(new Date(point.verified.date))} />}
             <PhoneFrom point={point} />
             <ContactRow point={point} />
+            <HoursRow point={point} />
           </dl>
           {point.klass === 'B' && (
             <div className="mt-3 space-y-2 rounded-md border-2 border-ink bg-bg p-3">
@@ -141,6 +172,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
             />
             <PhoneFrom point={point} />
             <ContactRow point={point} />
+            <HoursRow point={point} />
           </dl>
           <p className="mt-2 text-[13px] text-muted">{th.care.fetched.replace('{date}', formatThaiDate(new Date(point.fetched)))}</p>
         </>

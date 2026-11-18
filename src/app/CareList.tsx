@@ -1,7 +1,8 @@
-import { ChevronRight, Waves, X } from 'lucide-react'
+import { Check, ChevronRight, Waves, X } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { th } from '../copy/th'
+import { openStatus } from '../domain/hours'
 import { CARE_POINTS, canTest, nearSort, type CarePoint } from '../data/carePoints'
 import { usePharmacies } from '../data/pharmacies'
 import { Emoji } from '../design/Emoji'
@@ -72,7 +73,12 @@ export function CareList() {
   // A district that is not one of the 50 filters nothing: the list is never blank by mistake.
   const district = asked && DISTRICT_IDS.includes(asked) ? asked : null
   const all = [...CARE_POINTS, ...pharmacies.points]
-  const shown = all.filter((p) => on[p.layer] && (!find || canTest(p)))
+  const [filters, setFilters] = useState({ openNow: false, pep: false, free: false })
+  const filtering = filters.openNow || filters.pep || filters.free
+  // The moment the list opened: "เปิดตอนนี้" is judged then, like the filters it belongs to.
+  const [now] = useState(() => new Date())
+  const passes = (p: (typeof all)[number]) => (!filters.openNow || openStatus(p.open, now)?.open === true) && (!filters.pep || p.pep === true) && (!filters.free || p.free)
+  const shown = all.filter((p) => on[p.layer] && (!find || canTest(p)) && passes(p))
   const sorted = nearSort(shown, district ?? myDistrict ?? null)
   const here = district ? sorted.filter((p) => p.districtId === district) : sorted
   // Without a filter the list begins at the nearest place, so it is named there, once (redesign spec 5.7).
@@ -115,6 +121,23 @@ export function CareList() {
         <LayerChips on={on} onToggle={toggleLayer} layers={CARE_LAYERS} />
       </div>
 
+      {/* Not kept: the filters reset whenever the list opens (2026-11-18 design, decision 3). */}
+      <div role="group" aria-label={th.filters.label} className="flex flex-wrap items-center gap-2">
+        <span className="text-[13px] font-semibold text-muted">{th.filters.label}</span>
+        {(['openNow', 'pep', 'free'] as const).map((key) => (
+          <button
+            key={key}
+            type="button"
+            aria-pressed={filters[key]}
+            onClick={() => setFilters((f) => ({ ...f, [key]: !f[key] }))}
+            className={`inline-flex min-h-9 items-center gap-1 rounded-full border-2 border-ink px-3 text-[13px] font-bold ${filters[key] ? 'bg-care-soft' : 'bg-surface'}`}
+          >
+            {filters[key] && <Check size={14} strokeWidth={3} aria-hidden="true" />}
+            {th.filters[key]}
+          </button>
+        ))}
+      </div>
+
       <button type="button" onClick={pick} className={`flex min-h-12 w-full items-center gap-2 rounded-md border-2 border-ink bg-surface px-3 text-left font-bold ${PRESS}`}>
         <Emoji name="pin" />
         <span className="min-w-0 flex-1">{district ? districtLabel(district) : th.care.allDistricts}</span>
@@ -135,6 +158,13 @@ export function CareList() {
         <div className="flex items-center gap-3 box px-4 py-3">
           <Mascot size={48} />
           <p className="text-[13px]">{th.care.noneVerified}</p>
+        </div>
+      ) : here.length + nearby.length === 0 && filtering ? (
+        <div className="space-y-1 box px-4 py-3 text-[13px]">
+          <p>{th.filters.none}</p>
+          <button type="button" onClick={() => setFilters({ openNow: false, pep: false, free: false })} className={`inline-flex min-h-11 items-center ${TEXT_LINK}`}>
+            {th.filters.clear}
+          </button>
         </div>
       ) : here.length + nearby.length === 0 ? (
         <div className="space-y-1 box px-4 py-3 text-[13px]">
