@@ -29,6 +29,12 @@ export interface CarePointData {
   fetched: string
   /** The first phone number, as digits, when the source gives one. */
   phone?: string
+  /** Other ways to reach the place, only as its public list gives them (2026-11-18 design, decision 1). */
+  email?: string
+  website?: string
+  facebook?: string
+  /** A LINE URL (https://line.me/…) or a LINE id (@name). */
+  line?: string
   /**
    * Who confirmed the point, when and how. Null until somebody has: such a point is still shown,
    * as a small dot that says to call first (redesign spec 5.8).

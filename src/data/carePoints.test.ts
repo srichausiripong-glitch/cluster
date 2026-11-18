@@ -115,3 +115,12 @@ it('puts the BMA centres the registry lists where the BMA’s own list puts them
     expect([p.lat, p.lon, p.districtId], id).toEqual([lat, lon, district])
   }
 })
+
+it('gives every BMA health centre an email or a website as well as a phone', () => {
+  const centres = ALL_CARE_POINTS.filter((p) => p.id.startsWith('bma-phc-'))
+  expect(centres.length).toBeGreaterThan(60)
+  for (const p of centres) {
+    expect(p.phone, p.id).toBeTruthy()
+    expect(p.email ?? p.website, p.id).toBeTruthy()
+  }
+})

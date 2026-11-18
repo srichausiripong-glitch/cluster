@@ -12,7 +12,7 @@
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/bmahospital",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -28,7 +28,7 @@
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/bmahospital",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -41,10 +41,11 @@
     "lon": 100.4236924,
     "address": "1075/1 พระราม 2 ซอย 44 แขวง ท่าข้าม เขต บางขุนเทียน กรุงเทพมหานคร 10150",
     "phone": "024050900",
+    "website": "https://msdbangkok.go.th/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/bmahospital",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   }
 ]

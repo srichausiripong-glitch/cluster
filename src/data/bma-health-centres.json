@@ -9,10 +9,13 @@
     "lon": 100.49655,
     "address": "3-5 ถนนเจริญกรุง แขวงวังบูรพาภิรมย์ เขตพระนคร กรุงเทพมหานคร 10200",
     "phone": "022265897",
+    "email": "saraban.hd.phc1@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter1",
+    "facebook": "https://www.facebook.com/healthcenter1",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -25,10 +28,13 @@
     "lon": 100.550573,
     "address": "509 ถนนเพชรบุรีตัดใหม่ แขวงมักกะสัน เขตราชเทวี กรุงเทพมหานคร 10400",
     "phone": "022517735",
+    "email": "saraban.hd.phc2@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter2",
+    "facebook": "https://www.facebook.com/hc13647",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -41,10 +47,13 @@
     "lon": 100.55819,
     "address": "อาคารอเนกประสงค์ระหว่างแฟลตช.8-ช.11 เลขที่ 49 ถนนมิตรไมตรี แขวงรัชดาภิเษก เขตดินแดง กรุงเทพฯ 10400",
     "phone": "022461553",
+    "email": "saraban.hd.phc4@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter4",
+    "facebook": "https://www.facebook.com/HealthCenter4Dindang/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -57,10 +66,13 @@
     "lon": 100.5224157,
     "address": "130 ซอยจุฬาฯ 36 ถนนบรรทัดทอง แขวงวังใหม่ เขตปทุมวัน กทม",
     "phone": "022141057",
+    "email": "saraban.hd.phc5@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter5",
+    "facebook": "https://www.facebook.com/PublicHealthCenter5chula/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -73,10 +85,13 @@
     "lon": 100.5170274,
     "address": "426 ถนนพิษณุโลก แขวงสี่แยกมหานาค เขตดุสิต กทม. 10300",
     "phone": "022828493",
+    "email": "saraban.hd.phc6@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter6",
+    "facebook": "https://www.facebook.com/healthcenter6",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -89,10 +104,13 @@
     "lon": 100.5309744,
     "address": "663 ถนนสาธุประดิษฐ์ แขวงบางโพงพาง เขตยานนาวา กรุงเทพมหานคร 10120",
     "phone": "022842427",
+    "email": "saraban.hd.phc7@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter7",
+    "facebook": "https://www.facebook.com/healthcenter7/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -105,10 +123,13 @@
     "lon": 100.6149312,
     "address": "23 ซอยอุดมสุข 18 สุขุมวิท 103 แขวงบางนาเหนือ เขบางนา กรุงเทพมหานคร 10260",
     "phone": "023616760",
+    "email": "saraban.hd.phc8@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter8",
+    "facebook": "https://www.facebook.com/boonrod08/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -121,10 +142,13 @@
     "lon": 100.5730453,
     "address": "722 สุขุมวิท 30 แขวงคลองตัน เขตคลองเตย กรุงเทพมหานคร 10110",
     "phone": "022584892",
+    "email": "saraban.hd.phc10@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter10",
+    "facebook": "https://www.facebook.com/suny.brikar.satharnsukh.sib.sukhumwith.sbs/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -137,10 +161,13 @@
     "lon": 100.5397061,
     "address": "51/13 ซอยประดิพัทธ์ 7 ถนนประดิพัทธ์ แขวงพญาไท เขตพญาไท กทม. 10400",
     "phone": "022711122",
+    "email": "saraban.hd.phc11@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter11",
+    "facebook": "https://www.facebook.com/healthcenter11/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -153,10 +180,13 @@
     "lon": 100.507845,
     "address": "860/37 เจริญกรุง107แยก40 เจริญกรุง107 แขวงบางโคล่ เขตบางคอแหลม กทม. 10120",
     "phone": "022917637",
+    "email": "saraban.hd.phc12@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter12",
+    "facebook": "https://www.facebook.com/healthcenter12",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -169,10 +199,13 @@
     "lon": 100.5057084,
     "address": "527 ซอยอาเนี้ยเก็ง ถ.ทรงวาด แขวงจักรวรรดิ เขตสัมพันธวงศ์ กทม. 10100",
     "phone": "022227875",
+    "email": "saraban.hd.phc13@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter13",
+    "facebook": "https://www.facebook.com/share/16B7qwPtZg/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -185,10 +218,13 @@
     "lon": 100.51487,
     "address": "เลขที่ 21 ซอยจันทน์ 42 แขวงวัดพระยาไกร เขตบางคอแหลม กรุงเทพมหานคร 10120",
     "phone": "022112353",
+    "email": "saraban.hd.phc14@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter14",
+    "facebook": "https://www.facebook.com/share/1JJdykHcgy/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -201,10 +237,13 @@
     "lon": 100.5836766,
     "address": "179 ซอยลาดพร้าว 41 สามเสนนอก เขตห้วยขวาง กรุงเทพมหานคร 10310",
     "phone": "025418380",
+    "email": "saraban.hd.phc15@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter15",
+    "facebook": "https://www.facebook.com/share/15sYmont9j/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -217,10 +256,13 @@
     "lon": 100.5506188,
     "address": "161/82 ซอยปลูกจิตต์ ถ. พระรามที่ 4 แขวงลุมพินี เขตปทุมวัน กรุงเทพมหานคร 10330",
     "phone": "022527776",
+    "email": "saraban.hd.phc16@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter16",
+    "facebook": "https://www.facebook.com/share/1KvEPvKkPj/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -233,10 +275,13 @@
     "lon": 100.546535,
     "address": "ถนนเทศบาลสงเคราะห์ แขวงลาดยาว เขตจตุจักร กรุงเทพมหานค 10900",
     "phone": "025916306",
+    "email": "saraban.hd.phc17@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter17",
+    "facebook": "https://www.facebook.com/share/17wjJhBJ6Z/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -249,10 +294,13 @@
     "lon": 100.526517,
     "address": "55 ซอยจันทน์43แยก37 แขวงบางโคล่ เขตบางคอแหลม กรุงเทพมหานคร",
     "phone": "022110860",
+    "email": "saraban.hd.phc18@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter18",
+    "facebook": "https://www.facebook.com/share/15oAkPCXhV/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -265,10 +313,13 @@
     "lon": 100.5264867,
     "address": "675 ถนนวงศ์สว่าง แขวงวงศ์สว่าง เขตบางซื่่อ กรุงเทพมหานคร",
     "phone": "029107313",
+    "email": "saraban.hd.phc19@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter19",
+    "facebook": "https://www.facebook.com/share/1AWZeXMa5A/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -281,10 +332,13 @@
     "lon": 100.5109216,
     "address": "245 247 249 ถนนนครสวรรค์ แขวงวัดโสมนัส เขตป้อมปราบศัตรูพ่าย กรุงเทพมหานคร 10100",
     "phone": "022230004",
+    "email": "saraban.hd.phc20@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter20",
+    "facebook": "https://www.facebook.com/share/1F9dQu7MH9/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -297,10 +351,13 @@
     "lon": 100.58566,
     "address": "1325/14 ถนนสุขุมวิท แขวงพระโขนงเหนือ เขตวัฒนา กทม. 10110",
     "phone": "023929277",
+    "email": "saraban.hd.phc21@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter21",
+    "facebook": "https://www.facebook.com/share/1Go2fQ1q8u/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -313,10 +370,13 @@
     "lon": 100.6316,
     "address": "235 ซอยอ่อนนุช 35 แขวงอ่อนนุช เขตสวนหลวง กรุงเทพมหานคร 10250",
     "phone": "023491816",
+    "email": "saraban.hd.phc22@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter22",
+    "facebook": "https://www.facebook.com/share/163kQEvw1y/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -329,10 +389,13 @@
     "lon": 100.5984722,
     "address": "44/495-504 ถ.พหลโยธิน แขวงอนุสาวรีย์ เขตบางเขน กทม. 10220",
     "phone": "025791342",
+    "email": "sarabun.hd.phc24@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter24",
+    "facebook": "https://www.facebook.com/share/1EG5Jtr2Pa/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -345,10 +408,13 @@
     "lon": 100.4957,
     "address": "1/1 ถนนเทศบาลสาย 1 แขวงวัดกัลยาณ์ เขตธนบุรี กทม.10600",
     "phone": "024650014",
+    "email": "saraban.hd.phc26@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter26",
+    "facebook": "https://www.facebook.com/share/1CsmPtn96q/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -361,10 +427,13 @@
     "lon": 100.48127,
     "address": "359 ถนนเทอดไท แขวงบางยี่เรือ เขตธนบุรี กรุงเทพมหานคร 10600",
     "phone": "024651000",
+    "email": "saraban.hd.phc27@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter27",
+    "facebook": "https://www.facebook.com/share/19C7TJ792a/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -377,10 +446,13 @@
     "lon": 100.50063,
     "address": "124/16 ถนนกรุงธนบุรี แขวงบางลำภูล่าง เขตคลองสาน กรุงเทพมหานคร 10600",
     "phone": "024372009",
+    "email": "saraban.hd.phc28@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter28",
+    "facebook": "https://www.facebook.com/share/1L1AniqM3K/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -393,10 +465,13 @@
     "lon": 100.4682843,
     "address": "27/21 ซ.วุฒากาศ 43 ถ.วุฒากาศ แขวงบางค้อ เขตจอมทอง 10150",
     "phone": "024766493",
+    "email": "saraban.hd.phc29@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter29/index",
+    "facebook": "https://www.facebook.com/healthcenter29/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -409,10 +484,13 @@
     "lon": 100.4661147,
     "address": "355 ถนนวังหลัง แขวงบ้านช่างหล่อ เขตบางกอกน้อย กรุงเทพมหานคร 10700",
     "phone": "024245690",
+    "email": "saraban.hd.phc30@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter30",
+    "facebook": "https://www.facebook.com/share/1Ur5ZLHaTS/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -425,10 +503,13 @@
     "lon": 100.50808,
     "address": "เลขที่ 252 ซอยจรัญสนิทวงศ์ 84 ถนจรัญสนิทวงศ์ แขวงบางอ้อ เขตบางพลัด กทม 10700",
     "phone": "024347303",
+    "email": "saraban.hd.phc31@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter31",
+    "facebook": "https://www.facebook.com/share/15m1ZKhdLv/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -441,10 +522,13 @@
     "lon": 100.6057739,
     "address": "91 สุขุมวิท 64/1 แขวงพระโขนงใต้ เขตพระโขนง",
     "phone": "023311773",
+    "email": "saraban.hd.phc32@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter32/contact",
+    "facebook": "https://www.facebook.com/share/1YAdJp5PZz/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -457,10 +541,13 @@
     "lon": 100.48883,
     "address": "127 ถ.วังเดิม2 แขวงวัดอรุณ เขตบางกอกใหญ่ กทม.10600",
     "phone": "024725895",
+    "email": "saraban.hd.phc33@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter33",
+    "facebook": "https://www.facebook.com/share/1Kp457Hfj4/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -473,10 +560,13 @@
     "lon": 100.59773,
     "address": "151 สุขุมวิท56 แขวงพระโขนงใต้ เขตพระโขนง กรุงเทพมหานคร 10260",
     "phone": "023319873",
+    "email": "saraban.hd.phc34@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter34",
+    "facebook": "https://www.facebook.com/share/1A3Wwv1rE5/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -489,10 +579,13 @@
     "lon": 100.639,
     "address": "เลขที่ 4 ซอยรามคำแหง 40 แขวงหัวหมาก เขตบางกะปิ กรุงเทพมหานคร 10240",
     "phone": "023743550",
+    "email": "saraban.hd.phc35@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter35",
+    "facebook": "https://www.facebook.com/share/15pZuEogaM/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -505,10 +598,13 @@
     "lon": 100.4865665,
     "address": "779/2 ถนนเจริญนคร แขวงดาวคะนอง เขตธนบุรี กรุงเทพมหานคร 10600",
     "phone": "024685297",
+    "email": "saraban.hd.phc36@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter36",
+    "facebook": "https://www.facebook.com/share/15ehEERa3E/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -521,10 +617,13 @@
     "lon": 100.6376319,
     "address": "2044 ถนนพัฒนาการ แขวงพัฒนาการ เขตสวนหลวง กรุงเทพมหานคร 10250",
     "phone": "023625238",
+    "email": "saraban.hd.phc37@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter37/index",
+    "facebook": "https://www.facebook.com/Healthcenter37/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -537,10 +636,13 @@
     "lon": 100.519426,
     "address": "23 ศูนย์ราชการกรุงเทพมหานคร(เกียกกาย) ถนนทหาร แขวงถนนนครไชยศรี เขตดุสิต กทม. 10300",
     "phone": "022418378",
+    "email": "saraban.hd.phc38@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter38",
+    "facebook": "https://www.facebook.com/healthcenter38",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -553,10 +655,13 @@
     "lon": 100.506677,
     "address": "46 ถนนราษฎร์บูรณะ แขวงราษฎร์บูรณะ เขตราษฎร์บูรณะ กรุงเทพมหานคร 10140",
     "phone": "024277949",
+    "email": "saraban.hd.phc39@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter39",
+    "facebook": "https://www.facebook.com/share/15nVZXwds6/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -569,10 +674,13 @@
     "lon": 100.40029,
     "address": "578 ซ.เพชรเกษม 90 แขวงบางแคเหนือ เขตบางแค กรุงเทพฯ 10160",
     "phone": "024553870",
+    "email": "saraban.hd.phc40@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter40",
+    "facebook": "https://www.facebook.com/share/1BWPWSbU9D/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -585,10 +693,13 @@
     "lon": 100.5702474,
     "address": "139 ถนนอาจณรงค์ แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110",
     "phone": "022491385",
+    "email": "saraban.hd.phc41@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter41",
+    "facebook": "https://www.facebook.com/share/169xYxumkJ/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -601,10 +712,13 @@
     "lon": 100.4328254,
     "address": "เลขที่ 1 พระราม 2(54) แขวงแสมดำ เขตบางขุนเทียน กรุงเทพมหานคร 10150",
     "phone": "024152052",
+    "email": "saraban.hd.phc42@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter42",
+    "facebook": "https://www.facebook.com/share/18KgYVknwP/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -617,10 +731,13 @@
     "lon": 100.7218871,
     "address": "523/2 ซอยลาดกระบัง 1/2 ถนนลาดกระบัง แขวงลาดกระบัง เขตลาดกระบัง กรุงเทพมหานคร 10520",
     "phone": "023290320",
+    "email": "saraban.hd.phc46@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter46",
+    "facebook": "https://www.facebook.com/share/18CKwPc3xt/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -633,10 +750,13 @@
     "lon": 100.4240845,
     "address": "28 ซอยบางแวก 92 แขวงคลองขวาง เขตภาษีเจริญ กทม.10150",
     "phone": "024101810",
+    "email": "saraban.hd.phc47@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter47",
+    "facebook": "https://www.facebook.com/share/15vr4CVy17/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -649,10 +769,13 @@
     "lon": 100.370211,
     "address": "104 ถนนเลียบคลองภาษีเจริญฝั่งเหนือ แขวงหนองแขม เขตหนองแขม กรุงเทพมหานคร 10160",
     "phone": "024212147",
+    "email": "saraban.hd.phc48@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter48",
+    "facebook": "https://www.facebook.com/share/1A6fbGXexi/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -665,10 +788,13 @@
     "lon": 100.4683654,
     "address": "271 ถ.ชัยพฤกษ์ แขวงตลิ่งชัน เขตตลิ่งชัน กรุงเทพมหานคร 10170",
     "phone": "024249410",
+    "email": "saraban.hd.phc49@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter49",
+    "facebook": "https://www.facebook.com/share/1BC8kro1aM/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -681,10 +807,13 @@
     "lon": 100.655386,
     "address": "190 ถนนเสรีไทย แขวงคลองกุ่ม เขตบึงกุ่ม กรุงเทพมหานคร 10240",
     "phone": "023752897",
+    "email": "saraban.hd.phc50@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter50",
+    "facebook": "https://www.facebook.com/share/165VKsmuY7/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -697,10 +826,13 @@
     "lon": 100.5664051,
     "address": "4 ซ.พหลโยธิน 24 ถ.พหลโยธิน แขวงจอมพล เขตจตุจักร กทม. 10900",
     "phone": "022798972",
+    "email": "saraban.hd.phc51@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter51",
+    "facebook": "https://www.facebook.com/share/1Fe3TjvtB2/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -713,10 +845,13 @@
     "lon": 100.5702918,
     "address": "2000/30 ถนนประชาสงเคราะห์ แขวงดินแดง เขตดินแดง กรุงเทพฯ 10400",
     "phone": "022765996",
+    "email": "saraban.hd.phc52@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter52",
+    "facebook": "https://www.facebook.com/share/1D2GfkbNet/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -729,10 +864,13 @@
     "lon": 100.580003,
     "address": "333 ซอย.กำแพงเพชร 6 แยก แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพมหานคร 10210",
     "phone": "025752650",
+    "email": "saraban.hd.phc53@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter53",
+    "facebook": "https://www.facebook.com/share/1XNpowbrux/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -745,10 +883,13 @@
     "lon": 100.47534,
     "address": "119/9 ถนนพุทธบูชา แขวงบางมด เขตทุ่งครุ กรุงเทพมหานคร 10140 (อาคารชั่วคราว)",
     "phone": "024263514",
+    "email": "saraban.hd.phc54@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter54",
+    "facebook": "https://www.facebook.com/profile.php",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -761,10 +902,13 @@
     "lon": 100.548266,
     "address": "27/4 ถ.พระราม3 แขวงช่องนนทรี เขตยานนาวา กรุงเทพมหานคร 10120",
     "phone": "022643247",
+    "email": "saraban.hd.phc55@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter55",
+    "facebook": "https://www.facebook.com/share/19FHMbtydg/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -777,10 +921,13 @@
     "lon": 100.6365887,
     "address": "43/1 ถนนนวลจันทร์ แขวงนวลจันทร์ เขตบึงกุ่ม กรุงเทพมหานคร 10230",
     "phone": "021842693",
+    "email": "saraban.hd.phc56@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter56",
+    "facebook": "https://www.facebook.com/share/15fVheRxUu/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -793,10 +940,13 @@
     "lon": 100.6619161,
     "address": "226 ถนนเฉลิมพระเกียรติ ร.9 แขวงหนองบอน เขตประเวศ กรุงเทพมหานคร",
     "phone": "023961866",
+    "email": "saraban.hd.phc57@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter57",
+    "facebook": "https://www.facebook.com/share/1FPRu7dNXj/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -809,10 +959,13 @@
     "lon": 100.49657,
     "address": "1/1 ซอยสุขสวัสดิ์ 30 ถนนสุขสวัสดิ์ แขวงบางปะกอก เขตราษฎร์บูรณะ กรุงเทพมหานคร 10140",
     "phone": "024277512",
+    "email": "saraban.hd.phc58@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter58",
+    "facebook": "https://www.facebook.com/share/1AB3xq2kWp/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -825,10 +978,13 @@
     "lon": 100.5065112,
     "address": "46 ซ.ประชาอุทิศ 90 แขวงทุ่งครุ เขตทุ่งครุ กรุงเทพฯ 10140",
     "phone": "024643057",
+    "email": "saraban.hd.phc59@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter59",
+    "facebook": "https://www.facebook.com/share/1CuAQZqVef/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -841,10 +997,13 @@
     "lon": 100.5809837,
     "address": "60 ซอยสรงประภา 11 ถนนสรงประภา เเขวงดอนเมือง เขตดอนเมือง กรุงเทพมหานคร 10210",
     "phone": "025655257",
+    "email": "saraban.hd.phc60@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter60",
+    "facebook": "https://www.facebook.com/share/14tDXybfjw/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -857,10 +1016,13 @@
     "lon": 100.434828,
     "address": "68 ถนนศาลธนบุรี แขวงบางหว้า เขตภาษีเจริญ กทม. 10160",
     "phone": "024555804",
+    "email": "saraban.hd.phc62@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter62",
+    "facebook": "https://www.facebook.com/share/1A4qDrZtWU/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -873,10 +1035,13 @@
     "lon": 100.524617,
     "address": "1/1 ซอย จันทน์ 24 \n กรุงเทพมหานคร 10120",
     "phone": "026759945",
+    "email": "saraban.hd.phc63@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter63",
+    "facebook": "https://www.facebook.com/PublicHealthCenter63",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -889,10 +1054,13 @@
     "lon": 100.3782899,
     "address": "3 ซ.เอกชัย121 ถ.เอกชัย แขวงบางบอนใต้ เขตบางบอน กทม.10150",
     "phone": "024530526",
+    "email": "saraban.hd.phc65@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter65",
+    "facebook": "https://www.facebook.com/share/15DgBXFgPp/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -905,10 +1073,13 @@
     "lon": 100.847249,
     "address": "96/5 หมู่ 9 ถนนสุวินทวงศ์ แขวงลำผักชี หนองจอก กรุงเทพมหานคร 10530",
     "phone": "029881633",
+    "email": "saraban.hd.phc44@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter44",
+    "facebook": "https://www.facebook.com/profile.php",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -921,10 +1092,13 @@
     "lon": 100.5952251,
     "address": "2 ซอยโชคชัย4(39) แขวงลาดพร้าว​ เขตลาดพร้าว​ กทม.",
     "phone": "0629145664",
+    "email": "saraban.hd.phc66@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter66",
+    "facebook": "https://www.facebook.com/share/18ZpnZGpqq/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -937,10 +1111,13 @@
     "lon": 100.72827,
     "address": "361 หมู่ 4 ถนนเคหะร่มเกล้า แขวงคลองสองต้นนุ่น เขตลาดกระบัง กรุงเทพมหานคร 10520",
     "phone": "025430393",
+    "email": "saraban.hd.phc45@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter45",
+    "facebook": "https://www.facebook.com/share/1BBA2WEjZn/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -953,10 +1130,13 @@
     "lon": 100.70419,
     "address": "เลขที่1 ซอยเลียบคลองสอง 10 แขวงบางชัน เขตคลองสามวา กรุงเทพมหานคร",
     "phone": "025480495",
+    "email": "saraban.hd.phc64@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter64",
+    "facebook": "https://www.facebook.com/share/15zmrDNmEN/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -969,10 +1149,13 @@
     "lon": 100.686836,
     "address": "เลขที่ 1 ซอยรามคำแหง 118 แยก 33 ถนนรามคำแหง แขวงสะพานสูง เขตสะพานสูง กรุงเทพฯ 10240",
     "phone": "023722225",
+    "email": "saraban.hd.phc68@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter68",
+    "facebook": "https://www.facebook.com/share/15qYAMxH5q/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -985,10 +1168,13 @@
     "lon": 100.35434,
     "address": "3 ถ.อุทยาน แขวงทวีวัฒนา เขตทวีวัฒนา กรุงเทพ 10179",
     "phone": "024414680",
+    "email": "saraban.hd.phc67@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter67",
+    "facebook": "https://www.facebook.com/share/18daR1ZcDk/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   },
   {
@@ -1001,10 +1187,13 @@
     "lon": 100.683742,
     "address": "15 ซอย 01 กาญจนาภิเษก 11/5 เเขวงคันนายาว เขตคันนายาว กรุงเทพฯ 10230",
     "phone": "023798911",
+    "email": "saraban.hd.phc69@bangkok.go.th",
+    "website": "https://webportal.bangkok.go.th/healthcenter69",
+    "facebook": "https://www.facebook.com/share/15Bs6wJdPD/",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
-    "fetched": "2026-11-17",
+    "fetched": "2026-11-18",
     "verified": null
   }
 ]

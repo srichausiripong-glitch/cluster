@@ -70,6 +70,38 @@ export function firstPhone(raw: string | undefined): string | undefined {
   return digits.length >= whole ? digits.slice(0, whole) : undefined
 }
 
+/** A contact link as browsers take it: a missing scheme becomes https, query and fragment go, and anything not http(s) is dropped. */
+export function cleanUrl(raw: string | undefined): string | undefined {
+  const text = raw?.trim()
+  if (!text || !/[.]/.test(text)) return undefined
+  try {
+    const url = new URL(/^[a-z][a-z0-9+.-]*:/i.test(text) ? text : `https://${text}`)
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return undefined
+    url.search = ''
+    url.hash = ''
+    return decodeURI(url.toString())
+  } catch {
+    return undefined
+  }
+}
+
+export function cleanEmail(raw: string | undefined): string | undefined {
+  const text = raw?.trim()
+  return text && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text) ? text : undefined
+}
+
+/** A LINE id (@name) or a line.me link; anything else is not a LINE contact. */
+export function cleanLine(raw: string | undefined): string | undefined {
+  const text = raw?.trim()
+  if (!text) return undefined
+  if (/^@[\w.-]+$/.test(text)) return text
+  const url = cleanUrl(text)
+  return url && /^https:\/\/line\.me\//.test(url) ? url : undefined
+}
+
+/** The contact fields that are present, so a point carries no empty ones. */
+const contacts = (c: { email?: string; website?: string; facebook?: string; line?: string }) => Object.fromEntries(Object.entries(c).filter(([, v]) => v)) as Partial<CarePointData>
+
 /** Thai vowel and tone marks above or below a letter, which the lists spell differently. */
 const MARKS = /[ัิ-ฺ็-๎]/g
 const HOSPITAL = 'โรงพยาบาล'
@@ -111,6 +143,7 @@ export function pharmaciesFrom(elements: OverpassElement[], fetched: string, inB
       lon,
       address: [tags['addr:housenumber'], tags['addr:street'], tags['addr:district']].filter(Boolean).join(' '),
       ...(phone ? { phone } : {}),
+      ...contacts({ email: cleanEmail(tags.email ?? tags['contact:email']), website: cleanUrl(tags.website ?? tags['contact:website']), facebook: cleanUrl(tags['contact:facebook']), line: cleanLine(tags['contact:line']) }),
       free: false,
       community: false,
       source: `https://www.openstreetmap.org/${element.type}/${element.id}`,
@@ -130,7 +163,7 @@ export function healthCentresFrom(csv: string, fetched: string, registry: CarePo
     const number = centreNumber(row.HCName ?? '')
     if (!Number.isFinite(lat) || !Number.isFinite(lon) || (number && listed.has(number))) return []
     const phone = firstPhone(row.ContactNumber)
-    return [{ id: `bma-phc-${row.HCCode}`, name: row.HCName, kind: 'clinic', layer: 'health_centre', klass: 'A', lat, lon, address: row.Address ?? '', ...(phone ? { phone } : {}), free: false, community: false, source: PHC_SOURCE, fetched, verified: null }]
+    return [{ id: `bma-phc-${row.HCCode}`, name: row.HCName, kind: 'clinic', layer: 'health_centre', klass: 'A', lat, lon, address: row.Address ?? '', ...(phone ? { phone } : {}), ...contacts({ email: cleanEmail(row.EmailAddress), website: cleanUrl(row.Website), facebook: cleanUrl(row.FBChanel) }), free: false, community: false, source: PHC_SOURCE, fetched, verified: null }]
   })
 }
 
@@ -142,6 +175,6 @@ export function hospitalsFrom(csv: string, fetched: string, registry: CarePointD
     const lon = coordinate(row.lng)
     if (!Number.isFinite(lat) || !Number.isFinite(lon) || listed.has(hospitalKey(row.name ?? ''))) return []
     const phone = firstPhone(row.tel)
-    return [{ id: `bma-hos-${row.id_hos}`, name: row.name, kind: 'hospital', layer: 'hospital', klass: 'A', lat, lon, address: row.address ?? '', ...(phone ? { phone } : {}), free: false, community: false, source: HOS_SOURCE, fetched, verified: null }]
+    return [{ id: `bma-hos-${row.id_hos}`, name: row.name, kind: 'hospital', layer: 'hospital', klass: 'A', lat, lon, address: row.address ?? '', ...(phone ? { phone } : {}), ...contacts({ website: cleanUrl(row.www) }), free: false, community: false, source: HOS_SOURCE, fetched, verified: null }]
   })
 }

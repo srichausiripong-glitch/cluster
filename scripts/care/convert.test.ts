@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
 import type { CarePointData } from '../../src/data/carePoints'
 import { launchCheck, type LaunchData } from '../launchCheck'
-import { firstPhone, healthCentresFrom, hospitalKey, hospitalsFrom, parseCsv, pharmaciesFrom, type OverpassElement } from './convert'
+import { cleanEmail, cleanLine, cleanUrl, firstPhone, healthCentresFrom, hospitalKey, hospitalsFrom, parseCsv, pharmaciesFrom, type OverpassElement } from './convert'
 
 // Public lists become our own files once, at build time (redesign spec 5.8). Every point they give
 // is "not yet confirmed": it carries where it came from and the day it was copied.
@@ -72,4 +72,27 @@ it('writes only points the launch check accepts', () => {
   const points = ['src/data/bma-health-centres.json', 'src/data/bma-hospitals.json', 'public/care/pharmacies.json'].flatMap(read)
   expect(points.length).toBeGreaterThan(300)
   expect(launchCheck({}, { carePoints: points, clinical: [] }).filter((r) => r.includes('care point'))).toEqual([])
+})
+
+// ---- contacts (2026-11-18 design, decision 1) -------------------------------------------------------
+it('cleans the contact links the lists give, and drops what is not one', () => {
+  expect(cleanUrl('https://www.facebook.com/p/ศูนย์-3-61560131507957/?_rdr')).toBe('https://www.facebook.com/p/ศูนย์-3-61560131507957/')
+  expect(cleanUrl('www.lkbhosp.go.th/')).toBe('https://www.lkbhosp.go.th/')
+  expect(cleanUrl('http://www.klanghospital.go.th/')).toBe('http://www.klanghospital.go.th/')
+  for (const bad of ['-', 'ไม่มี', '', 'javascript:alert(1)', undefined]) expect(cleanUrl(bad), String(bad)).toBeUndefined()
+  expect(cleanEmail(' saraban.hd.phc1@bangkok.go.th ')).toBe('saraban.hd.phc1@bangkok.go.th')
+  expect(cleanEmail('-')).toBeUndefined()
+  expect(cleanLine('@swingthailand')).toBe('@swingthailand')
+  expect(cleanLine('https://line.me/R/ti/p/@swing')).toBe('https://line.me/R/ti/p/@swing')
+  expect(cleanLine('call us')).toBeUndefined()
+})
+it('copies the email, website and Facebook page of each BMA health centre, and the website of each hospital', () => {
+  const csv = ['HCCode,HCName,Address,Latitude,longitude,ContactNumber,EmailAddress,Website,FBChanel', '13646,ศูนย์บริการสาธารณสุข 1 สะพานมอญ,ที่อยู่,13.745,100.497,022265897,saraban.hd.phc1@bangkok.go.th,https://webportal.bangkok.go.th/healthcenter1,https://www.facebook.com/healthcenter1?ref=x'].join('\n')
+  expect(healthCentresFrom(csv, '2026-11-18', [])[0]).toMatchObject({ email: 'saraban.hd.phc1@bangkok.go.th', website: 'https://webportal.bangkok.go.th/healthcenter1', facebook: 'https://www.facebook.com/healthcenter1' })
+  const hos = ['id_hos,name,address,tel,www,lat,lng', '11,โรงพยาบาลบางนา,ที่อยู่,02 746 8630,www.bangnahospital.go.th/,13.66,100.63'].join('\n')
+  expect(hospitalsFrom(hos, '2026-11-18', [])[0]).toMatchObject({ website: 'https://www.bangnahospital.go.th/' })
+})
+it('copies a pharmacy’s website, email, Facebook and LINE from its OpenStreetMap tags', () => {
+  const [p] = pharmaciesFrom([{ type: 'node', id: 5, lat: 13.75, lon: 100.5, tags: { amenity: 'pharmacy', name: 'ร้านยาเอ', 'contact:website': 'shop.example.co.th', email: 'a@shop.co.th', 'contact:facebook': 'https://facebook.com/shop', 'contact:line': '@shopa' } }], '2026-11-18', () => true)
+  expect(p).toMatchObject({ website: 'https://shop.example.co.th/', email: 'a@shop.co.th', facebook: 'https://facebook.com/shop', line: '@shopa' })
 })
