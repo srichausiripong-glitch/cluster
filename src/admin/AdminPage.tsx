@@ -3,6 +3,7 @@ import { th } from '../copy/th'
 import { ALERT, NOTE } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
+import { CARE_POINTS } from '../data/carePoints'
 import { DISTRICT_IDS, districtLabel } from '../domain/districts'
 
 interface State {
@@ -11,6 +12,8 @@ interface State {
   held: { id: number; zone: string; kind: string; week: string; n: number; status: string; first_reviewer: string | null; first_choice: string | null }[]
   suspensions: { id: number; zone: string; reason: string; started: string; ended: string | null }[]
   harm: { week: string; kind: string; n: number }[]
+  /** Absent from a server older than this page. */
+  places?: { week: string; place: string; kind: string; value: string; n: number }[]
 }
 const zoneName = (id: string) => districtLabel(id) || id
 const ask = (body: Record<string, unknown>) => fetch('/api/admin', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
@@ -153,6 +156,25 @@ export function AdminPage() {
             {th.admin.suspend}
           </Button>
         </form>
+      </section>
+
+      <section aria-label={th.admin.places} className="box p-4">
+        <h2 className="mb-2 font-bold">{th.admin.places}</h2>
+        <table className="w-full text-left text-[14px]">
+          <tbody>
+            {(state.places ?? []).map((r) => (
+              <tr key={`${r.week}-${r.place}-${r.kind}-${r.value}`} className="border-b border-line last:border-0">
+                <td className="py-1">{r.week}</td>
+                <td className="py-1 break-all">{CARE_POINTS.find((p) => p.id === r.place)?.name ?? r.place}</td>
+                <td className="py-1">
+                  {th.placeReport.kinds[r.kind as keyof typeof th.placeReport.kinds] ?? r.kind}
+                  {r.value && <span className="block tabular-nums">{r.value}</span>}
+                </td>
+                <td className="py-1 text-right font-bold tabular-nums">{r.n}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
 
       <section aria-label={th.admin.harm} className="box p-4">

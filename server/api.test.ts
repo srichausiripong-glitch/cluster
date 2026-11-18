@@ -10,6 +10,7 @@ import { testDb } from './testDb'
 import { serverWeek } from './week'
 import { POST as envelope } from '../api/envelope'
 import { POST as harm } from '../api/harm'
+import { POST as place } from '../api/place'
 import { GET as key } from '../api/key'
 import { GET as published } from '../api/published'
 import { GET as cron } from '../api/cron/publish'
@@ -76,4 +77,37 @@ it('says at once that intake closed, in the published file and in the key answer
   expect((await res.json()).intakeOpen).toBe(false)
   expect(res.headers.get('cache-control')).toMatch(/max-age=60\b/)
   expect((await (await key(req('/api/key'))).json()).intakeOpen).toBe(false)
+})
+
+// ---- corrections from users (2026-11-18 design, decision 4) ----------------------------------------
+const rows = () => db.query<{ place: string; kind: string; value: string; n: number }>('select place, kind, value, n from place_reports order by kind')
+it('counts a correction by place and kind, with the number only for the phone kinds', async () => {
+  expect((await place(post('/api/place', { place: 'osm-node-1', kind: 'closed' }))).status).toBe(202)
+  expect((await place(post('/api/place', { place: 'osm-node-1', kind: 'add_phone', phone: '02 123 4567' }))).status).toBe(202)
+  expect((await place(post('/api/place', { place: 'osm-node-1', kind: 'add_phone', phone: '021234567' }, '198.51.100.4'))).status).toBe(202)
+  expect(await rows()).toEqual([
+    { place: 'osm-node-1', kind: 'add_phone', value: '021234567', n: 2 },
+    { place: 'osm-node-1', kind: 'closed', value: '', n: 1 },
+  ])
+})
+it('refuses a phone on a kind that takes none, and anything not a Thai number', async () => {
+  for (const body of [
+    { place: 'osm-node-1', kind: 'closed', phone: '021234567' },
+    { place: 'osm-node-1', kind: 'add_phone' },
+    { place: 'osm-node-1', kind: 'add_phone', phone: '12345' },
+    { place: 'osm-node-1', kind: 'wrong_phone', phone: 'call me 0812345678' },
+    { place: 'osm-node-1', kind: 'add_phone', phone: '0812345678', note: 'free text' },
+    { place: 'osm-node-1', kind: 'free text' },
+  ])
+    expect((await place(post('/api/place', body))).status, JSON.stringify(body)).toBe(400)
+  expect((await place(post('/api/place', 'not json'))).status).toBe(400)
+  expect(await rows()).toEqual([])
+})
+it('counts at most five corrections from one network in a week', async () => {
+  for (let i = 0; i < 10; i++) expect((await place(post('/api/place', { place: 'bma-phc-13646', kind: 'hours' }, '203.0.113.9'))).status).toBe(202)
+  await place(post('/api/place', { place: 'bma-phc-13646', kind: 'hours' }, '198.51.100.4'))
+  expect((await rows())[0].n).toBe(6)
+})
+it('refuses a place id of the wrong shape', async () => {
+  for (const id of ['Bang Rak!', 'ab', 'x'.repeat(65), 42]) expect((await place(post('/api/place', { place: id, kind: 'closed' }))).status, String(id)).toBe(400)
 })

@@ -92,3 +92,8 @@ it('checks a week the job missed for jumps before publishing the next one', asyn
   await publishWeek(db, ENDED, NOW, Q)
   expect(await db.query('select week, status from held')).toEqual([{ week: missed, status: 'pending' }])
 })
+it('forgets corrections older than twelve weeks', async () => {
+  await db.query("insert into place_reports (week, place, kind, value, n) values ($1, 'osm-node-1', 'closed', '', 1), ($2, 'osm-node-2', 'closed', '', 1)", [shiftWeek(ENDED, -12), shiftWeek(ENDED, -11)])
+  await publishWeek(db, ENDED, NOW, Q)
+  expect((await db.query<{ place: string }>('select place from place_reports')).map((r) => r.place)).toEqual(['osm-node-2'])
+})

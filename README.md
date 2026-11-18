@@ -39,7 +39,7 @@ npm run dev
 
 | ตัวแปร | คืออะไร | ทำอย่างไร |
 |---|---|---|
-| `DATABASE_URL` | Postgres ในสิงคโปร์ | เพิ่มฐานข้อมูลจาก Marketplace ของ Vercel แล้วรัน `npm run db:migrate` ครั้งแรก |
+| `DATABASE_URL` | Postgres ในสิงคโปร์ | เพิ่มฐานข้อมูลจาก Marketplace ของ Vercel แล้วรัน `npm run db:migrate` ครั้งแรก และรันอีกครั้งหลังอัปเดตที่เพิ่มตาราง (เช่น `place_reports` สำหรับการแจ้งข้อมูลจุดบริการ) |
 | `VAPID_PRIVATE_JWK` | กุญแจลงชื่อแจ้งเตือนรายสัปดาห์ | `npm run make-vapid` แล้ววางบรรทัดที่พิมพ์ออกมา ใช้กุญแจคนละชุดกับรุ่นทดลอง |
 | `VAPID_SUBJECT` | ที่ติดต่อของผู้ให้บริการสำหรับบริการแจ้งเตือน | `mailto:…` หรือ `https://…` |
 | `ENVELOPE_PRIVATE_JWK` | กุญแจลับสำหรับเปิดซอง | `npm run make-keys` แล้ววางผลลัพธ์ใน Vercel เท่านั้น |

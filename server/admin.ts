@@ -17,6 +17,7 @@ export async function adminState(db: Db) {
     held: await db.query('select id, zone, kind, week, n, status, first_reviewer, first_choice from held order by id desc'),
     suspensions: await db.query('select id, zone, reason, started, ended from suspensions order by id desc'),
     harm: await db.query('select week, kind, n from harm_reports order by week desc, kind'),
+    places: await db.query('select week, place, kind, value, n from place_reports order by week desc, place, kind'),
   }
 }
 

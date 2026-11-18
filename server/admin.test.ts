@@ -92,11 +92,20 @@ it('closes and opens intake, and gives totals only, never one envelope', async (
   expect((await db.query<{ value: string }>("select value from settings where name = 'intake'"))[0].value).toBe('closed')
   const state = await (await call({ action: 'state' }, koi)).json()
   expect(state.intakeOpen).toBe(false)
-  expect(Object.keys(state).sort()).toEqual(['envelopes', 'harm', 'held', 'intakeOpen', 'suspensions'])
+  expect(Object.keys(state).sort()).toEqual(['envelopes', 'harm', 'held', 'intakeOpen', 'places', 'suspensions'])
 })
 
 it('suspends a district by id and refuses an old zone id', async () => {
   const koi = await login('ก้อย', 'pw-koi')
   expect((await call({ action: 'suspend', zone: 'bang_rak', reason: 'เรื่องร้องเรียน' }, koi)).status).toBe(200)
   expect((await call({ action: 'suspend', zone: 'east', reason: 'เรื่องร้องเรียน' }, koi)).status).toBe(400)
+})
+it('shows corrections to reviewers, newest week first', async () => {
+  await db.query("insert into place_reports (week, place, kind, value, n) values ('2026-W45', 'osm-node-1', 'closed', '', 2), ('2026-W46', 'osm-node-2', 'add_phone', '021234567', 1)")
+  const koi = await login('ก้อย', 'pw-koi')
+  const state = await (await call({ action: 'state' }, koi)).json()
+  expect(state.places).toEqual([
+    { week: '2026-W46', place: 'osm-node-2', kind: 'add_phone', value: '021234567', n: 1 },
+    { week: '2026-W45', place: 'osm-node-1', kind: 'closed', value: '', n: 2 },
+  ])
 })

@@ -15,4 +15,7 @@ create table if not exists admin_log (id serial primary key, week text not null,
 create table if not exists login_failures (name text primary key, n int not null default 0, until timestamptz);
 -- Following a district (redesign spec 5.11): a push address and the day it came. No district, no IP address.
 create table if not exists push_subscriptions (endpoint text primary key, created_on date not null);
+-- Corrections to a place (2026-11-18 design, decision 4): its id, a fixed kind, a number for the phone kinds, by week. No address, no browser.
+create table if not exists place_reports (week text not null, place text not null, kind text not null, value text not null default '', n int not null default 0, primary key (week, place, kind, value));
+alter table network_caps add column if not exists places int not null default 0;
 `

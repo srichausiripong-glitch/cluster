@@ -47,7 +47,7 @@ export async function publishWeek(db: Db, endedWeek: string, now: Date, q: numbe
   }
   await db.query('insert into published (week, file) values ($1, $2) on conflict (week) do update set file = excluded.file', [endedWeek, JSON.stringify(file)])
 
-  for (const table of ['counts', 'envelope_totals', 'harm_reports']) {
+  for (const table of ['counts', 'envelope_totals', 'harm_reports', 'place_reports']) {
     const weeks = (await db.query<{ week: string }>(`select distinct week from ${table}`)).map((r) => r.week)
     const old = weeks.filter((w) => weekIndex(w, endedWeek) > KEEP_WEEKS)
     if (old.length) await db.query(`delete from ${table} where week = any($1)`, [old])

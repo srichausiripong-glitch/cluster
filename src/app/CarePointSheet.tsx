@@ -10,6 +10,7 @@ import { isVerified, type CarePoint } from '../data/carePoints'
 import { districtLabel } from '../domain/districts'
 import { carePointType } from './CarePointRow'
 import { hoursLine } from './hoursText'
+import { PlaceCorrection } from './PlaceCorrection'
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -177,6 +178,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
           <p className="mt-2 text-[13px] text-muted">{th.care.fetched.replace('{date}', formatThaiDate(new Date(point.fetched)))}</p>
         </>
       )}
+      <PlaceCorrection key={point.id} place={point.id} />
       {/* Kept at the foot of the sheet, so a short screen still shows how to call first and the way there. */}
       <div className="sticky -bottom-6 -mx-4 -mb-6 mt-3 flex gap-2 border-t-2 border-ink bg-surface px-4 pb-7 pt-2">
         {point.phone ? (

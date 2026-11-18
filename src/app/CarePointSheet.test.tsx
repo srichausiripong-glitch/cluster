@@ -1,4 +1,5 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 import { formatThaiDate } from '../copy/format'
@@ -149,4 +150,27 @@ it('marks an unconfirmed place\'s hours with its unconfirmed tag', () => {
   render(<CarePointRow point={withHours} />)
   expect(screen.getByText(th.hours.open.replace('{time}', '16:00'))).toBeInTheDocument()
   expect(screen.getByText(th.care.unverifiedTag)).toBeInTheDocument()
+})
+
+// ---- corrections (2026-11-18 design, decision 4) -------------------------------------------------
+it('sends a correction from a place\'s sheet: a fixed kind, a number only when asked, and thanks', async () => {
+  const sent: unknown[] = []
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+    sent.push({ url, body: JSON.parse(String(init?.body)) })
+    return new Response(null, { status: 202 })
+  }))
+  const user = userEvent.setup()
+  const sheet = open('cu2')
+  await user.click(sheet.getByRole('button', { name: th.placeReport.open }))
+  expect(sheet.queryByLabelText(th.placeReport.phone)).toBeNull()
+  await user.click(sheet.getByRole('radio', { name: th.placeReport.kinds.add_phone }))
+  const send = sheet.getByRole('button', { name: th.placeReport.send })
+  await user.type(sheet.getByLabelText(th.placeReport.phone), '12')
+  expect(send).toBeDisabled()
+  await user.clear(sheet.getByLabelText(th.placeReport.phone))
+  await user.type(sheet.getByLabelText(th.placeReport.phone), '02 123 4567')
+  await user.click(send)
+  expect(sent).toEqual([{ url: '/api/place', body: { place: 'cu2', kind: 'add_phone', phone: '021234567' } }])
+  expect(await sheet.findByText(th.placeReport.thanks)).toBeInTheDocument()
+  vi.unstubAllGlobals()
 })
