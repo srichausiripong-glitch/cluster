@@ -193,3 +193,14 @@ it('refuses a cancel once the envelope is sealed, until the server answers', asy
   expect(answer).toBe('sending')
   expect(phone.get().pending).toBeNull()
 })
+// The "sent" note (2026-11-18 design, decision 2): the phone remembers only the week and the district of a "tested" report that went.
+it('remembers the week and district of a "tested" report once its envelope goes, and nothing for other kinds', async () => {
+  phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  expect(await sendIfDue(LATE, deps())).toBe('sent')
+  expect(phone.get().counted).toEqual({ week: WEEK, zone: 'bang_rak' })
+  wipePhone()
+  localStorage.clear()
+  phone.update((s) => ({ ...s, pending: { kind: 'syphilis', zone: 'chatuchak', savedAt: '2026-11-12T00:00:00.000Z' } }))
+  expect(await sendIfDue(LATE, deps())).toBe('sent')
+  expect(phone.get().counted ?? null).toBeNull()
+})

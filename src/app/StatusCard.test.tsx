@@ -7,7 +7,7 @@ import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
 import { mondayDate, shiftWeek } from '../domain/weeks'
 import { setPublishedForTest } from '../map/published'
-import { cancelPending, currentWeek, queueReport, wipePhone } from '../store/actions'
+import { cancelPending, checkIn, currentWeek, forgetMyDistrict, queueReport, wipePhone } from '../store/actions'
 import { phone } from '../store/stores'
 
 // The home screen asks for a status on a card over the map (redesign spec 5.1): ✅ ไม่เจอ goes in one
@@ -243,4 +243,50 @@ it('saves a reminder three months ahead and says it on the card, then says it is
   phone.update((s) => ({ ...s, nextTest: bangkokIn(-1) }))
   open()
   expect(screen.getByRole('link', { name: th.nextTest.due })).toHaveAttribute('href', '/app/list?find=test')
+})
+
+// ---- the "sent" note (2026-11-18 design, decision 2) ------------------------------------------------
+const W = '2026-W46'
+const fileFor = (week: string, row: Partial<{ state: string; testing: string | null }> = {}) =>
+  setPublishedForTest({ week, publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: [{ areaId: 'bang_rak', state: 'below_threshold', density: null, step: null, testing: 'medium', symptoms: null, ...row } as never] })
+const note = () => screen.queryByText(th.counted.sent)
+
+it('tells once that a "ไม่เจอ" report arrived, with the district\'s testing row', async () => {
+  const user = userEvent.setup()
+  phone.update((s) => ({ ...s, counted: { week: W, zone: 'bang_rak' } }))
+  fileFor(W)
+  const view = open()
+  expect(note()).toBeInTheDocument()
+  expect(screen.getByText(th.counted.row.replace('{name}', 'บางรัก'))).toBeInTheDocument()
+  expect(document.querySelectorAll('[role="status"] [data-filled]').length + document.querySelectorAll('[data-counted] [data-filled]').length).toBeGreaterThanOrEqual(2)
+  await user.click(screen.getByRole('button', { name: th.counted.close }))
+  expect(note()).toBeNull()
+  view.unmount()
+  open()
+  expect(note()).toBeNull()
+})
+it('says the district is below the threshold when its testing row is empty', () => {
+  phone.update((s) => ({ ...s, counted: { week: W, zone: 'bang_rak' } }))
+  fileFor(shiftWeek(W, 1), { testing: null })
+  open()
+  expect(note()).toBeInTheDocument()
+  expect(screen.getByText(th.map.state.below_threshold)).toBeInTheDocument()
+})
+it('does not tell a suspended district\'s note, nor one from weeks ago', () => {
+  phone.update((s) => ({ ...s, counted: { week: W, zone: 'bang_rak' } }))
+  fileFor(W, { state: 'suspended' })
+  const view = open()
+  expect(note()).toBeNull()
+  view.unmount()
+  fileFor(shiftWeek(W, 2))
+  open()
+  expect(note()).toBeNull()
+})
+it('forgets the note with the district, and at the next check-in', () => {
+  phone.update((s) => ({ ...s, counted: { week: W, zone: 'bang_rak' } }))
+  forgetMyDistrict()
+  expect(phone.get().counted ?? null).toBeNull()
+  phone.update((s) => ({ ...s, counted: { week: W, zone: 'bang_rak' } }))
+  checkIn('bang_rak')
+  expect(phone.get().counted ?? null).toBeNull()
 })

@@ -27,6 +27,8 @@ export interface PhoneState {
   nextTest?: string | null
   /** The four-week wait (its `testedNextWeek`) in which the person said "ไม่ต้อง" to a reminder, so it is not offered again then. */
   nextTestDeclined?: string | null
+  /** The server week and district of the last "tested" report that went with an envelope, for the one-time "sent" note (2026-11-18 design, decision 2). */
+  counted?: { week: string; zone: string } | null
   /** The district this phone checks in for, so the next check-in is one press. Absent until the first; optional for the same reason. */
   myDistrict?: string
   /** The district this phone follows (redesign spec 5.11); the service worker reads its own copy. Never sent anywhere. */

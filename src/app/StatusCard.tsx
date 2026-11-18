@@ -1,3 +1,4 @@
+import { X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
@@ -7,11 +8,13 @@ import { Button } from '../design/primitives/Button'
 import { Sheet } from '../design/primitives/Sheet'
 import { districtName } from '../domain/districts'
 import { bangkokDay, mondayDate } from '../domain/weeks'
-import { useIntakeOpen } from '../map/published'
-import { cancelPending, checkIn, currentWeek, nextTestState } from '../store/actions'
+import { useIntakeOpen, usePublishedFile } from '../map/published'
+import { cancelPending, checkIn, countedNote, currentWeek, dismissCounted, nextTestState } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 import { DistrictPicker } from './DistrictPicker'
+import { LevelDots } from './LevelDots'
+import { levelOf } from './level'
 import { NextTestSheet } from './NextTestSheet'
 import { Go } from './Go'
 import { SendsOnly } from './SendsOnly'
@@ -37,6 +40,7 @@ export function StatusCard() {
   const stored = usePartyStore(phone)
   const { pending, testedNextWeek, myDistrict } = stored
   const reminder = nextTestState(stored, bangkokDay())
+  const sentNote = countedNote(stored, usePublishedFile())
   const [remindOpen, setRemindOpen] = useState(false)
   const intakeOpen = useIntakeOpen()
   const [open, setOpen] = useState(false)
@@ -119,7 +123,7 @@ export function StatusCard() {
   return (
     <div ref={card}>
       {/* On a short screen (under 560 px tall) the card tightens, so the map keeps room above it. */}
-      <section aria-labelledby={toast ? undefined : headingId} aria-label={toast ? th.home.ask : undefined} className="box p-3 [@media(max-height:560px)]:p-2">
+      <section aria-labelledby={toast || sentNote ? undefined : headingId} aria-label={toast || sentNote ? th.home.ask : undefined} className="box p-3 [@media(max-height:560px)]:p-2">
         {toast ? (
           // The toast takes the question's place for a few seconds, so the card does not grow over the map.
           <div ref={toastBox} role="status" className={`flex min-h-9 items-center gap-2 px-2 text-[14px] font-semibold ${SOFT}`}>
@@ -134,6 +138,21 @@ export function StatusCard() {
                 </button>
               </>
             )}
+          </div>
+        ) : sentNote ? (
+          // Once, in the question's place, so the card keeps its height (2026-11-18 design, decision 2).
+          <div data-counted className={`flex min-h-9 items-start gap-2 px-2 py-1 text-[13px] ${SOFT}`}>
+            <Emoji name="check" />
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">{th.counted.sent}</span>
+              <span className="flex flex-wrap items-center gap-x-1.5">
+                {th.counted.row.replace('{name}', districtName(sentNote.zone))}
+                {sentNote.testing ? <LevelDots level={levelOf(sentNote.testing)} label={th.map.sheet.level[levelOf(sentNote.testing) - 1]} /> : <span>{th.map.state.below_threshold}</span>}
+              </span>
+            </span>
+            <button type="button" aria-label={th.counted.close} onClick={dismissCounted} className="-m-1 grid size-9 shrink-0 place-items-center">
+              <X size={18} strokeWidth={2.25} aria-hidden="true" />
+            </button>
           </div>
         ) : (
           <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-2">

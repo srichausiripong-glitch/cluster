@@ -1,8 +1,8 @@
 import { syncNextTest, unfollow } from '../push/follow'
-import type { DiseaseGroup, MapLayer, PendingReport } from '../domain/types'
+import type { DiseaseGroup, MapLayer, PendingReport, PublishedFile, TestingLevel } from '../domain/types'
 import { DISTRICT_IDS } from '../domain/districts'
 import { takingNow } from '../envelope/send'
-import { bangkokDay, isoWeek, shiftWeek } from '../domain/weeks'
+import { bangkokDay, isoWeek, shiftWeek, weekIndex } from '../domain/weeks'
 import type { PhoneState, SignalCard } from './stores'
 import { phone } from './stores'
 
@@ -21,6 +21,24 @@ export function saveCard(card: SignalCard): void {
 export function setNextTest(date: string | null): void {
   phone.update((s) => ({ ...s, nextTest: date }))
   void syncNextTest(date)
+}
+
+/**
+ * The one-time "sent" note (2026-11-18 design, decision 2): shown for the weekly file of the week the
+ * report went, or the one after, never for a suspended district. It claims only that the report
+ * arrived: the server may drop a report silently on purpose, so the phone cannot know it was counted.
+ */
+export function countedNote(s: PhoneState, file: PublishedFile | null): { zone: string; testing: TestingLevel | null } | null {
+  if (!s.counted || !file?.week) return null
+  const age = weekIndex(s.counted.week, file.week)
+  if (age < 1 || age > 2) return null
+  const area = file.areas.find((a) => a.areaId === s.counted?.zone)
+  if (area?.state === 'suspended') return null
+  return { zone: s.counted.zone, testing: area?.testing ?? null }
+}
+
+export function dismissCounted(): void {
+  phone.update((s) => ({ ...s, counted: null }))
 }
 
 /** "ไม่ต้อง": no reminder is offered again during this four-week wait. */
@@ -94,7 +112,7 @@ export function checkIn(district: string): void {
   // A test made after the reminder's day answers it; one made before keeps the day.
   const before = phone.get().nextTest ?? null
   const after = before && before <= bangkokDay() ? null : before
-  phone.update((s) => ({ ...s, myDistrict: district, nextTest: after, nextTestDeclined: null }))
+  phone.update((s) => ({ ...s, myDistrict: district, nextTest: after, nextTestDeclined: null, counted: null }))
   if (after !== before) void syncNextTest(null)
 }
 
@@ -122,7 +140,7 @@ export function toggleLayer(layer: MapLayer): void {
 
 export function forgetMyDistrict(): void {
   phone.update((s) => {
-    const next = { ...s }
+    const next = { ...s, counted: null }
     delete next.myDistrict
     return next
   })

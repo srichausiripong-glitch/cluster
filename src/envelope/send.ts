@@ -131,7 +131,9 @@ export async function sendIfDue(now: number, deps: SendDeps): Promise<SendResult
       throw new Error(`envelope refused: ${res.status}`)
     }
     writeOutbox(null)
-    phone.update((s) => ({ ...s, sentWeek: key.week, pending: savedAt !== null && s.pending?.savedAt === savedAt ? null : s.pending }))
+    // A "tested" report that went is remembered by week and district only, for the one-time "sent" note.
+    const counted = pending?.kind === 'tested' ? { week: key.week, zone: pending.zone } : undefined
+    phone.update((s) => ({ ...s, sentWeek: key.week, pending: savedAt !== null && s.pending?.savedAt === savedAt ? null : s.pending, ...(counted ? { counted } : {}) }))
     return 'sent'
   } catch {
     writeClaim(null)

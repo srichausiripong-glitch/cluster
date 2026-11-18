@@ -274,6 +274,8 @@ export const th = {
   },
   /** The weekly notification of a followed district: no district or disease name (redesign spec 5.11). public/sw.js holds the same lines. */
   weekly: { title: 'Cluster', changed: 'เขตที่คุณติดตามมีอัปเดต', same: 'แผนที่สัปดาห์นี้อัปเดตแล้ว', due: 'ถึงวันตรวจที่ตั้งไว้แล้ว' },
+  /** The one-time note that a "tested" report arrived (2026-11-18 design, decision 2). Never "counted": the phone cannot know that. */
+  counted: { sent: 'รายงาน "ไม่เจอ" ของคุณส่งถึงแล้ว', row: '"ไปตรวจ" ของเขต{name}', close: 'ปิด' },
   /** The next-test reminder (2026-11-18 design, decision 1). Names no disease. */
   nextTest: {
     offer: 'ตั้งเตือนตรวจครั้งถัดไป',
