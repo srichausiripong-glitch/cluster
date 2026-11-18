@@ -1,16 +1,16 @@
 import { Minus, Plus } from 'lucide-react'
 import { useEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 import { th } from '../copy/th'
-import type { AreaState, PublishedArea } from '../domain/types'
+import type { AreaState, DensityBand, PublishedArea } from '../domain/types'
 import { isVerified, type CarePoint } from '../data/carePoints'
 import { areaAt, AREAS, CITY_EDGES, pathOf } from './areas'
 import { LEVELS, PPM, toXY, type Level, type XY } from './geo'
-import { DotBody, ManyBody, PinBody } from './legend'
-import { paintDots, paintGround, paintLines, type Scene } from './paint'
+import { DotBody, LevelMarks, ManyBody, PinBody } from './legend'
+import { paintGround, paintLines, paintSignal, type Scene } from './paint'
 import { mapSource } from './source'
 import { PALETTE } from './style'
 import type { CityData, Manifest, TileData } from './types'
-import { advances, cityView, clampCity, deepestAt, fromScreen, insetFor, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Box, type Size, type View } from './view'
+import { advances, cityView, clampCity, deepestAt, fromScreen, insetFor, LEVEL_ROOM, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Box, type Size, type View } from './view'
 
 export interface RealMapProps {
   areas: PublishedArea[]
@@ -62,7 +62,7 @@ const wantsStill = () => typeof window.matchMedia === 'function' && window.match
 type Gesture = { kind: 'drag'; from: XY; start: View; moved: boolean } | { kind: 'pinch'; span: number; done: boolean }
 
 /**
- * The real map of Bangkok at three levels. Three canvases draw the ground, the signal dots and
+ * The real map of Bangkok at three levels. Three canvases draw the ground, the signal's shade and
  * the roads; the SVG layer above them holds what a person can act on, as real buttons: the city,
  * the zones and the care points.
  */
@@ -71,7 +71,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
   const stack = useRef<HTMLDivElement>(null)
   const picture = useRef<HTMLDivElement>(null)
   const ground = useRef<HTMLCanvasElement>(null)
-  const dots = useRef<HTMLCanvasElement>(null)
+  const signal = useRef<HTMLCanvasElement>(null)
   const lines = useRef<HTMLCanvasElement>(null)
   // Before the first measurement, lay out for a phone.
   const [box, setBox] = useState({ w: 390, h: 714 })
@@ -184,9 +184,15 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
 
   const marks = useMemo(() => markers(carePoints, shown, size), [carePoints, shown, size])
   // District names are boxes at city level (those that fit) and at district level (redesign spec 5.7).
-  const names = useMemo(() => (phase === 2 && shown.level !== 'street' ? nameBoxes(AREAS, shown, size, marks) : []), [phase, shown, size, marks])
   const byId = useMemo(() => new Map(areas.map((a) => [a.areaId, a])), [areas])
-  /** Only the dots of an area that was just reported move. */
+  /** The level of every shaded district, while the confirmed layer is on: their name boxes carry it as dots. */
+  const levels = useMemo(() => {
+    const out: Record<string, DensityBand> = {}
+    if (showSignal) for (const a of areas) if (a.state === 'shown' && a.density && a.areaId !== 'bkk') out[a.areaId] = a.density
+    return out
+  }, [areas, showSignal])
+  const names = useMemo(() => (phase === 2 && shown.level !== 'street' ? nameBoxes(AREAS, shown, size, marks, levels) : []), [phase, shown, size, marks, levels])
+  /** Only the shade of an area that was just reported moves. */
   const breathing = !still && showSignal && areas.some((a) => a.state === 'shown' && a.step === 'new' && (phase === 2 ? a.areaId !== 'bkk' : a.areaId === 'bkk'))
 
   // Draw after every render: the view, the data or the layers may have changed.
@@ -219,7 +225,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
     const now = scene.current
     const layers: [HTMLCanvasElement | null, (ctx: CanvasRenderingContext2D) => void][] = [
       [ground.current, (ctx) => paintGround(ctx, now)],
-      [dots.current, (ctx) => paintDots(ctx, now, null)],
+      [signal.current, (ctx) => paintSignal(ctx, now, null)],
       [lines.current, (ctx) => paintLines(ctx, now)],
     ]
     for (const [canvas, paint] of layers) {
@@ -238,13 +244,13 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
     carried.current = false
   })
 
-  // The newest zone breathes: its dots are redrawn on their own canvas, frame by frame.
+  // The newest zone breathes: the signal is redrawn on its own canvas, frame by frame.
   useEffect(() => {
     if (!breathing || typeof requestAnimationFrame !== 'function') return
     let frame = 0
     const tick = (time: number) => {
-      const ctx = dots.current?.getContext('2d')
-      if (ctx && scene.current) paintDots(ctx, scene.current, time)
+      const ctx = signal.current?.getContext('2d')
+      if (ctx && scene.current) paintSignal(ctx, scene.current, time)
       frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
@@ -397,7 +403,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
       <div ref={stack} className="absolute inset-0">
         <div ref={picture} data-picture className="absolute inset-0" aria-hidden="true">
           <canvas ref={ground} className="absolute inset-0 h-full w-full" />
-          <canvas ref={dots} className="absolute inset-0 h-full w-full" />
+          <canvas ref={signal} className="absolute inset-0 h-full w-full" />
           <canvas ref={lines} className="absolute inset-0 h-full w-full" />
         </div>
         <svg width={size.w} height={size.h} className="absolute left-0 top-0" role="group" aria-label={th.map.source}>
@@ -422,12 +428,14 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
             )}
           </g>
           {names.map((b) => (
-            <g key={b.id} data-caption transform={`translate(${round(b.x)} ${round(b.y)})`} aria-hidden="true" style={{ pointerEvents: 'none' }}>
+            <g key={b.id} data-caption data-level={b.level} transform={`translate(${round(b.x)} ${round(b.y)})`} aria-hidden="true" style={{ pointerEvents: 'none' }}>
               <rect x={-b.w / 2 + 2.5} y={-b.h / 2 + 2.5} width={b.w} height={b.h} rx="6" fill="var(--color-ink)" />
               <rect data-face x={-b.w / 2} y={-b.h / 2} width={b.w} height={b.h} rx="6" fill="var(--color-surface)" stroke="var(--color-ink)" strokeWidth="1.8" />
-              <text y="4.5" textAnchor="middle" fontSize="12.5" fontWeight="700" fill="var(--color-ink)">
+              <text x={b.level ? -LEVEL_ROOM / 2 : 0} y="4.5" textAnchor="middle" fontSize="12.5" fontWeight="700" fill="var(--color-ink)">
                 {b.name}
               </text>
+              {/* A shaded district's level as dots, so the shade is never read by colour alone (2026-11-18 design, decision 4). */}
+              {b.level && <LevelMarks level={b.level} x={b.w / 2 - LEVEL_ROOM + 9} />}
             </g>
           ))}
           {marks.map((m, i) => {

@@ -326,7 +326,11 @@ it('explains the marks, the age of a signal and what a signal is not, behind ⓘ
   expect(sheet.getByText(th.map.keyPins.verified).closest('li')?.querySelector('[data-pin-body]')).not.toBeNull()
   expect(sheet.getByText(th.map.keyPins.unverified).closest('li')?.querySelector('[data-dot]')).not.toBeNull()
   expect(dialog.querySelectorAll('[data-gap]')).toHaveLength(3)
-  expect([...dialog.querySelectorAll('[data-dot-r]')].map((el) => Number(el.getAttribute('data-dot-r')))).toEqual([1.2, 2.1, 3.1])
+  // Confirmed results shade the district whole; each shade is keyed with its dots, never by colour alone.
+  expect(dialog.querySelectorAll('[data-dot-r]')).toHaveLength(0)
+  const shades = [...dialog.querySelectorAll('[data-shade]')]
+  expect(shades.map((el) => el.getAttribute('data-shade'))).toEqual(['thin', 'medium', 'dense'])
+  shades.forEach((el, i) => expect(el.querySelectorAll('[data-level-dot][fill="var(--color-ink)"]')).toHaveLength(i + 1))
   const tags = sheet.getAllByText(th.map.current)
   expect(tags).toHaveLength(3)
   for (const tag of tags) expect(tag.className).toMatch(/\bbg-yellow\b/)

@@ -1,3 +1,4 @@
+import type { DensityBand } from '../domain/types'
 import { isVerified, type CarePoint } from '../data/carePoints'
 import { CITY_BOX, type Area } from './areas'
 import { CITY_FRAME, LEVELS, PPM, toXY, type Level, type XY } from './geo'
@@ -172,7 +173,11 @@ export interface NameBox {
   y: number
   w: number
   h: number
+  /** A shaded district's level, written as three dots after its name (2026-11-18 design, decision 4). */
+  level?: DensityBand
 }
+/** The room the three level dots take at the end of a name box, in screen pixels. */
+export const LEVEL_ROOM = 34
 /** Thai vowels and tone marks above or below a letter take no width. */
 export const advances = (name: string) => [...name].filter((ch) => !/[ัิ-ฺ็-๎]/.test(ch)).length
 const touch = (a: Box, b: Box, pad: number) => a[0] < b[2] + pad && a[2] > b[0] - pad && a[1] < b[3] + pad && a[3] > b[1] - pad
@@ -180,14 +185,18 @@ const touch = (a: Box, b: Box, pad: number) => a[0] < b[2] + pad && a[2] > b[0] 
 /**
  * District name boxes, centred on each district's label point. A box that would touch a marker,
  * another box or a side of the map is left out, and so is one under the controls at the top or the
- * status card at the bottom (plan decision 13).
+ * status card at the bottom (plan decision 13). A shaded district, one with a level in `levels`, is
+ * placed first and its box carries the level, so as many levels as can be shown in words-and-dots are.
  */
-export function nameBoxes(zones: Area[], view: View, size: Size, taken: Marker[]): NameBox[] {
+export function nameBoxes(zones: Area[], view: View, size: Size, taken: Marker[], levels: Record<string, DensityBand> = {}): NameBox[] {
   const placed: NameBox[] = []
   const boxOf = (b: NameBox): Box => [b.x - b.w / 2, b.y - b.h / 2, b.x + b.w / 2, b.y + b.h / 2]
-  for (const zone of zones) {
+  const ordered = [...zones.filter((z) => levels[z.id]), ...zones.filter((z) => !levels[z.id])]
+  for (const zone of ordered) {
     const [x, y] = toScreen(view, size, zone.label)
-    const box: NameBox = { id: zone.id, name: zone.name, x, y, w: advances(zone.name) * 7.2 + 14, h: 23 }
+    const level = levels[zone.id]
+    const w = advances(zone.name) * 7.2 + 14 + (level ? LEVEL_ROOM : 0)
+    const box: NameBox = level ? { id: zone.id, name: zone.name, x, y, w, h: 23, level } : { id: zone.id, name: zone.name, x, y, w, h: 23 }
     const b = boxOf(box)
     if (b[0] < 2 || b[2] > size.w - 2 || b[1] < size.inset.top || b[3] > size.h - size.inset.bottom) continue
     if (taken.some((m) => touch(b, markerBox(m), 2)) || placed.some((p) => touch(b, boxOf(p), 2))) continue

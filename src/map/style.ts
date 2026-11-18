@@ -3,10 +3,14 @@
 import type { DensityBand } from '../domain/types'
 import type { RoadClass } from './types'
 
-/** Distance between neighbouring signal dots, in screen pixels. */
-export const DOT_GAP = 9
-/** A level is the size of the dot, never a colour (plan amendment 15.2). */
-export const DOT_R: Record<DensityBand, number> = { thin: 1.2, medium: 2.1, dense: 3.1 }
+/**
+ * A confirmed level shades its district whole: the strength of the violet over the warm ground
+ * (2026-11-18 design, decision 4). The level is also written as dots in the district's name box,
+ * so it is never told by colour alone. A test keeps the three apart and the ink readable on them.
+ */
+export const SIGNAL_SHADE: Record<DensityBand, number> = { thin: 0.2, medium: 0.38, dense: 0.58 }
+/** At street level the shade is lighter, so the roads and buildings under it stay readable. */
+export const STREET_SHADE = 0.6
 /** Length of a legend line sample, in pixels. */
 export const SAMPLE_PX = 60
 /** The age of a signal is carried by its edge. Widths and dashes are screen pixels. */
@@ -49,7 +53,7 @@ export const ROADS: Record<'district' | 'street', [RoadClass, number, number, nu
 }
 
 /**
- * How much a dot grows and shrinks: 1 when still, else one slow cycle of about 3.3 seconds.
+ * How much a new signal's shade deepens and lightens: 1 when still, else one slow cycle of about 3.3 seconds.
  * It takes no signal level: a stronger signal never moves faster or further (plan amendment 15.5).
  */
 export function breath(timeMs: number, still: boolean): number {

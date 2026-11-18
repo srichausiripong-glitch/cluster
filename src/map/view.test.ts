@@ -142,3 +142,15 @@ it('gives an unverified dot a small box round its point, and a verified pin its 
   expect(markerBox({ kind: 'one', point: dot, x: 100, y: 100 })).toEqual([89, 89, 111, 111])
   expect(markerBox({ kind: 'one', point: pin, x: 100, y: 100 })).toEqual([81, 54, 119, 100])
 })
+// A shaded district says its level in its name box, so the level is never told by colour alone (2026-11-18 design, decision 4).
+it('places the names of shaded districts before the others, each with its level', () => {
+  const view = cityView(phone)
+  const plain = nameBoxes(AREAS, view, phone, []).find((b) => b.id === 'chatuchak')!
+  const shaded = nameBoxes(AREAS, view, phone, [], { chatuchak: 'dense' }).find((b) => b.id === 'chatuchak')!
+  expect(plain.level).toBeUndefined()
+  expect(shaded.level).toBe('dense')
+  expect(shaded.w).toBe(plain.w + 34)
+  // In the crowded centre a shaded district wins its place over the unshaded ones around it.
+  expect(nameBoxes(AREAS, view, phone, []).some((b) => b.id === 'bang_rak')).toBe(false)
+  expect(nameBoxes(AREAS, view, phone, [], { bang_rak: 'thin' }).find((b) => b.id === 'bang_rak')?.level).toBe('thin')
+})

@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
-import { breath, DOT_GAP, DOT_R, EDGE, HATCH, PALETTE, ROADS, SAMPLE_PX, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
+import { breath, EDGE, HATCH, PALETTE, ROADS, SAMPLE_PX, SIGNAL_SHADE, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
 
-it('shows a higher level as a bigger dot, and never lets dots touch', () => {
-  expect(DOT_R.thin).toBeLessThan(DOT_R.medium)
-  expect(DOT_R.medium).toBeLessThan(DOT_R.dense)
-  expect(DOT_R.dense * 2).toBeLessThan(DOT_GAP)
+it('shows a higher level as a deeper shade, never an opaque one, and lighter at street level', () => {
+  expect(SIGNAL_SHADE.thin).toBeLessThan(SIGNAL_SHADE.medium)
+  expect(SIGNAL_SHADE.medium).toBeLessThan(SIGNAL_SHADE.dense)
+  expect(SIGNAL_SHADE.dense).toBeLessThan(0.7)
+  expect(STREET_SHADE).toBeLessThan(1)
 })
 it('draws each signal age as a line that shows at least three repeats in the legend', () => {
   for (const [name, edge] of Object.entries(EDGE)) if (edge.dash) expect(SAMPLE_PX / edge.dash.reduce((a, b) => a + b, 0), name).toBeGreaterThanOrEqual(3)
@@ -29,17 +30,31 @@ it('paints with the same colours as the tokens', () => {
   const token = (name: string) => tokens.match(new RegExp(`--color-${name}:\\s*(#[0-9a-f]{6})`))?.[1]
   expect(PALETTE).toEqual({ ink: token('ink'), surface: token('surface'), care: token('care'), yellow: token('yellow'), signal: token('signal'), signalEdge: token('signal-edge'), signalSoft: token('signal-soft'), land: token('land'), landOut: token('land-out'), water: token('water'), park: token('park') })
 })
+const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+const lum = (c: number[]) => {
+  const [r, g, b] = c.map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+const contrast = (a: number[], b: number[]) => {
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x)
+  return (hi + 0.05) / (lo + 0.05)
+}
+/** The violet laid over the warm ground at a strength, as the map shows it. */
+const shadeOf = (alpha: number) => rgb(PALETTE.land).map((l, i) => l * (1 - alpha) + rgb(PALETTE.signal)[i] * alpha)
 it('marks an area below the threshold more lightly than the lightest signal', () => {
-  const lum = (hex: string) => {
-    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
-  }
-  const land = lum(PALETTE.land)
-  // Ink on the ground: the share of the ground a mark covers, times how much darker than the ground it is.
-  // Slanted lines one `gap` apart along the ground are gap / √2 apart across; dots sit one to a DOT_GAP square, at 0.92 opacity.
-  const hatch = ((HATCH.width * Math.SQRT2) / HATCH.gap) * HATCH.alpha * (land - lum(PALETTE.signalSoft))
-  const thinDots = ((Math.PI * DOT_R.thin ** 2) / DOT_GAP ** 2) * 0.92 * (land - lum(PALETTE.signal))
-  expect(hatch).toBeLessThan(thinDots)
+  const land = lum(rgb(PALETTE.land))
+  // Slanted lines one `gap` apart along the ground are gap / √2 apart across: the share of the ground they darken.
+  const hatch = ((HATCH.width * Math.SQRT2) / HATCH.gap) * HATCH.alpha * (land - lum(rgb(PALETTE.signalSoft)))
+  expect(hatch).toBeLessThan(land - lum(shadeOf(SIGNAL_SHADE.thin)))
+})
+it('keeps the three shades apart from the ground and from each other, with the ink readable on the deepest', () => {
+  const land = rgb(PALETTE.land)
+  const [thin, medium, dense] = (['thin', 'medium', 'dense'] as const).map((d) => shadeOf(SIGNAL_SHADE[d]))
+  expect(contrast(thin, land)).toBeGreaterThanOrEqual(1.3)
+  expect(contrast(medium, thin)).toBeGreaterThanOrEqual(1.3)
+  expect(contrast(dense, medium)).toBeGreaterThanOrEqual(1.3)
+  // The symptoms hatch and the names are ink: at least 4.5:1 on the deepest shade.
+  expect(contrast(rgb(PALETTE.ink), dense)).toBeGreaterThanOrEqual(4.5)
 })
 it('hatches symptoms tighter for a higher level, never so tight that the lines become a fill', () => {
   expect(SYMPTOM_GAP.thin).toBeGreaterThan(SYMPTOM_GAP.medium)

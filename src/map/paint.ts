@@ -1,10 +1,11 @@
 // The map's three canvas layers. Ground: land, parks and the marks of areas without a signal.
-// Dots: the signal, redrawn on its own while the newest zone breathes. Lines: water, buildings,
-// roads, rail, the edge of each signal and the names of the base map.
+// Signal: each district's confirmed shade and the symptoms hatch over it, redrawn on its own while
+// the newest zone breathes. Lines: water, buildings, roads, rail, the edge of each signal and the
+// names of the base map.
 // Zones and care points are not drawn here: they are real buttons in the SVG layer above.
 import type { AreaState, DensityBand, PublishedArea } from '../domain/types'
 import { AREAS, CITY_EDGES } from './areas'
-import { breath, DOT_GAP, DOT_R, EDGE, HATCH, ROADS, SYMPTOM_GAP, SYMPTOM_LINE, type Palette } from './style'
+import { breath, EDGE, HATCH, ROADS, SIGNAL_SHADE, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE, type Palette } from './style'
 import type { CityData, Label, Line, RoadClass, Shape, TileData } from './types'
 import { fromScreen, toScreen, type Box, type Size, type View } from './view'
 
@@ -231,7 +232,7 @@ export function paintGround(ctx: Ctx, s: Scene): void {
   // South of the baked tiles there is only the Gulf of Thailand.
   ctx.fillStyle = p.water
   ctx.fillRect(-200000, 55500, 400000, 60000)
-  // The city's ground stays warm: a signal is dots on it, never a wash over it.
+  // The city's ground stays warm: a signal's shade is laid over it on its own layer.
   fill(ctx, s, AREA_RINGS, p.land)
   if (s.view.level === 'city') {
     if (s.city) fill(ctx, s, s.city.green, p.park, 0.75)
@@ -239,48 +240,27 @@ export function paintGround(ctx: Ctx, s: Scene): void {
     for (const tile of s.tiles) fill(ctx, s, tile.green, p.park)
   }
   if (s.showSignal) for (const { rings, area } of painted(s)) quiet(ctx, s, rings, area ? drawnState(area) : 'no_data')
-  // Under the dots, so a district can show both its symptoms and its confirmed signal.
-  if (s.showSymptoms) for (const { rings, area } of painted(s)) if (area?.symptoms) symptomsHatch(ctx, s, rings, area.symptoms)
   if (s.view.level === 'district') for (const tile of s.tiles) if (tile.blocks) fill(ctx, s, tile.blocks, p.ink, 0.07)
 }
 
-// ---- dots -------------------------------------------------------------------------------------
+// ---- signal -----------------------------------------------------------------------------------
 /**
- * The signal: violet dots on a slanted grid, bigger for a higher level. The grid is fixed to the
- * map, so the dots travel with it when it is dragged. `timeMs` moves the dots of a zone that was
- * just reported; null draws everything still.
+ * The signal: each district with a confirmed level filled whole in violet, deeper for a higher level
+ * (2026-11-18 design, decision 4). The data holds district totals only, so nothing inside a district
+ * is shaded differently. The symptoms hatch is drawn over the shade, so a district can show both.
+ * `timeMs` breathes the shade of a zone that was just reported; null draws everything still.
  */
-export function paintDots(ctx: Ctx, s: Scene, timeMs: number | null): void {
+export function paintSignal(ctx: Ctx, s: Scene, timeMs: number | null): void {
   screen(ctx, s)
   ctx.clearRect(0, 0, s.size.w, s.size.h)
-  if (!s.showSignal) return
-  const street = s.view.level === 'street'
-  const d = (street ? 14 : DOT_GAP) * Math.SQRT2
-  const [ox, oy] = toScreen(s.view, s.size, [0, 0])
+  world(ctx, s)
+  const street = s.view.level === 'street' ? STREET_SHADE : 1
   for (const { rings, area } of painted(s)) {
-    if (area?.state !== 'shown' || !area.density) continue
-    const box = onScreen(s, rings)
-    if (!box) continue
-    const r = DOT_R[area.density] * (street ? 1.5 : 1) * (area.step === 'new' && timeMs !== null ? breath(timeMs, false) : 1)
-    ctx.save()
-    world(ctx, s)
-    outline(ctx, rings)
-    ctx.clip()
-    screen(ctx, s)
-    ctx.beginPath()
-    for (let k = Math.floor((box[1] - oy) / (d / 2)) - 1; k <= Math.ceil((box[3] - oy) / (d / 2)) + 1; k++) {
-      const y = oy + k * (d / 2)
-      const shift = k & 1 ? d / 2 : 0
-      for (let i = Math.floor((box[0] - ox - shift) / d) - 1; i <= Math.ceil((box[2] - ox - shift) / d) + 1; i++) {
-        const x = ox + shift + i * d
-        ctx.moveTo(x + r, y)
-        ctx.arc(x, y, r, 0, Math.PI * 2)
-      }
+    if (s.showSignal && area?.state === 'shown' && area.density) {
+      const pulse = area.step === 'new' && timeMs !== null ? breath(timeMs, false) : 1
+      fill(ctx, s, [rings], s.palette.signal, SIGNAL_SHADE[area.density] * street * pulse)
     }
-    ctx.fillStyle = s.palette.signal
-    ctx.globalAlpha = street ? 0.5 : 0.92
-    ctx.fill()
-    ctx.restore()
+    if (s.showSymptoms && area?.symptoms) symptomsHatch(ctx, s, rings, area.symptoms)
   }
 }
 

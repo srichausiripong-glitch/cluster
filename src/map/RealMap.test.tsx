@@ -72,6 +72,20 @@ it('writes the district names that fit in white boxes with a black edge', () => 
     expect(b.querySelector('text')).toHaveAttribute('fill', 'var(--color-ink)')
   }
 })
+it('writes a shaded district’s level as dots in its name box', () => {
+  const shaded = ['chatuchak', 'lat_krabang', 'nong_chok', 'bang_khun_thian', 'khlong_sam_wa', 'don_mueang']
+  setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: shaded.map((areaId) => ({ areaId, state: 'shown', density: 'medium', step: 'followup', testing: null, symptoms: null })) })
+  openApp('/app')
+  const boxes = [...document.querySelectorAll('[data-caption]')]
+  const names = shaded.map((id) => AREAS.find((a) => a.id === id)!.name)
+  const withLevel = boxes.filter((b) => names.includes(b.textContent ?? ''))
+  expect(withLevel.length).toBeGreaterThan(0)
+  for (const box of withLevel) {
+    expect(box.getAttribute('data-level')).toBe('medium')
+    expect([...box.querySelectorAll('[data-level-dot]')].map((d) => d.getAttribute('fill'))).toEqual(['var(--color-ink)', 'var(--color-ink)', 'var(--color-surface)'])
+  }
+  for (const plain of boxes.filter((b) => !withLevel.includes(b))) expect(plain.querySelector('[data-level-dot]')).toBeNull()
+})
 it('asks only for its own map files and its own server, never another site', async () => {
   const asked: string[] = []
   vi.stubGlobal('fetch', (url: string) => {

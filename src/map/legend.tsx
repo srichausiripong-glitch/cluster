@@ -4,7 +4,7 @@ import type { CareLayer, DensityBand } from '../domain/types'
 import { isVerified, type CarePoint } from '../data/carePoints'
 import { LAYER_EMOJI } from '../design/emojiCodes'
 import { emojiUrl } from '../design/emojiUrl'
-import { DOT_GAP, DOT_R, EDGE, HATCH, SAMPLE_PX, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
+import { EDGE, HATCH, SAMPLE_PX, SIGNAL_SHADE, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
 
 /** A care point pin. Its point is at 0, 0 and its round head is centred 26 px above. */
 const PIN_SHAPE = 'M0 0C0 0 14 -15 14 -26A14 14 0 1 0 -14 -26C-14 -15 0 0 0 0Z'
@@ -82,38 +82,30 @@ export function PointMark({ point, size = 28 }: { point: CarePoint; size?: numbe
 
 const dash = (edge: (typeof EDGE)[keyof typeof EDGE]) => edge.dash?.join(' ')
 
-/** A patch of signal: the map's dots at the size of a level, on the map's own ground, with the edge of an age if given. */
-export function DotSwatch({ density, edge, large = false }: { density: DensityBand; edge?: keyof typeof EDGE; large?: boolean }) {
-  const [w, h] = large ? [58, 40] : [34, 26]
-  const r = DOT_R[density]
-  const d = DOT_GAP * Math.SQRT2
-  const dots: [number, number][] = []
-  for (let row = 0, y = 2; y < h; row++, y += d / 2) for (let x = 2 + (row % 2 ? d / 2 : 0); x < w; x += d) dots.push([x, y])
-  const id = `swatch-${density}-${large ? 'l' : 's'}`
+const STEPS: Record<DensityBand, number> = { thin: 1, medium: 2, dense: 3 }
+/**
+ * A level as three 5 px circles in a row, for SVG: filled ink for each step reached, an outline for
+ * the rest (●●○). The first circle's centre is at (x, 0); they sit 8 px apart.
+ */
+export function LevelMarks({ level, x = 0, y = 0 }: { level: DensityBand; x?: number; y?: number }) {
   return (
-    // The large patch shows the area's own state; the small ones are the legend's three sizes.
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" className="shrink-0" {...(large ? {} : { 'data-dot-r': r })}>
-      <clipPath id={id}>
-        <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" />
-      </clipPath>
+    <>
+      {[0, 1, 2].map((i) => (
+        <circle key={i} data-level-dot cx={x + i * 8} cy={y} r="2.5" fill={i < STEPS[level] ? 'var(--color-ink)' : 'var(--color-surface)'} stroke="var(--color-ink)" strokeWidth="1.2" />
+      ))}
+    </>
+  )
+}
+
+/** A patch of signal for the key: the map's violet at the strength of a level on the map's own ground, with the level's dots beside it as the name box writes them. */
+export function ShadeSwatch({ density }: { density: DensityBand }) {
+  const [w, h] = [34, 26]
+  return (
+    <svg width={w + 30} height={h} viewBox={`0 0 ${w + 30} ${h}`} aria-hidden="true" className="shrink-0" data-shade={density}>
       <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-land)" />
-      <g clipPath={`url(#${id})`} fill="var(--color-signal)">
-        {dots.map(([x, y]) => (
-          <circle key={`${x}-${y}`} cx={x} cy={y} r={r} />
-        ))}
-      </g>
-      <rect
-        x="2"
-        y="2"
-        width={w - 4}
-        height={h - 4}
-        rx="7"
-        fill="none"
-        stroke={edge ? 'var(--color-signal-edge)' : 'var(--color-ink)'}
-        strokeWidth={edge ? EDGE[edge].width : 1.5}
-        strokeDasharray={edge ? dash(EDGE[edge]) : undefined}
-        strokeLinecap={edge && EDGE[edge].cap === 'round' ? 'round' : 'butt'}
-      />
+      <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-signal)" opacity={SIGNAL_SHADE[density]} />
+      <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="none" stroke="var(--color-ink)" strokeWidth="1.5" />
+      <LevelMarks level={density} x={w + 6} y={h / 2} />
     </svg>
   )
 }

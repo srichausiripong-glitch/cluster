@@ -11,7 +11,7 @@ import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
 import { districtLabel } from '../domain/districts'
 import type { DensityBand, PublishedArea, TestingLevel } from '../domain/types'
-import { DotMark, DotSwatch, EdgeSample, HatchSwatch, PinMark, QuietSwatch } from '../map/legend'
+import { DotMark, EdgeSample, HatchSwatch, PinMark, QuietSwatch, ShadeSwatch } from '../map/legend'
 import { Go } from './Go'
 import { levelOf } from './level'
 import { LevelDots } from './LevelDots'
@@ -104,11 +104,11 @@ export function SignalSheet({ area, open, onClose }: Props) {
             {th.map.weekly} · {th.map.source}
           </p>
           <h3 className="pt-2 font-bold">{th.map.key}</h3>
-          <p className="font-semibold">{th.map.sheet.dots}</p>
+          <p className="font-semibold">{th.map.sheet.shade}</p>
           <ul className="space-y-1.5">
             {DENSITIES.map((d, i) => (
               <li key={d} className="flex items-center gap-2">
-                <DotSwatch density={d} />
+                <ShadeSwatch density={d} />
                 <Value label={th.map.sheet.level[i]} current={shown && area.density === d} />
               </li>
             ))}
