@@ -90,3 +90,11 @@ it('refuses a found phone number whose page is not https', () => {
   expect(check(undefined)).toBe('')
   for (const bad of ['http://example.org', 'example.org', 42]) expect(check(bad), String(bad)).toContain('care point p')
 })
+it('refuses hours or a number without an https page or a whole confirmation', () => {
+  const check = (over: Record<string, unknown>) => launchCheck(ENV, { ...DATA, carePoints: [{ ...point(false), ...over }] }).join('\n')
+  expect(check({ phone: '021234567', phoneConfirmed: { date: '2026-11-20', by: 'ทีม' } })).toBe('')
+  expect(check({ phone: '021234567', phoneConfirmed: { date: 'soon' } })).toContain('care point p')
+  const open = [{ days: [1], from: '08:00', to: '16:00' }]
+  expect(check({ open, openSource: 'https://example.go.th/hours' })).toBe('')
+  for (const openSource of [undefined, 'http://example.go.th/hours']) expect(check({ open, openSource }), String(openSource)).toContain('care point p')
+})

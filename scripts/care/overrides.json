@@ -1,0 +1,349 @@
+{
+  "bma-phc-13653": {
+    "open": [
+      {
+        "days": [
+          4
+        ],
+        "from": "13:00",
+        "to": "15:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter8",
+    "openKind": "service"
+  },
+  "bma-phc-13665": {
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      },
+      {
+        "days": [
+          6
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter20/page/main/1452",
+    "openKind": "office"
+  },
+  "bma-phc-13673": {
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "16:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter28/page/sub/12025",
+    "openKind": "service"
+  },
+  "bma-phc-13678": {
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter33/page/sub/17375",
+    "openKind": "service"
+  },
+  "bma-phc-13696": {
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter53/page/sub/10673",
+    "openKind": "office"
+  },
+  "bma-phc-13697": {
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "16:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter54/page/sub/9243",
+    "openKind": "office"
+  },
+  "bma-phc-13699": {
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter56",
+    "openKind": "service"
+  },
+  "bma-phc-21755": {
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:30",
+        "to": "12:00"
+      },
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      },
+      {
+        "days": [
+          0,
+          6
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter45/page/main/2640",
+    "openKind": "office"
+  },
+  "bma-phc-23229": {
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter67/page/sub/12669",
+    "openKind": "service"
+  },
+  "osm-node-10296207964": {
+    "phone": "023799722",
+    "phoneSource": "https://www.fascino.co.th/branchs/1005349"
+  },
+  "osm-node-10300758612": {
+    "phone": "026826422",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.6743728&longitude=100.545625&filter_type=1&page=1"
+  },
+  "osm-node-10572161875": {
+    "phone": "0918081540",
+    "phoneSource": "https://www.exta.co.th/store/"
+  },
+  "osm-node-10747741583": {
+    "phone": "0655162375",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_3101_TH"
+  },
+  "osm-node-11269092098": {
+    "phone": "021368016",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8579044&longitude=100.6452965&filter_type=1&page=1"
+  },
+  "osm-node-11275228405": {
+    "phone": "0922463212",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_212_TH"
+  },
+  "osm-node-11275228409": {
+    "phone": "026736224",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.6981214&longitude=100.5382061&filter_type=1&page=1"
+  },
+  "osm-node-11278824679": {
+    "phone": "0922463254",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_254_TH"
+  },
+  "osm-node-11314501829": {
+    "phone": "0922534331",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_784_TH"
+  },
+  "osm-node-11454989617": {
+    "phone": "0922812554",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_554_TH"
+  },
+  "osm-node-11613723512": {
+    "phone": "0922463468",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_604_TH"
+  },
+  "osm-node-12240768179": {
+    "phone": "0918081716",
+    "phoneSource": "https://www.exta.co.th/store/"
+  },
+  "osm-node-12430030602": {
+    "phone": "022365623",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7303632&longitude=100.5131214&filter_type=1&page=1"
+  },
+  "osm-node-12435141506": {
+    "phone": "025137696",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8101213&longitude=100.5686396&filter_type=1&page=1"
+  },
+  "osm-node-12586875503": {
+    "phone": "023815208",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.724518&longitude=100.5793269&filter_type=1&page=1"
+  },
+  "osm-node-12623227839": {
+    "phone": "0632311794",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_794_TH"
+  },
+  "osm-node-13355392241": {
+    "phone": "0845082307",
+    "phoneSource": "https://www.exta.co.th/store/"
+  },
+  "osm-node-2072480289": {
+    "phone": "029301690",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8283256&longitude=100.5667927&filter_type=1&page=1"
+  },
+  "osm-node-2104145400": {
+    "phone": "0800708396",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7799797&longitude=100.5453085&filter_type=1&page=1"
+  },
+  "osm-node-3234302724": {
+    "phone": "0922463522",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_522_TH"
+  },
+  "osm-node-3354527921": {
+    "phone": "023821940",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7214919&longitude=100.5835056&filter_type=1&page=1"
+  },
+  "osm-node-4132492350": {
+    "phone": "0922463488",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_488_TH"
+  },
+  "osm-node-4132492351": {
+    "phone": "021085839",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7726397&longitude=100.6101066&filter_type=1&page=1"
+  },
+  "osm-node-4141894476": {
+    "phone": "0922463243",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_243_TH"
+  },
+  "osm-node-4221178589": {
+    "phone": "020636631",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7129678&longitude=100.6007385&filter_type=1&page=1"
+  },
+  "osm-node-4589153190": {
+    "phone": "023464450",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7207109&longitude=100.7273171&filter_type=1&page=1"
+  },
+  "osm-node-4620844193": {
+    "phone": "029301690",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8287494&longitude=100.5682482&filter_type=1&page=1"
+  },
+  "osm-node-4665569197": {
+    "phone": "026327224",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7281336&longitude=100.5326595&filter_type=1&page=1"
+  },
+  "osm-node-5569329721": {
+    "phone": "0659984358",
+    "phoneSource": "https://www.blez-pharmacy-th.com/blez-shops/blez-pharmacy-asok2/"
+  },
+  "osm-node-5887272488": {
+    "phone": "0863422456",
+    "phoneSource": "https://www.wongnai.com/businesses/3469103YY-ราชวิถีเภสัช-สาขาอนุสาวรีย์ชัยสมรภูมิ"
+  },
+  "osm-node-6287470185": {
+    "phone": "022525101",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7451933&longitude=100.5355462&filter_type=1&page=1"
+  },
+  "osm-node-6339281868": {
+    "phone": "0922463342",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_342_TH"
+  },
+  "osm-node-6339281872": {
+    "phone": "022450063",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7619145&longitude=100.5370022&filter_type=1&page=1"
+  },
+  "osm-node-6609503990": {
+    "phone": "025043373",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.9185225&longitude=100.6022917&filter_type=1&page=1"
+  },
+  "osm-node-8293950989": {
+    "phone": "0922254047",
+    "phoneSource": "https://shop.tsuruha-g.com/en/4035"
+  },
+  "osm-way-1211935654": {
+    "phone": "022368366",
+    "phoneSource": "https://www.fascino.co.th/branchs/1007875"
+  },
+  "osm-way-1214032298": {
+    "phone": "026316407",
+    "phoneSource": "https://www.wongnai.com/businesses/1330608GU-ชุมชนยา-ถนนนเรศ"
+  },
+  "osm-way-1226659212": {
+    "phone": "022330571",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7288681&longitude=100.534538&filter_type=1&page=1"
+  },
+  "osm-way-1241448325": {
+    "phone": "0818452825",
+    "phoneSource": "https://www.yellowpages.co.th/profile/Sin-Thai-Osoth-Shop-DgR3lHNZ"
+  },
+  "osm-way-1292444752": {
+    "phone": "0659980379",
+    "phoneSource": "https://www.blez-pharmacy-th.com/blez-shops/blez-pharmacy-soi4-nana/"
+  },
+  "osm-way-1452541930": {
+    "phone": "0803616662",
+    "phoneSource": "https://www.wongnai.com/businesses/2913543mQ-ari-pharmacy-unit-ตู้ยาอรีย์"
+  },
+  "osm-way-1516368694": {
+    "phone": "022820780",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7585658&longitude=100.498264&filter_type=1&page=1"
+  },
+  "osm-way-1548850264": {
+    "phone": "024114024",
+    "phoneSource": "https://www.fascino.co.th/branchs/1006150"
+  }
+}

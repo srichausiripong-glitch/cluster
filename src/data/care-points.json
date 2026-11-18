@@ -20,6 +20,37 @@
       "ตรวจหาเชื้อฝีดาษวานร(ฝีดาษลิง)"
     ],
     "hours": "คลินิกในเวลา: ตรวจหาเชื้อเอชไอวี วันจันทร์–วันศุกร์ เวลา 07.30–16.30 น. (ปิดรับบัตรคิว 15.00 น.); ตรวจโรคติดต่อทางเพศสัมพันธ์ วันจันทร์–วันศุกร์ เวลา 08.30–14.00 น. | คลินิกนอกเวลา: ตรวจหาเชื้อเอชไอวีและโรคติดต่อทางเพศสัมพันธ์ วันจันทร์, วันพุธ, วันศุกร์ เวลา 16.30–20.00 น. และวันเสาร์ เวลา 08.30–12.00 น. (หยุดวันหยุดนักขัตฤกษ์)",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "07:30",
+        "to": "16:30"
+      },
+      {
+        "days": [
+          1,
+          3,
+          5
+        ],
+        "from": "16:30",
+        "to": "20:00"
+      },
+      {
+        "days": [
+          6
+        ],
+        "from": "08:30",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://th.aidsid.or.th/anonymous-clinic/",
+    "openKind": "service",
     "cost": "ตรวจเลือดหาการติดเชื้อเอชไอวี 160 บาท (คลินิกพิเศษนอกเวลา 192 บาท); ตรวจซิฟิลิสวิธี RPR 60 บาท; ตรวจคัดกรอง STI-4 (โรคติดต่อทางเพศสัมพันธ์ 4 ชนิด) 1,200 บาท; อัตราค่าบริการอาจมีเปลี่ยนแปลงได้",
     "pep": true,
     "source": "https://th.aidsid.or.th/anonymous-clinic/",
@@ -94,6 +125,18 @@
       "ให้คำปรึกษาเรื่องเพศสัมพันธ์ที่ปลอดภัย"
     ],
     "hours": "Tuesdays and Wednesdays during 9.00 – 12.00",
+    "open": [
+      {
+        "days": [
+          2,
+          3
+        ],
+        "from": "09:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://www2.si.mahidol.ac.th/en/dermatology/siriraj-std-and-hiv-clinic",
+    "openKind": "service",
     "phone": "024197380",
     "phoneSource": "https://www2.si.mahidol.ac.th/department/dermatology/",
     "source": "https://www2.si.mahidol.ac.th/en/dermatology/siriraj-std-and-hiv-clinic",
@@ -184,6 +227,21 @@
       "ถุงยางอนามัยและสารหล่อลื่น ฟรี!"
     ],
     "hours": "เปิดให้บริการทุกวันในเวลาราชการเวลา 08.00 - 16.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "16:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter23/page/sub/19780",
+    "openKind": "service",
     "pep": true,
     "source": "https://webportal.bangkok.go.th/healthcenter23/page/sub/19780",
     "fetched": "2026-11-12",
@@ -209,6 +267,21 @@
       "ถุงยางอนามัยและสารหล่อลื่น ฟรี!"
     ],
     "hours": "ให้บริการในทุกวัน เวลา 08.00 - 15.30 น. ยกเว้นวันหยุดราชการและวันหยุดนักขัตฤกษ์ (คลินิกรักปลอดภัย ชั้น 3 อาคารใหม่ 5 ชั้น)",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "15:30"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter3/page/sub/12508",
+    "openKind": "service",
     "pep": true,
     "source": "https://webportal.bangkok.go.th/healthcenter3/page/sub/12508",
     "fetched": "2026-11-12",
@@ -232,6 +305,21 @@
       "บริการป้องกันการติดเชื้อ HIV ในกลุ่มเสี่ยงสูง"
     ],
     "hours": "วันจันทร์ - วันศุกร์ เวลา 08.00 น. - 12.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter9/page/sub/5596",
+    "openKind": "service",
     "source": "https://webportal.bangkok.go.th/healthcenter9/page/sub/5596",
     "fetched": "2026-11-12",
     "verified": null
@@ -255,6 +343,21 @@
       "ถุงยางอนามัย ครั้งละ 10 ชิ้น"
     ],
     "hours": "จันทร์-ศุกร์ ช่วงเวลา 8.00-12.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter25/page/sub/31862",
+    "openKind": "service",
     "cost": "ตรวจรักษาโรคติดต่อทางเพศสัมพันธ์ฟรี เจาะเลือด HIV คนไทยฟรีปีละ 2 ครั้ง (ชาวต่างชาติ ครั้งละ 270 บาท)",
     "source": "https://webportal.bangkok.go.th/healthcenter25/page/sub/31862",
     "fetched": "2026-11-12",
@@ -320,6 +423,19 @@
       "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
     ],
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277040",
+    "openKind": "service",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277040",
     "fetched": "2026-11-12",
@@ -344,6 +460,19 @@
       "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
     ],
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277041",
+    "openKind": "service",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277041",
     "fetched": "2026-11-12",
@@ -368,6 +497,19 @@
       "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
     ],
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277044",
+    "openKind": "service",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277044",
     "fetched": "2026-11-12",
@@ -392,6 +534,19 @@
       "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
     ],
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277047",
+    "openKind": "service",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277047",
     "fetched": "2026-11-12",
@@ -416,6 +571,19 @@
       "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
     ],
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277049",
+    "openKind": "service",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277049",
     "fetched": "2026-11-12",
@@ -440,6 +608,19 @@
       "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
     ],
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277050",
+    "openKind": "service",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277050",
     "fetched": "2026-11-12",
@@ -464,6 +645,19 @@
       "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
     ],
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277051",
+    "openKind": "service",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277051",
     "fetched": "2026-11-12",
@@ -488,6 +682,19 @@
       "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
     ],
     "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/538308",
+    "openKind": "service",
     "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
     "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/538308",
     "fetched": "2026-11-12",

@@ -1,3 +1,4 @@
+import type { OpenSpan } from '../domain/hours'
 import { areaAt, NEIGHBOURS } from '../map/areas'
 import { toXY } from '../map/geo'
 import type { CareLayer } from '../domain/types'
@@ -31,6 +32,14 @@ export interface CarePointData {
   phone?: string
   /** The public page the number was found on, when that is not `source` (owner, 18 Nov 2026: search for a number before giving up). */
   phoneSource?: string
+  /** A number the team called and confirmed, in place of a page (2026-11-18 design, decision 4). */
+  phoneConfirmed?: { date: string; by: string }
+  /** Opening hours, from a public page (2026-11-18 design, decision 3). */
+  open?: OpenSpan[]
+  /** The https page the hours come from. */
+  openSource?: string
+  /** Whether the hours are the testing service's, or the place's general office hours. */
+  openKind?: 'service' | 'office'
   /** Other ways to reach the place, only as its public list gives them (2026-11-18 design, decision 1). */
   email?: string
   website?: string

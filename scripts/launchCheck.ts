@@ -2,7 +2,7 @@ import { SOURCE_HOSTS } from '../src/copy/clinical.ts'
 
 /** What the launch check reads: the deploy's settings, every care point that ships, and the clinical register. */
 export interface LaunchData {
-  carePoints: { id: string; verified: unknown; source?: unknown; fetched?: unknown; pep?: unknown; phoneSource?: unknown }[]
+  carePoints: { id: string; verified: unknown; source?: unknown; fetched?: unknown; pep?: unknown; phoneSource?: unknown; phoneConfirmed?: unknown; open?: unknown; openSource?: unknown }[]
   clinical: { id: string; source?: { url?: unknown } }[]
 }
 const DAY = /^\d{4}-\d{2}-\d{2}$/
@@ -18,6 +18,11 @@ function carePointReasons(p: LaunchData['carePoints'][number]): string[] {
   if (typeof p.source !== 'string' || !p.source.startsWith('https://')) reasons.push(`care point ${p.id} needs an https source`)
   if (typeof p.fetched !== 'string' || !DAY.test(p.fetched)) reasons.push(`care point ${p.id} needs the day its data was copied (fetched, YYYY-MM-DD)`)
   if (p.phoneSource !== undefined && (typeof p.phoneSource !== 'string' || !p.phoneSource.startsWith('https://'))) reasons.push(`care point ${p.id} has a phone number whose page is not an https link (phoneSource)`)
+  if (p.phoneConfirmed !== undefined) {
+    const c = (typeof p.phoneConfirmed === 'object' && p.phoneConfirmed !== null ? p.phoneConfirmed : {}) as { date?: unknown; by?: unknown }
+    if (!(typeof c.date === 'string' && DAY.test(c.date) && typeof c.by === 'string' && c.by.trim() !== '')) reasons.push(`care point ${p.id} has a phone number confirmed without saying when and by whom (phoneConfirmed)`)
+  }
+  if (p.open !== undefined && (typeof p.openSource !== 'string' || !p.openSource.startsWith('https://'))) reasons.push(`care point ${p.id} has hours without an https page they come from (openSource)`)
   if (p.verified === null || p.verified === undefined) return reasons
   const v = (typeof p.verified === 'object' ? p.verified : {}) as { date?: unknown; by?: unknown; method?: unknown }
   const whole = typeof v.date === 'string' && DAY.test(v.date) && typeof v.by === 'string' && v.by.trim() !== '' && METHODS.includes(v.method)

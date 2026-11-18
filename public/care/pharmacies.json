@@ -23,13 +23,13 @@
     "lat": 13.7877325,
     "lon": 100.6778484,
     "address": "",
-    "phone": "023799722",
-    "phoneSource": "https://www.fascino.co.th/branchs/1005349",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/10296207964",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "023799722",
+    "phoneSource": "https://www.fascino.co.th/branchs/1005349"
   },
   {
     "id": "osm-node-10297904769",
@@ -55,13 +55,13 @@
     "lat": 13.6743728,
     "lon": 100.545625,
     "address": "",
-    "phone": "026826422",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.6743728&longitude=100.545625&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/10300758612",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "026826422",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.6743728&longitude=100.545625&filter_type=1&page=1"
   },
   {
     "id": "osm-node-10572161875",
@@ -72,13 +72,13 @@
     "lat": 13.7392061,
     "lon": 100.5528818,
     "address": "Sukhumvit 4 Alley",
-    "phone": "0918081540",
-    "phoneSource": "https://www.exta.co.th/store/",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/10572161875",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0918081540",
+    "phoneSource": "https://www.exta.co.th/store/"
   },
   {
     "id": "osm-node-10598839934",
@@ -104,13 +104,13 @@
     "lat": 13.9203576,
     "lon": 100.6803387,
     "address": "",
-    "phone": "0655162375",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_3101_TH",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/10747741583",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0655162375",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_3101_TH"
   },
   {
     "id": "osm-node-1088409394",
@@ -136,6 +136,23 @@
     "lat": 13.7295504,
     "lon": 100.5358426,
     "address": "",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "00:00",
+        "to": "24:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/11228672028",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11228672028",
@@ -167,13 +184,13 @@
     "lat": 13.8579044,
     "lon": 100.6452965,
     "address": "",
-    "phone": "021368016",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8579044&longitude=100.6452965&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11269092098",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "021368016",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8579044&longitude=100.6452965&filter_type=1&page=1"
   },
   {
     "id": "osm-node-11272504405",
@@ -229,13 +246,13 @@
     "lat": 13.6975325,
     "lon": 100.5376965,
     "address": "",
-    "phone": "0922463212",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_212_TH",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11275228405",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0922463212",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_212_TH"
   },
   {
     "id": "osm-node-11275228409",
@@ -246,13 +263,13 @@
     "lat": 13.6981214,
     "lon": 100.5382061,
     "address": "",
-    "phone": "026736224",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.6981214&longitude=100.5382061&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11275228409",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "026736224",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.6981214&longitude=100.5382061&filter_type=1&page=1"
   },
   {
     "id": "osm-node-11278824679",
@@ -263,13 +280,13 @@
     "lat": 13.6964403,
     "lon": 100.5417531,
     "address": "",
-    "phone": "0922463254",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_254_TH",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11278824679",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0922463254",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_254_TH"
   },
   {
     "id": "osm-node-11280287585",
@@ -340,13 +357,36 @@
     "lat": 13.728937,
     "lon": 100.5359229,
     "address": "",
-    "phone": "0922534331",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_784_TH",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "07:00",
+        "to": "21:30"
+      },
+      {
+        "days": [
+          0,
+          6
+        ],
+        "from": "09:00",
+        "to": "21:30"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/11314501829",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11314501829",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0922534331",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_784_TH"
   },
   {
     "id": "osm-node-11323335153",
@@ -373,6 +413,29 @@
     "lon": 100.558154,
     "address": "",
     "phone": "026511791",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "08:00",
+        "to": "22:00"
+      },
+      {
+        "days": [
+          0
+        ],
+        "from": "10:00",
+        "to": "22:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/11343031298",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11343031298",
@@ -403,13 +466,13 @@
     "lat": 13.7276055,
     "lon": 100.5323608,
     "address": "",
-    "phone": "0922812554",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_554_TH",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11454989617",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0922812554",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_554_TH"
   },
   {
     "id": "osm-node-11518287796",
@@ -423,6 +486,23 @@
     "phone": "0989471944",
     "email": "bacarepharma.bkk@gmail.com",
     "facebook": "https://www.facebook.com/profile.php?id=100089220908933",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "08:30",
+        "to": "21:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/11518287796",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11518287796",
@@ -438,6 +518,23 @@
     "lat": 13.771971,
     "lon": 100.5809835,
     "address": "",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "09:00",
+        "to": "21:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/11602416037",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11602416037",
@@ -453,13 +550,13 @@
     "lat": 13.7659874,
     "lon": 100.5689965,
     "address": "",
-    "phone": "0922463468",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_604_TH",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/11613723512",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0922463468",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_604_TH"
   },
   {
     "id": "osm-node-11621185186",
@@ -500,6 +597,23 @@
     "lat": 13.668253,
     "lon": 100.4430372,
     "address": "ซอยพระรามที่ 2 ซอย 50 บางขุนเทียน",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "08:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/12162907623",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/12162907623",
@@ -560,13 +674,13 @@
     "lat": 13.7409452,
     "lon": 100.5496082,
     "address": "",
-    "phone": "0918081716",
-    "phoneSource": "https://www.exta.co.th/store/",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/12240768179",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0918081716",
+    "phoneSource": "https://www.exta.co.th/store/"
   },
   {
     "id": "osm-node-12311435974",
@@ -667,13 +781,13 @@
     "lat": 13.7303632,
     "lon": 100.5131214,
     "address": "",
-    "phone": "022365623",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7303632&longitude=100.5131214&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/12430030602",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "022365623",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7303632&longitude=100.5131214&filter_type=1&page=1"
   },
   {
     "id": "osm-node-12430047501",
@@ -759,13 +873,13 @@
     "lat": 13.8101213,
     "lon": 100.5686396,
     "address": "",
-    "phone": "025137696",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8101213&longitude=100.5686396&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/12435141506",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "025137696",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8101213&longitude=100.5686396&filter_type=1&page=1"
   },
   {
     "id": "osm-node-12435220401",
@@ -866,6 +980,23 @@
     "lat": 13.7972625,
     "lon": 100.5708318,
     "address": "",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "08:00",
+        "to": "22:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/12522386551",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/12522386551",
@@ -896,13 +1027,13 @@
     "lat": 13.724518,
     "lon": 100.5793269,
     "address": "",
-    "phone": "023815208",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.724518&longitude=100.5793269&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/12586875503",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "023815208",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.724518&longitude=100.5793269&filter_type=1&page=1"
   },
   {
     "id": "osm-node-12586888802",
@@ -988,13 +1119,13 @@
     "lat": 13.777776,
     "lon": 100.559697,
     "address": "",
-    "phone": "0632311794",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_794_TH",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/12623227839",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0632311794",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_794_TH"
   },
   {
     "id": "osm-node-12623926483",
@@ -1140,13 +1271,13 @@
     "lat": 13.7234224,
     "lon": 100.5203551,
     "address": "ถนนสีลม บางรัก",
-    "phone": "0845082307",
-    "phoneSource": "https://www.exta.co.th/store/",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/13355392241",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0845082307",
+    "phoneSource": "https://www.exta.co.th/store/"
   },
   {
     "id": "osm-node-13420385885",
@@ -1189,6 +1320,23 @@
     "address": "310/397 ถนนสรงประภา Don Mueang",
     "phone": "0939657779",
     "email": "d.saidta@gmail.com",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "11:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/13632830873",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/13632830873",
@@ -1609,13 +1757,13 @@
     "lat": 13.8283256,
     "lon": 100.5667927,
     "address": "",
-    "phone": "029301690",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8283256&longitude=100.5667927&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/2072480289",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "029301690",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8283256&longitude=100.5667927&filter_type=1&page=1"
   },
   {
     "id": "osm-node-2075894368",
@@ -1656,13 +1804,13 @@
     "lat": 13.7799797,
     "lon": 100.5453085,
     "address": "",
-    "phone": "0800708396",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7799797&longitude=100.5453085&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/2104145400",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0800708396",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7799797&longitude=100.5453085&filter_type=1&page=1"
   },
   {
     "id": "osm-node-2109124224",
@@ -1958,13 +2106,13 @@
     "lat": 13.7184983,
     "lon": 100.5962211,
     "address": "",
-    "phone": "0922463522",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_522_TH",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/3234302724",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0922463522",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_522_TH"
   },
   {
     "id": "osm-node-3256180604",
@@ -2080,13 +2228,13 @@
     "lat": 13.7214919,
     "lon": 100.5835056,
     "address": "",
-    "phone": "023821940",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7214919&longitude=100.5835056&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/3354527921",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "023821940",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7214919&longitude=100.5835056&filter_type=1&page=1"
   },
   {
     "id": "osm-node-3399377983",
@@ -2352,13 +2500,13 @@
     "lat": 13.7726643,
     "lon": 100.6101421,
     "address": "",
-    "phone": "0922463488",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_488_TH",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/4132492350",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0922463488",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_488_TH"
   },
   {
     "id": "osm-node-4132492351",
@@ -2369,13 +2517,13 @@
     "lat": 13.7726397,
     "lon": 100.6101066,
     "address": "",
-    "phone": "021085839",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7726397&longitude=100.6101066&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/4132492351",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "021085839",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7726397&longitude=100.6101066&filter_type=1&page=1"
   },
   {
     "id": "osm-node-4134821989",
@@ -2402,13 +2550,13 @@
     "lat": 13.7831871,
     "lon": 100.5464099,
     "address": "",
-    "phone": "0922463243",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_243_TH",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/4141894476",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0922463243",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_243_TH"
   },
   {
     "id": "osm-node-4221178589",
@@ -2419,13 +2567,30 @@
     "lat": 13.7129678,
     "lon": 100.6007385,
     "address": "ซอย อ่อนนุช 1/1",
-    "phone": "020636631",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7129678&longitude=100.6007385&filter_type=1&page=1",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "10:00",
+        "to": "22:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/4221178589",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/4221178589",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "020636631",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7129678&longitude=100.6007385&filter_type=1&page=1"
   },
   {
     "id": "osm-node-4253721712",
@@ -2484,6 +2649,23 @@
     "lon": 100.5975492,
     "address": "1055/77 ปรีดีพนมยงค์ 45",
     "phone": "023900433",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "10:00",
+        "to": "22:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/4405580090",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/4405580090",
@@ -2905,13 +3087,13 @@
     "lat": 13.7207109,
     "lon": 100.7273171,
     "address": "",
-    "phone": "023464450",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7207109&longitude=100.7273171&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/4589153190",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "023464450",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7207109&longitude=100.7273171&filter_type=1&page=1"
   },
   {
     "id": "osm-node-4620367396",
@@ -2937,13 +3119,13 @@
     "lat": 13.8287494,
     "lon": 100.5682482,
     "address": "",
-    "phone": "029301690",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8287494&longitude=100.5682482&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/4620844193",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "029301690",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8287494&longitude=100.5682482&filter_type=1&page=1"
   },
   {
     "id": "osm-node-4622990596",
@@ -3000,13 +3182,13 @@
     "lat": 13.7281336,
     "lon": 100.5326595,
     "address": "",
-    "phone": "026327224",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7281336&longitude=100.5326595&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/4665569197",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "026327224",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7281336&longitude=100.5326595&filter_type=1&page=1"
   },
   {
     "id": "osm-node-4672127789",
@@ -3079,6 +3261,23 @@
     "address": "322/18 ซอย รัชดาภิเษก 3",
     "phone": "0658491777",
     "website": "https://www.facebook.com/ratchadadrugstore/",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "08:00",
+        "to": "02:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/5160290950",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/5160290950",
@@ -3259,13 +3458,13 @@
     "lat": 13.7359767,
     "lon": 100.5621342,
     "address": "",
-    "phone": "0659984358",
-    "phoneSource": "https://www.blez-pharmacy-th.com/blez-shops/blez-pharmacy-asok2/",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/5569329721",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0659984358",
+    "phoneSource": "https://www.blez-pharmacy-th.com/blez-shops/blez-pharmacy-asok2/"
   },
   {
     "id": "osm-node-5887272488",
@@ -3276,13 +3475,13 @@
     "lat": 13.7660124,
     "lon": 100.5362033,
     "address": "",
-    "phone": "0863422456",
-    "phoneSource": "https://www.wongnai.com/businesses/3469103YY-ราชวิถีเภสัช-สาขาอนุสาวรีย์ชัยสมรภูมิ",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/5887272488",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0863422456",
+    "phoneSource": "https://www.wongnai.com/businesses/3469103YY-ราชวิถีเภสัช-สาขาอนุสาวรีย์ชัยสมรภูมิ"
   },
   {
     "id": "osm-node-5917504310",
@@ -3369,6 +3568,29 @@
     "lon": 100.5688743,
     "address": "613 ถนนสุขุมวิท",
     "phone": "022588845",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "08:00",
+        "to": "21:00"
+      },
+      {
+        "days": [
+          0
+        ],
+        "from": "14:00",
+        "to": "21:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/6170543086",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/6170543086",
@@ -3549,13 +3771,13 @@
     "lat": 13.7451933,
     "lon": 100.5355462,
     "address": "",
-    "phone": "022525101",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7451933&longitude=100.5355462&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/6287470185",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "022525101",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7451933&longitude=100.5355462&filter_type=1&page=1"
   },
   {
     "id": "osm-node-6312905927",
@@ -3581,13 +3803,13 @@
     "lat": 13.7619762,
     "lon": 100.5370515,
     "address": "",
-    "phone": "0922463342",
-    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_342_TH",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/6339281868",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0922463342",
+    "phoneSource": "https://www.watsons.co.th/th/store/wtcth_342_TH"
   },
   {
     "id": "osm-node-6339281872",
@@ -3598,13 +3820,13 @@
     "lat": 13.7619145,
     "lon": 100.5370022,
     "address": "",
-    "phone": "022450063",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7619145&longitude=100.5370022&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/6339281872",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "022450063",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7619145&longitude=100.5370022&filter_type=1&page=1"
   },
   {
     "id": "osm-node-6351330386",
@@ -3615,6 +3837,23 @@
     "lat": 13.7235019,
     "lon": 100.5647328,
     "address": "",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "09:00",
+        "to": "22:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/6351330386",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/6351330386",
@@ -3645,13 +3884,13 @@
     "lat": 13.9185225,
     "lon": 100.6022917,
     "address": "",
-    "phone": "025043373",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.9185225&longitude=100.6022917&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/6609503990",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "025043373",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.9185225&longitude=100.6022917&filter_type=1&page=1"
   },
   {
     "id": "osm-node-6609577387",
@@ -3769,6 +4008,23 @@
     "address": "ถนนลาดพร้าว",
     "phone": "0802224811",
     "email": "Wanthida1993@gmail.com",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "00:00",
+        "to": "24:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/node/742013119",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/742013119",
@@ -3814,13 +4070,13 @@
     "lat": 13.6573769,
     "lon": 100.624246,
     "address": "",
-    "phone": "0922254047",
-    "phoneSource": "https://shop.tsuruha-g.com/en/4035",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/node/8293950989",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0922254047",
+    "phoneSource": "https://shop.tsuruha-g.com/en/4035"
   },
   {
     "id": "osm-node-891269109",
@@ -4071,13 +4327,13 @@
     "lat": 13.7267923,
     "lon": 100.5288144,
     "address": "ถนนสีลม บางรัก",
-    "phone": "022368366",
-    "phoneSource": "https://www.fascino.co.th/branchs/1007875",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/way/1211935654",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "022368366",
+    "phoneSource": "https://www.fascino.co.th/branchs/1007875"
   },
   {
     "id": "osm-way-1214032298",
@@ -4088,13 +4344,13 @@
     "lat": 13.7301031,
     "lon": 100.5236366,
     "address": "23 ถนนนเรศ บางรัก",
-    "phone": "026316407",
-    "phoneSource": "https://www.wongnai.com/businesses/1330608GU-ชุมชนยา-ถนนนเรศ",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/way/1214032298",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "026316407",
+    "phoneSource": "https://www.wongnai.com/businesses/1330608GU-ชุมชนยา-ถนนนเรศ"
   },
   {
     "id": "osm-way-1217747173",
@@ -4210,13 +4466,13 @@
     "lat": 13.7288681,
     "lon": 100.534538,
     "address": "50/5;50/6;50/7 ถนนสีลม บางรัก",
-    "phone": "022330571",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7288681&longitude=100.534538&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/way/1226659212",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "022330571",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7288681&longitude=100.534538&filter_type=1&page=1"
   },
   {
     "id": "osm-way-1227028450",
@@ -4362,13 +4618,13 @@
     "lat": 13.7387959,
     "lon": 100.5129433,
     "address": "สัมพันธวงศ์",
-    "phone": "0818452825",
-    "phoneSource": "https://www.yellowpages.co.th/profile/Sin-Thai-Osoth-Shop-DgR3lHNZ",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/way/1241448325",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0818452825",
+    "phoneSource": "https://www.yellowpages.co.th/profile/Sin-Thai-Osoth-Shop-DgR3lHNZ"
   },
   {
     "id": "osm-way-1241448326",
@@ -4424,13 +4680,13 @@
     "lat": 13.7411123,
     "lon": 100.5529048,
     "address": "6 ซอยสุขุมวิท 4 คลองเตย",
-    "phone": "0659980379",
-    "phoneSource": "https://www.blez-pharmacy-th.com/blez-shops/blez-pharmacy-soi4-nana/",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/way/1292444752",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0659980379",
+    "phoneSource": "https://www.blez-pharmacy-th.com/blez-shops/blez-pharmacy-soi4-nana/"
   },
   {
     "id": "osm-way-1292444781",
@@ -4696,13 +4952,13 @@
     "lat": 13.7777185,
     "lon": 100.544109,
     "address": "",
-    "phone": "0803616662",
-    "phoneSource": "https://www.wongnai.com/businesses/2913543mQ-ari-pharmacy-unit-ตู้ยาอรีย์",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/way/1452541930",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "0803616662",
+    "phoneSource": "https://www.wongnai.com/businesses/2913543mQ-ari-pharmacy-unit-ตู้ยาอรีย์"
   },
   {
     "id": "osm-way-1453904443",
@@ -4758,6 +5014,23 @@
     "lat": 13.7423243,
     "lon": 100.5531743,
     "address": "",
+    "open": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "09:00",
+        "to": "00:00"
+      }
+    ],
+    "openSource": "https://www.openstreetmap.org/way/1456994188",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/way/1456994188",
@@ -4818,13 +5091,13 @@
     "lat": 13.7585658,
     "lon": 100.498264,
     "address": "ถนนข้าวสาร พระนคร",
-    "phone": "022820780",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7585658&longitude=100.498264&filter_type=1&page=1",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/way/1516368694",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "022820780",
+    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7585658&longitude=100.498264&filter_type=1&page=1"
   },
   {
     "id": "osm-way-1525146186",
@@ -4850,13 +5123,13 @@
     "lat": 13.7571123,
     "lon": 100.4829977,
     "address": "979 ถนนอรุณอมรินทร์ บางกอกน้อย",
-    "phone": "024114024",
-    "phoneSource": "https://www.fascino.co.th/branchs/1006150",
     "free": false,
     "community": false,
     "source": "https://www.openstreetmap.org/way/1548850264",
     "fetched": "2026-11-18",
-    "verified": null
+    "verified": null,
+    "phone": "024114024",
+    "phoneSource": "https://www.fascino.co.th/branchs/1006150"
   },
   {
     "id": "osm-way-1548850719",

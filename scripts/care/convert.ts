@@ -2,6 +2,7 @@
 // here is not yet confirmed: it names the list it came from and the day it was copied, and the app
 // shows it as a small dot that says to call first. Pure, so the tests can feed it small lists.
 import type { CarePointData } from '../../src/data/carePoints.ts'
+import { parseOsmHours, type OpenSpan } from '../../src/domain/hours.ts'
 import { toXY } from '../../src/map/geo.ts'
 
 /** One result of an Overpass query with `out center tags`. A way or a relation stands at its centre. */
@@ -136,6 +137,9 @@ export function pharmaciesFrom(elements: OverpassElement[], fetched: string, inB
     })
     if (twice) continue
     const phone = firstPhone(tags.phone ?? tags['contact:phone'])
+    const source = `https://www.openstreetmap.org/${element.type}/${element.id}`
+    // Hours only in the forms parseOsmHours knows; anything else stays unknown (2026-11-18 design, decision 3).
+    const open = parseOsmHours(tags.opening_hours)
     kept.push({
       id: `osm-${element.type}-${element.id}`,
       name,
@@ -147,9 +151,10 @@ export function pharmaciesFrom(elements: OverpassElement[], fetched: string, inB
       address: [tags['addr:housenumber'], tags['addr:street'], tags['addr:district']].filter(Boolean).join(' '),
       ...(phone ? { phone } : {}),
       ...contacts({ email: cleanEmail(tags.email ?? tags['contact:email']), website: cleanUrl(tags.website ?? tags['contact:website']), facebook: cleanUrl(tags['contact:facebook']), line: cleanLine(tags['contact:line']) }),
+      ...(open ? { open, openSource: source, openKind: 'office' as const } : {}),
       free: false,
       community: false,
-      source: `https://www.openstreetmap.org/${element.type}/${element.id}`,
+      source,
       fetched,
       verified: null,
     })
@@ -182,13 +187,47 @@ export function hospitalsFrom(csv: string, fetched: string, registry: CarePointD
   })
 }
 
-/** A number found by searching, with the public page that shows it (never a Google listing). */
-export type FoundPhones = Record<string, { phone: string; source: string }>
+/**
+ * A fix to one place, kept in scripts/care/overrides.json and applied at every fetch (2026-11-18 design,
+ * decision 4): a number with the page it was found on or the team's confirmation, hours with their
+ * page, a new spot, or a place that has closed. An override wins over the source's own value.
+ */
+export interface Override {
+  phone?: string
+  phoneSource?: string
+  phoneConfirmed?: { date: string; by: string }
+  open?: OpenSpan[]
+  openSource?: string
+  openKind?: 'service' | 'office'
+  lat?: number
+  lon?: number
+  closed?: boolean
+}
+export type Overrides = Record<string, Override>
 
-/** Adds the found numbers, each with its page, to the places whose own source gave none; a source's own number always wins. */
-export function addFoundPhones(points: CarePointData[], found: FoundPhones): CarePointData[] {
-  return points.map((p) => {
-    const hit = found[p.id]
-    return p.phone || !hit ? p : { ...p, phone: hit.phone, phoneSource: hit.source }
+export function applyOverrides(points: CarePointData[], overrides: Overrides): CarePointData[] {
+  return points.flatMap((p): CarePointData[] => {
+    const o = overrides[p.id]
+    if (!o) return [p]
+    if (o.closed) return []
+    const next: CarePointData = { ...p }
+    if (o.phone) {
+      // A new number takes the place of the old one and of where the old one came from.
+      next.phone = o.phone
+      delete next.phoneSource
+      delete next.phoneConfirmed
+      if (o.phoneSource) next.phoneSource = o.phoneSource
+      if (o.phoneConfirmed) next.phoneConfirmed = o.phoneConfirmed
+    }
+    if (o.open) {
+      next.open = o.open
+      if (o.openSource) next.openSource = o.openSource
+      if (o.openKind) next.openKind = o.openKind
+    }
+    if (o.lat !== undefined && o.lon !== undefined) {
+      next.lat = o.lat
+      next.lon = o.lon
+    }
+    return [next]
   })
 }

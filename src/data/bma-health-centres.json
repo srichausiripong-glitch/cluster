@@ -126,6 +126,17 @@
     "email": "saraban.hd.phc8@bangkok.go.th",
     "website": "https://webportal.bangkok.go.th/healthcenter8",
     "facebook": "https://www.facebook.com/boonrod08/",
+    "open": [
+      {
+        "days": [
+          4
+        ],
+        "from": "13:00",
+        "to": "15:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter8",
+    "openKind": "service",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
@@ -335,6 +346,28 @@
     "email": "saraban.hd.phc20@bangkok.go.th",
     "website": "https://webportal.bangkok.go.th/healthcenter20",
     "facebook": "https://www.facebook.com/share/1F9dQu7MH9/",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      },
+      {
+        "days": [
+          6
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter20/page/main/1452",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
@@ -449,6 +482,21 @@
     "email": "saraban.hd.phc28@bangkok.go.th",
     "website": "https://webportal.bangkok.go.th/healthcenter28",
     "facebook": "https://www.facebook.com/share/1L1AniqM3K/",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "16:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter28/page/sub/12025",
+    "openKind": "service",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
@@ -544,6 +592,21 @@
     "email": "saraban.hd.phc33@bangkok.go.th",
     "website": "https://webportal.bangkok.go.th/healthcenter33",
     "facebook": "https://www.facebook.com/share/1Kp457Hfj4/",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter33/page/sub/17375",
+    "openKind": "service",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
@@ -867,6 +930,21 @@
     "email": "saraban.hd.phc53@bangkok.go.th",
     "website": "https://webportal.bangkok.go.th/healthcenter53",
     "facebook": "https://www.facebook.com/share/1XNpowbrux/",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter53/page/sub/10673",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
@@ -886,6 +964,21 @@
     "email": "saraban.hd.phc54@bangkok.go.th",
     "website": "https://webportal.bangkok.go.th/healthcenter54",
     "facebook": "https://www.facebook.com/profile.php?id=61560035460404",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "16:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter54/page/sub/9243",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
@@ -924,6 +1017,21 @@
     "email": "saraban.hd.phc56@bangkok.go.th",
     "website": "https://webportal.bangkok.go.th/healthcenter56",
     "facebook": "https://www.facebook.com/share/15fVheRxUu/",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter56",
+    "openKind": "service",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
@@ -1114,6 +1222,40 @@
     "email": "saraban.hd.phc45@bangkok.go.th",
     "website": "https://webportal.bangkok.go.th/healthcenter45",
     "facebook": "https://www.facebook.com/share/1BBA2WEjZn/",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:30",
+        "to": "12:00"
+      },
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      },
+      {
+        "days": [
+          0,
+          6
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter45/page/main/2640",
+    "openKind": "office",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",
@@ -1171,6 +1313,21 @@
     "email": "saraban.hd.phc67@bangkok.go.th",
     "website": "https://webportal.bangkok.go.th/healthcenter67",
     "facebook": "https://www.facebook.com/share/18daR1ZcDk/",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter67/page/sub/12669",
+    "openKind": "service",
     "free": false,
     "community": false,
     "source": "https://data.bangkok.go.th/dataset/phc_2025",

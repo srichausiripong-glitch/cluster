@@ -6,7 +6,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import type { CarePointData } from '../../src/data/carePoints.ts'
 import { inRings, toXY } from '../../src/map/geo.ts'
-import { addFoundPhones, healthCentresFrom, hospitalsFrom, pharmaciesFrom, type FoundPhones, type OverpassElement } from './convert.ts'
+import { applyOverrides, healthCentresFrom, hospitalsFrom, pharmaciesFrom, type OverpassElement, type Overrides } from './convert.ts'
 
 const headers = { 'User-Agent': 'care-data-script/1.0' }
 const PHC_CSV = 'https://data.bangkok.go.th/dataset/b5974a39-b3c6-4448-aa27-01beb681498a/resource/1d79c024-92b8-4dcc-8f0a-ed6cd7ff96a0/download/hdplacemay1469.csv'
@@ -57,9 +57,9 @@ async function write(path: string, label: string, all: CarePointData[]) {
   console.log(`${label}: ${list.length}${list.length < all.length ? ` (${all.length - list.length} outside the 50 districts left out)` : ''}`)
 }
 
-await write('../../src/data/bma-health-centres.json', 'health centres', healthCentresFrom(await text(PHC_CSV), fetched, registry))
-await write('../../src/data/bma-hospitals.json', 'hospitals', hospitalsFrom(await text(HOS_CSV), fetched, registry))
+/** Numbers and hours found on public pages, and the team's confirmed fixes: they win over each list's own values. */
+const overrides = JSON.parse(await readFile(at('./overrides.json'), 'utf8')) as Overrides
+await write('../../src/data/bma-health-centres.json', 'health centres', applyOverrides(healthCentresFrom(await text(PHC_CSV), fetched, registry), overrides))
+await write('../../src/data/bma-hospitals.json', 'hospitals', applyOverrides(hospitalsFrom(await text(HOS_CSV), fetched, registry), overrides))
 await mkdir(at('../../public/care/'), { recursive: true })
-/** Pharmacy numbers found by searching the web, each with its page: OpenStreetMap has a number for very few. */
-const found = JSON.parse(await readFile(at('./found-phones.json'), 'utf8')) as FoundPhones
-await write('../../public/care/pharmacies.json', 'pharmacies', addFoundPhones(pharmaciesFrom(await pharmacyElements(), fetched, inBangkok), found))
+await write('../../public/care/pharmacies.json', 'pharmacies', applyOverrides(pharmaciesFrom(await pharmacyElements(), fetched, inBangkok), overrides))

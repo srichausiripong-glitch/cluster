@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
 import type { CarePointData } from '../../src/data/carePoints'
 import { launchCheck, type LaunchData } from '../launchCheck'
-import { addFoundPhones, cleanEmail, cleanLine, cleanUrl, firstPhone, healthCentresFrom, hospitalKey, hospitalsFrom, parseCsv, pharmaciesFrom, type OverpassElement } from './convert'
+import { applyOverrides, cleanEmail, cleanLine, cleanUrl, firstPhone, healthCentresFrom, hospitalKey, hospitalsFrom, parseCsv, pharmaciesFrom, type OverpassElement } from './convert'
 
 // Public lists become our own files once, at build time (redesign spec 5.8). Every point they give
 // is "not yet confirmed": it carries where it came from and the day it was copied.
@@ -100,13 +100,39 @@ it('copies a pharmacy’s website, email, Facebook and LINE from its OpenStreetM
   expect(p).toMatchObject({ website: 'https://shop.example.co.th/', email: 'a@shop.co.th', facebook: 'https://facebook.com/shop', line: '@shopa' })
 })
 // Numbers found by searching, kept in scripts/care/found-phones.json so a new fetch does not lose them (owner, 18 Nov 2026).
-it('adds a found number with the page it came from, only where the source gave none', () => {
+// Hours from OpenStreetMap, read only in the forms parseOsmHours knows (2026-11-18 design, decision 3).
+it('keeps a pharmacy\'s hours only when its tag can be read, with its page', () => {
+  const [known, unknown] = pharmaciesFrom(
+    [
+      { type: 'node', id: 7, lat: 13.75, lon: 100.5, tags: { amenity: 'pharmacy', name: 'ก', opening_hours: 'Mo-Fr 08:00-20:00' } },
+      { type: 'node', id: 8, lat: 13.76, lon: 100.51, tags: { amenity: 'pharmacy', name: 'ข', opening_hours: 'sunrise-sunset' } },
+    ],
+    '2026-11-18',
+    () => true,
+  )
+  expect(known).toMatchObject({ open: [{ days: [1, 2, 3, 4, 5], from: '08:00', to: '20:00' }], openSource: 'https://www.openstreetmap.org/node/7', openKind: 'office' })
+  expect(unknown.open).toBeUndefined()
+  expect(unknown.openSource).toBeUndefined()
+})
+// One overrides file for the team's fixes and the pages found by searching (2026-11-18 design, decision 4).
+it('applies an override over the source: a confirmed number replaces a wrong one, a closed place is dropped, a moved one moves', () => {
   const base = { kind: 'pharmacy', layer: 'pharmacy', klass: 'B', lat: 13.7, lon: 100.5, address: '', free: false, community: false, source: 'https://www.openstreetmap.org/node/1', fetched: '2026-11-18', verified: null } as const
-  const points = [{ ...base, id: 'a', name: 'ก' }, { ...base, id: 'b', name: 'ข', phone: '021111111' }, { ...base, id: 'c', name: 'ค' }]
-  const found = { a: { phone: '026316407', source: 'https://www.wongnai.com/businesses/x' }, b: { phone: '029999999', source: 'https://example.org/b' }, z: { phone: '020000000', source: 'https://example.org/z' } }
-  const out = addFoundPhones(points, found)
-  expect(out[0]).toMatchObject({ phone: '026316407', phoneSource: 'https://www.wongnai.com/businesses/x' })
-  expect(out[1].phone).toBe('021111111')
-  expect(out[1].phoneSource).toBeUndefined()
-  expect(out[2].phone).toBeUndefined()
+  const points = [
+    { ...base, id: 'a', name: 'ก', phone: '021111111', phoneSource: 'https://example.org/old' },
+    { ...base, id: 'b', name: 'ข' },
+    { ...base, id: 'c', name: 'ค' },
+    { ...base, id: 'd', name: 'ง' },
+  ]
+  const out = applyOverrides(points, {
+    a: { phone: '029999999', phoneConfirmed: { date: '2026-11-20', by: 'ทีม' } },
+    b: { closed: true },
+    c: { lat: 13.8, lon: 100.6, open: [{ days: [1], from: '08:00', to: '12:00' }], openSource: 'https://example.go.th/hours', openKind: 'service' },
+    d: { phone: '026316407', phoneSource: 'https://www.wongnai.com/businesses/x' },
+    z: { phone: '020000000', phoneSource: 'https://example.org/z' },
+  })
+  expect(out.map((p) => p.id)).toEqual(['a', 'c', 'd'])
+  expect(out[0]).toMatchObject({ phone: '029999999', phoneConfirmed: { date: '2026-11-20', by: 'ทีม' } })
+  expect(out[0].phoneSource).toBeUndefined()
+  expect(out[1]).toMatchObject({ lat: 13.8, lon: 100.6, openSource: 'https://example.go.th/hours', openKind: 'service' })
+  expect(out[2]).toMatchObject({ phone: '026316407', phoneSource: 'https://www.wongnai.com/businesses/x' })
 })
