@@ -77,6 +77,9 @@ it('writes only points the launch check accepts', () => {
 // ---- contacts (2026-11-18 design, decision 1) -------------------------------------------------------
 it('cleans the contact links the lists give, and drops what is not one', () => {
   expect(cleanUrl('https://www.facebook.com/p/ศูนย์-3-61560131507957/?_rdr')).toBe('https://www.facebook.com/p/ศูนย์-3-61560131507957/')
+  // A query that names the page stays; only tracking goes (final review, Important 1).
+  expect(cleanUrl('https://www.facebook.com/profile.php?id=100064218376021&ref=embed_page&mibextid=ZbWKwL&fbclid=x&locale=th_TH')).toBe('https://www.facebook.com/profile.php?id=100064218376021')
+  expect(cleanUrl('https://example.go.th/page?utm_source=fb&lang=th#top')).toBe('https://example.go.th/page?lang=th')
   expect(cleanUrl('www.lkbhosp.go.th/')).toBe('https://www.lkbhosp.go.th/')
   expect(cleanUrl('http://www.klanghospital.go.th/')).toBe('http://www.klanghospital.go.th/')
   for (const bad of ['-', 'ไม่มี', '', 'javascript:alert(1)', undefined]) expect(cleanUrl(bad), String(bad)).toBeUndefined()

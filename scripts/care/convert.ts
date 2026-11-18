@@ -70,14 +70,17 @@ export function firstPhone(raw: string | undefined): string | undefined {
   return digits.length >= whole ? digits.slice(0, whole) : undefined
 }
 
-/** A contact link as browsers take it: a missing scheme becomes https, query and fragment go, and anything not http(s) is dropped. */
+/** Query parameters that only track where a click came from, or set the page's language; any other parameter may name the page (Facebook's profile.php?id=…) and stays. */
+const TRACKING = /^(utm_.*|fbclid|gclid|mibextid|ref|_rdr|refsrc|__tn__|__cft__.*|locale)$/i
+
+/** A contact link as browsers take it: a missing scheme becomes https, tracking and the fragment go, and anything not http(s) is dropped. */
 export function cleanUrl(raw: string | undefined): string | undefined {
   const text = raw?.trim()
   if (!text || !/[.]/.test(text)) return undefined
   try {
     const url = new URL(/^[a-z][a-z0-9+.-]*:/i.test(text) ? text : `https://${text}`)
     if (url.protocol !== 'https:' && url.protocol !== 'http:') return undefined
-    url.search = ''
+    for (const key of [...url.searchParams.keys()]) if (TRACKING.test(key)) url.searchParams.delete(key)
     url.hash = ''
     return decodeURI(url.toString())
   } catch {
