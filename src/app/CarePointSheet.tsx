@@ -90,15 +90,19 @@ function HoursRow({ point }: { point: CarePoint }) {
 
 /** Where a number found on another page came from, so a person can check it (owner, 18 Nov 2026). */
 function PhoneFrom({ point }: { point: CarePoint }) {
-  if (!point.phone || !point.phoneSource) return null
+  if (!point.phone || (!point.phoneSource && !point.phoneConfirmed)) return null
   return (
     <Row
       label={th.care.phoneFrom}
       value={
-        <a href={point.phoneSource} target="_blank" rel="noreferrer" className={`inline-flex min-h-11 items-center gap-1.5 break-all ${TEXT_LINK}`}>
-          {host(point.phoneSource)}
-          <ExternalLink size={16} strokeWidth={2} className="shrink-0" aria-hidden="true" />
-        </a>
+        point.phoneSource ? (
+          <a href={point.phoneSource} target="_blank" rel="noreferrer" className={`inline-flex min-h-11 items-center gap-1.5 break-all ${TEXT_LINK}`}>
+            {host(point.phoneSource)}
+            <ExternalLink size={16} strokeWidth={2} className="shrink-0" aria-hidden="true" />
+          </a>
+        ) : (
+          th.care.phoneConfirmed.replace('{date}', formatThaiDate(new Date(point.phoneConfirmed!.date)))
+        )
       }
     />
   )

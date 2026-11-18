@@ -10,7 +10,10 @@ export function hoursLine(open: OpenSpan[] | undefined, now: Date = new Date()):
   if (!status) return null
   if (status.open) return status.closes ? th.hours.open.replace('{time}', status.closes) : th.hours.allDay
   if (!status.opens) return th.hours.closed
-  const today = new Date(now.getTime() + 7 * 3600_000).getUTCDay()
-  const day = status.opens.day === today ? th.hours.today : th.hours.days[status.opens.day]
+  // "วันนี้" only for an opening later today; the same weekday an hour ago is a week away.
+  const local = new Date(now.getTime() + 7 * 3600_000)
+  const clock = `${String(local.getUTCHours()).padStart(2, '0')}:${String(local.getUTCMinutes()).padStart(2, '0')}`
+  const later = status.opens.day === local.getUTCDay() && status.opens.at > clock
+  const day = later ? th.hours.today : th.hours.days[status.opens.day]
   return `${th.hours.closed} · ${th.hours.opens.replace('{day}', day).replace('{time}', status.opens.at)}`
 }

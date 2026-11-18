@@ -15,8 +15,10 @@ export interface OpenSpan {
 export type OpenStatus = { open: true; closes: string | null } | { open: false; opens: { day: number; at: string } | null }
 
 const DAY_CODES: Record<string, number> = { Su: 0, Mo: 1, Tu: 2, We: 3, Th: 4, Fr: 5, Sa: 6 }
-const DAY = '(?:Mo|Tu|We|Th|Fr|Sa|Su|PH)'
-const DAYS = new RegExp(`^${DAY}(?:-${DAY})?(?:,${DAY}(?:-${DAY})?)*$`)
+const DAY = '(?:Mo|Tu|We|Th|Fr|Sa|Su)'
+/** A day, a range of days, or "PH" alone: a public holiday is never the end of a range. */
+const SELECTOR = `(?:${DAY}(?:-${DAY})?|PH)`
+const DAYS = new RegExp(`^${SELECTOR}(?:,${SELECTOR})*$`)
 const TIME = /^([01]\d|2[0-4]):([0-5]\d)-([01]\d|2[0-4]):([0-5]\d)$/
 
 /** Days named by one OpenStreetMap day selector, e.g. "Mo-Fr,Su"; "PH" adds none. */
@@ -38,20 +40,27 @@ function daysOf(selector: string): number[] {
 /**
  * The common forms of an OpenStreetMap `opening_hours` tag: "24/7", rules split by ";" or ", ", each
  * "<days> <HH:MM-HH:MM>[,<HH:MM-HH:MM>]" or "<days> off". Anything else is null: unknown, never a guess.
+ * As OpenStreetMap reads them, a rule after ";" replaces the hours of the days it names, and a rule
+ * after ", " adds to them.
  */
 export function parseOsmHours(tag: string | undefined): OpenSpan[] | null {
   const text = tag?.trim()
   if (!text) return null
   if (text === '24/7') return [{ days: [0, 1, 2, 3, 4, 5, 6], from: '00:00', to: '24:00' }]
   let spans: OpenSpan[] = []
-  for (const rule of text.split(/;\s*|,\s+(?=[A-Z][a-z])/)) {
-    const [selector, times, ...rest] = rule.trim().split(/\s+/)
+  const without = (days: number[]) => spans.map((s) => ({ ...s, days: s.days.filter((d) => !days.includes(d)) })).filter((s) => s.days.length)
+  // Split keeping the separators: odd parts are "; " or ", ".
+  const parts = text.split(/(;\s*|,\s+(?=[A-Z][a-z]))/)
+  for (let i = 0; i < parts.length; i += 2) {
+    const adds = i > 0 && parts[i - 1].startsWith(',')
+    const [selector, times, ...rest] = parts[i].trim().split(/\s+/)
     if (rest.length || !selector || !times || !DAYS.test(selector)) return null
     const days = daysOf(selector)
     if (times === 'off') {
-      spans = spans.map((s) => ({ ...s, days: s.days.filter((d) => !days.includes(d)) })).filter((s) => s.days.length)
+      spans = without(days)
       continue
     }
+    if (!adds) spans = without(days)
     if (!days.length) continue // a rule for public holidays alone
     for (const range of times.split(',')) {
       const m = TIME.exec(range)

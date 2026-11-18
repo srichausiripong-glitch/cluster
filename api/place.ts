@@ -1,4 +1,4 @@
-import { PHONE_KINDS, PLACE_ID, PLACE_KINDS, thaiPhone, type PlaceKind } from '../src/app/placeReport.js'
+import { isPlaceId, PHONE_KINDS, PLACE_KINDS, thaiPhone, type PlaceKind } from '../src/app/placeReport.js'
 import { clientIp, getDb } from '../server/env.js'
 import { hiddenGroup, weekKey } from '../server/keys.js'
 import { serverWeek } from '../server/week.js'
@@ -20,7 +20,7 @@ export async function POST(request: Request): Promise<Response> {
   }
   if (!body || typeof body !== 'object' || Object.keys(body).some((k) => !['place', 'kind', 'phone'].includes(k))) return new Response(null, { status: 400 })
   const { place, kind } = body
-  if (typeof place !== 'string' || !PLACE_ID.test(place)) return new Response(null, { status: 400 })
+  if (!isPlaceId(place)) return new Response(null, { status: 400 })
   if (!(PLACE_KINDS as readonly unknown[]).includes(kind)) return new Response(null, { status: 400 })
   const takesPhone = PHONE_KINDS.includes(kind as PlaceKind)
   const phone = takesPhone ? thaiPhone(body.phone) : null

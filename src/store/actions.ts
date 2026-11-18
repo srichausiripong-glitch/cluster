@@ -2,7 +2,7 @@ import { syncNextTest, unfollow } from '../push/follow'
 import type { DiseaseGroup, MapLayer, PendingReport, PublishedFile, TestingLevel } from '../domain/types'
 import { DISTRICT_IDS } from '../domain/districts'
 import { takingNow } from '../envelope/send'
-import { bangkokDay, isoWeek, shiftWeek, weekIndex } from '../domain/weeks'
+import { isoWeek, shiftWeek, weekIndex } from '../domain/weeks'
 import type { PhoneState, SignalCard } from './stores'
 import { phone } from './stores'
 
@@ -109,11 +109,10 @@ export function cancelPending(): 'cancelled' | 'sending' | 'none' {
 /** Queues a "tested" report for the district and remembers the district for the next check-in. */
 export function checkIn(district: string): void {
   queueReport({ kind: 'tested', zone: district, savedAt: new Date().toISOString() })
-  // A test made after the reminder's day answers it; one made before keeps the day.
-  const before = phone.get().nextTest ?? null
-  const after = before && before <= bangkokDay() ? null : before
-  phone.update((s) => ({ ...s, myDistrict: district, nextTest: after, nextTestDeclined: null, counted: null }))
-  if (after !== before) void syncNextTest(null)
+  // A new test answers any reminder kept: the card offers to set the next one (2026-11-18 design, decision 1).
+  const had = phone.get().nextTest ?? null
+  phone.update((s) => ({ ...s, myDistrict: district, nextTest: null, nextTestDeclined: null, counted: null }))
+  if (had) void syncNextTest(null)
 }
 
 /** Remembers the district this phone reports for, without sending anything. Only one of the 50. */
@@ -165,9 +164,15 @@ export function dropStaleAreas(): void {
  */
 export function clearPassedWaits(): void {
   const week = currentWeek()
-  phone.update((s) => ({
-    ...s,
-    testedNextWeek: s.testedNextWeek !== null && s.testedNextWeek <= week ? null : s.testedNextWeek,
-    symptomsNextWeek: s.symptomsNextWeek != null && s.symptomsNextWeek <= week ? null : (s.symptomsNextWeek ?? null),
-  }))
+  phone.update((s) => {
+    const passed = s.testedNextWeek !== null && s.testedNextWeek <= week
+    return {
+      ...s,
+      testedNextWeek: passed ? null : s.testedNextWeek,
+      symptomsNextWeek: s.symptomsNextWeek != null && s.symptomsNextWeek <= week ? null : (s.symptomsNextWeek ?? null),
+      // A "ไม่ต้อง" belongs to its wait, and the sent note to its two weeks: neither stays as a sign of a past report.
+      nextTestDeclined: passed ? null : (s.nextTestDeclined ?? null),
+      counted: s.counted && weekIndex(s.counted.week, week) > 2 ? null : (s.counted ?? null),
+    }
+  })
 }

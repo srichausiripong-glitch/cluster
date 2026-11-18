@@ -136,3 +136,8 @@ it('applies an override over the source: a confirmed number replaces a wrong one
   expect(out[1]).toMatchObject({ lat: 13.8, lon: 100.6, openSource: 'https://example.go.th/hours', openKind: 'service' })
   expect(out[2]).toMatchObject({ phone: '026316407', phoneSource: 'https://www.wongnai.com/businesses/x' })
 })
+it('knows every registry place by id, so a correction to it is taken', async () => {
+  const { REGISTRY_IDS } = await import('../../src/app/placeReport')
+  const registry = (await import('../../src/data/care-points.json')).default as { id: string }[]
+  expect([...REGISTRY_IDS].sort()).toEqual(registry.map((p) => p.id).sort())
+})

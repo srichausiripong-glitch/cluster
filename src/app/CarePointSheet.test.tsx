@@ -174,3 +174,14 @@ it('sends a correction from a place\'s sheet: a fixed kind, a number only when a
   expect(await sheet.findByText(th.placeReport.thanks)).toBeInTheDocument()
   vi.unstubAllGlobals()
 })
+it('says a number was confirmed by the team, with the day, when no page backs it', () => {
+  const point = withDistrict({ ...FIXTURE_UNVERIFIED[1], phone: '021234567', phoneConfirmed: { date: '2026-11-20', by: 'ทีม' } })
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={point} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  const sheet = within(screen.getByRole('dialog'))
+  expect(sheet.getByText(th.care.phoneFrom)).toBeInTheDocument()
+  expect(sheet.getByText(th.care.phoneConfirmed.replace('{date}', formatThaiDate(new Date('2026-11-20'))))).toBeInTheDocument()
+})

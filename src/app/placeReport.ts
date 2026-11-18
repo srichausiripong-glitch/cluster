@@ -6,8 +6,21 @@ export const PLACE_KINDS = ['closed', 'moved', 'hours', 'wrong_phone', 'add_phon
 export type PlaceKind = (typeof PLACE_KINDS)[number]
 /** The kinds that carry a number: the place's own, which the team calls before using it. */
 export const PHONE_KINDS: readonly PlaceKind[] = ['wrong_phone', 'add_phone']
-/** A place id as the lists write them: registry slugs, bma-…, osm-node-… */
-export const PLACE_ID = /^[a-z0-9-]{3,64}$/
+/** The registry's hand-kept places (src/data/care-points.json); a test keeps the two in step. */
+export const REGISTRY_IDS: readonly string[] = [
+  'trc-anonymous-clinic', 'ihri-pribta-clinic', 'ihri-tangerine-clinic', 'silom-community-clinic-tropmed', 'siriraj-std-hiv-clinic',
+  'swing-silom', 'swing-saphan-khwai', 'swing-phetkasem', 'rsat-ramkhamhaeng', 'bma-hc23-siphraya', 'bma-hc3-bangsue',
+  'bma-hc9-prachathipatai', 'bma-hc25-huaikhwang', 'bma-hc43-minburi', 'bma-hc61-saimai', 'bma-klang-hospital', 'bma-taksin-hospital',
+  'bma-charoenkrung-hospital', 'bma-luangphothawisak-hospital', 'bma-vejakarunrasmi-hospital', 'bma-latkrabang-hospital',
+  'bma-ratchaphiphat-hospital', 'bma-sirindhorn-hospital',
+]
+/** The fetched lists' ids: OpenStreetMap's and the BMA's, numbers only. */
+const FETCHED_ID = /^(?:osm-(?:node|way|relation)-\d{1,12}|bma-(?:phc|hos)-\d{1,8})$/
+
+/** Only an id one of the place lists uses: no text can ride in it (final review). */
+export function isPlaceId(id: unknown): id is string {
+  return typeof id === 'string' && (FETCHED_ID.test(id) || REGISTRY_IDS.includes(id))
+}
 
 /** A Thai number as digits: 9 from 0 for a fixed line, 10 from 06/08/09 for a mobile; anything else is null. */
 export function thaiPhone(raw: unknown): string | null {

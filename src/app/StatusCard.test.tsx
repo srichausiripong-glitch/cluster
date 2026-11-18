@@ -7,7 +7,7 @@ import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
 import { mondayDate, shiftWeek } from '../domain/weeks'
 import { setPublishedForTest } from '../map/published'
-import { cancelPending, checkIn, currentWeek, forgetMyDistrict, queueReport, wipePhone } from '../store/actions'
+import { cancelPending, checkIn, clearPassedWaits, currentWeek, forgetMyDistrict, queueReport, wipePhone } from '../store/actions'
 import { phone } from '../store/stores'
 
 // The home screen asks for a status on a card over the map (redesign spec 5.1): ✅ ไม่เจอ goes in one
@@ -289,4 +289,20 @@ it('forgets the note with the district, and at the next check-in', () => {
   phone.update((s) => ({ ...s, counted: { week: W, zone: 'bang_rak' } }))
   checkIn('bang_rak')
   expect(phone.get().counted ?? null).toBeNull()
+})
+// Final review: nothing about a past report stays on the phone longer than it is needed.
+it('forgets the sent note and a "ไม่ต้อง" once their weeks have passed', () => {
+  phone.update((s) => ({ ...s, counted: { week: shiftWeek(currentWeek(), -3), zone: 'bang_rak' }, testedNextWeek: shiftWeek(currentWeek(), -1), nextTestDeclined: shiftWeek(currentWeek(), -1) }))
+  clearPassedWaits()
+  expect(phone.get().counted ?? null).toBeNull()
+  expect(phone.get().nextTestDeclined ?? null).toBeNull()
+  phone.update((s) => ({ ...s, counted: { week: shiftWeek(currentWeek(), -1), zone: 'bang_rak' } }))
+  clearPassedWaits()
+  expect(phone.get().counted).toEqual({ week: shiftWeek(currentWeek(), -1), zone: 'bang_rak' })
+  expect(th.privacy.phone).toContain('สัปดาห์และเขตของรายงาน "ไม่เจอ" ครั้งล่าสุด')
+})
+it('clears the reminder date at any new check-in, and offers it again', () => {
+  phone.update((s) => ({ ...s, nextTest: '2999-01-01' }))
+  checkIn('bang_rak')
+  expect(phone.get().nextTest ?? null).toBeNull()
 })

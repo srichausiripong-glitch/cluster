@@ -111,3 +111,7 @@ it('counts at most five corrections from one network in a week', async () => {
 it('refuses a place id of the wrong shape', async () => {
   for (const id of ['Bang Rak!', 'ab', 'x'.repeat(65), 42]) expect((await place(post('/api/place', { place: id, kind: 'closed' }))).status, String(id)).toBe(400)
 })
+it('takes only the ids the place lists use, so no text can ride in an id', async () => {
+  for (const id of ['osm-node-123', 'osm-way-45', 'bma-phc-13646', 'bma-hos-9', 'trc-anonymous-clinic']) expect((await place(post('/api/place', { place: id, kind: 'closed' }, `198.51.100.${id.length}`))).status, id).toBe(202)
+  for (const id of ['somchai-0812345678-hiv', 'osm-node-12a', 'bma-phc-abc']) expect((await place(post('/api/place', { place: id, kind: 'closed' }))).status, id).toBe(400)
+})
