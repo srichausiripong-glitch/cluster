@@ -101,3 +101,8 @@ it('says on the privacy page what following a district keeps, where, and that th
   expect(th.privacy.vercelLogs).toContain('ติดตามเขต')
   expect(th.privacy.leaves.at(-1)).toContain(th.care.directions)
 })
+
+it('says on the privacy page that contact links and guidance sources open their sites only when pressed', () => {
+  expect(th.privacy.leaves.some((line) => line.includes('Google Maps') && line.includes('ที่มาของคำแนะนำ'))).toBe(true)
+  expect(th.privacy.leaves.at(-1)).toContain(th.care.directions)
+})

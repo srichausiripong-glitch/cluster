@@ -19,6 +19,35 @@ function Row({ label, value }: { label: string; value: ReactNode }) {
   )
 }
 
+/** How else to reach a place, as its public list gives it (2026-11-18 design, decision 1). Nothing when it has none. */
+function ContactRow({ point }: { point: CarePoint }) {
+  const lineUrl = point.line && (point.line.startsWith('@') ? `https://line.me/R/ti/p/${point.line}` : point.line)
+  type Link = { label: string; href: string; outside: boolean }
+  const links = (
+    [
+    point.email && { label: th.care.email, href: `mailto:${point.email}`, outside: false },
+    point.website && { label: th.care.website, href: point.website, outside: true },
+    point.facebook && { label: th.care.facebook, href: point.facebook, outside: true },
+    lineUrl && { label: th.care.line, href: lineUrl, outside: true },
+    ] as (Link | '' | undefined)[]
+  ).filter((link): link is Link => Boolean(link))
+  if (links.length === 0) return null
+  return (
+    <Row
+      label={th.care.contact}
+      value={
+        <span className="flex flex-wrap gap-x-4">
+          {links.map((link) => (
+            <a key={link.label} href={link.href} {...(link.outside ? { target: '_blank', rel: 'noreferrer' } : {})} className={`inline-flex min-h-11 items-center ${TEXT_LINK}`}>
+              {link.label}
+            </a>
+          ))}
+        </span>
+      }
+    />
+  )
+}
+
 /** The name of the site a point's data came from, as a link reads it. */
 const host = (url: string) => {
   try {
@@ -55,6 +84,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
               </>
             )}
             {point.verified && <Row label={th.care.verified} value={formatThaiDate(new Date(point.verified.date))} />}
+            <ContactRow point={point} />
           </dl>
           {point.klass === 'B' && (
             <div className="mt-3 space-y-2 rounded-md border-2 border-ink bg-bg p-3">
@@ -91,16 +121,23 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
                 </a>
               }
             />
+            <ContactRow point={point} />
           </dl>
           <p className="mt-2 text-[13px] text-muted">{th.care.fetched.replace('{date}', formatThaiDate(new Date(point.fetched)))}</p>
         </>
       )}
       {/* Kept at the foot of the sheet, so a short screen still shows how to call first and the way there. */}
       <div className="sticky bottom-0 -mx-4 mt-3 flex gap-2 border-t-2 border-ink bg-surface px-4 pb-1 pt-2">
-        {point.phone && (
+        {point.phone ? (
           <a href={`tel:${point.phone}`} className={`flex-1 ${QUIET_LINK}`}>
             <Emoji name="phone" />
             {th.care.call}
+          </a>
+        ) : (
+          // No number is known: Google's listing of the place usually has one (2026-11-18 design, decision 1).
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${point.name} ${point.lat},${point.lon}`)}`} target="_blank" rel="noreferrer" className={`flex-1 ${QUIET_LINK}`}>
+            <Emoji name="search" />
+            {th.care.googleMaps}
           </a>
         )}
         <a href={`https://www.google.com/maps/dir/?api=1&destination=${point.lat},${point.lon}`} target="_blank" rel="noreferrer" className={`flex-1 ${QUIET_LINK}`}>

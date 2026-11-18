@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import { formatThaiDate } from '../copy/format'
@@ -51,4 +51,32 @@ it('keeps a verified place’s full detail, and adds the way there', () => {
   for (const words of ['ตรวจเอชไอวี · ตรวจซิฟิลิส · ถุงยางอนามัย', 'จันทร์-ศุกร์ 08:00-16:00', 'ฟรีตามสิทธิ']) expect(sheet.getByText(words)).toBeInTheDocument()
   expect(sheet.getByRole('link', { name: th.care.directions })).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=13.766536,100.538162')
   expect(sheet.queryByText(th.care.unverified)).toBeNull()
+})
+
+// ---- contacts (2026-11-18 design, decision 1) -------------------------------------------------------
+it('lists a place’s email, website, Facebook and LINE, each opening on its own', () => {
+  const point = withDistrict({ ...FIXTURE_UNVERIFIED[0], email: 'a@clinic.example.org', website: 'https://clinic.example.org/', facebook: 'https://www.facebook.com/clinic', line: '@clinic' })
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={point} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  const sheet = within(screen.getByRole('dialog'))
+  expect(sheet.getByText(th.care.contact)).toBeInTheDocument()
+  expect(sheet.getByRole('link', { name: th.care.email })).toHaveAttribute('href', 'mailto:a@clinic.example.org')
+  for (const [name, href] of [[th.care.website, 'https://clinic.example.org/'], [th.care.facebook, 'https://www.facebook.com/clinic'], [th.care.line, 'https://line.me/R/ti/p/@clinic']]) {
+    const link = sheet.getByRole('link', { name })
+    expect(link).toHaveAttribute('href', href)
+    expect(link).toHaveAttribute('target', '_blank')
+  }
+})
+it('offers the Google Maps listing in place of a call, and no empty contact row, for a place with no phone', () => {
+  const sheet = open('cu2')
+  const maps = sheet.getByRole('link', { name: th.care.googleMaps })
+  expect(maps).toHaveAttribute('href', 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('โรงพยาบาลทดสอบตัวอย่าง 13.88,100.72'))
+  expect(maps).toHaveAttribute('target', '_blank')
+  expect(sheet.queryByRole('link', { name: th.care.call })).toBeNull()
+  expect(sheet.queryByText(th.care.contact)).toBeNull()
+  cleanup()
+  expect(open('cu1').queryByRole('link', { name: th.care.googleMaps })).toBeNull()
 })
