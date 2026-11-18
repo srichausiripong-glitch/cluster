@@ -29,6 +29,8 @@ export interface CarePointData {
   fetched: string
   /** The first phone number, as digits, when the source gives one. */
   phone?: string
+  /** The public page the number was found on, when that is not `source` (owner, 18 Nov 2026: search for a number before giving up). */
+  phoneSource?: string
   /** Other ways to reach the place, only as its public list gives them (2026-11-18 design, decision 1). */
   email?: string
   website?: string

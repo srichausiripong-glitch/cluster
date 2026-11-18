@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
 import type { CarePointData } from '../../src/data/carePoints'
 import { launchCheck, type LaunchData } from '../launchCheck'
-import { cleanEmail, cleanLine, cleanUrl, firstPhone, healthCentresFrom, hospitalKey, hospitalsFrom, parseCsv, pharmaciesFrom, type OverpassElement } from './convert'
+import { addFoundPhones, cleanEmail, cleanLine, cleanUrl, firstPhone, healthCentresFrom, hospitalKey, hospitalsFrom, parseCsv, pharmaciesFrom, type OverpassElement } from './convert'
 
 // Public lists become our own files once, at build time (redesign spec 5.8). Every point they give
 // is "not yet confirmed": it carries where it came from and the day it was copied.
@@ -98,4 +98,15 @@ it('copies the email, website and Facebook page of each BMA health centre, and t
 it('copies a pharmacy’s website, email, Facebook and LINE from its OpenStreetMap tags', () => {
   const [p] = pharmaciesFrom([{ type: 'node', id: 5, lat: 13.75, lon: 100.5, tags: { amenity: 'pharmacy', name: 'ร้านยาเอ', 'contact:website': 'shop.example.co.th', email: 'a@shop.co.th', 'contact:facebook': 'https://facebook.com/shop', 'contact:line': '@shopa' } }], '2026-11-18', () => true)
   expect(p).toMatchObject({ website: 'https://shop.example.co.th/', email: 'a@shop.co.th', facebook: 'https://facebook.com/shop', line: '@shopa' })
+})
+// Numbers found by searching, kept in scripts/care/found-phones.json so a new fetch does not lose them (owner, 18 Nov 2026).
+it('adds a found number with the page it came from, only where the source gave none', () => {
+  const base = { kind: 'pharmacy', layer: 'pharmacy', klass: 'B', lat: 13.7, lon: 100.5, address: '', free: false, community: false, source: 'https://www.openstreetmap.org/node/1', fetched: '2026-11-18', verified: null } as const
+  const points = [{ ...base, id: 'a', name: 'ก' }, { ...base, id: 'b', name: 'ข', phone: '021111111' }, { ...base, id: 'c', name: 'ค' }]
+  const found = { a: { phone: '026316407', source: 'https://www.wongnai.com/businesses/x' }, b: { phone: '029999999', source: 'https://example.org/b' }, z: { phone: '020000000', source: 'https://example.org/z' } }
+  const out = addFoundPhones(points, found)
+  expect(out[0]).toMatchObject({ phone: '026316407', phoneSource: 'https://www.wongnai.com/businesses/x' })
+  expect(out[1].phone).toBe('021111111')
+  expect(out[1].phoneSource).toBeUndefined()
+  expect(out[2].phone).toBeUndefined()
 })

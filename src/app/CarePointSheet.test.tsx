@@ -5,6 +5,8 @@ import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
 import { withDistrict } from '../data/carePoints'
 import { FIXTURE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
+import { emojiUrl } from '../design/emojiUrl'
+import { CarePointRow } from './CarePointRow'
 import { CarePointSheet } from './CarePointSheet'
 
 // A place's sheet at two levels of trust (redesign spec 5.8): a place nobody has confirmed says to
@@ -79,4 +81,41 @@ it('offers the Google Maps listing in place of a call, and no empty contact row,
   expect(sheet.queryByText(th.care.contact)).toBeNull()
   cleanup()
   expect(open('cu1').queryByRole('link', { name: th.care.googleMaps })).toBeNull()
+})
+// A place with no known number never says "call first": it points to its Google Maps listing instead.
+it('tells a person to check Google Maps first, not to call, at an unverified place with no phone', () => {
+  const sheet = open('cu2')
+  expect(sheet.getByText(th.care.unverifiedMaps)).toBeInTheDocument()
+  expect(sheet.queryByText(th.care.unverified)).toBeNull()
+  expect(document.body.textContent).not.toMatch(/โทรถาม/)
+  cleanup()
+  expect(open('cu1').getByText(th.care.unverified)).toBeInTheDocument()
+})
+it('marks an unverified row with a phone only when there is a number to call', () => {
+  const row = (id: string) => {
+    cleanup()
+    const point = FIXTURE_UNVERIFIED.map(withDistrict).find((p) => p.id === id)!
+    const { container } = render(<CarePointRow point={point} />)
+    const tag = within(container).getByText(th.care.unverifiedTag)
+    return tag.querySelector('img')?.getAttribute('src')
+  }
+  expect(row('cu1')).toBe(emojiUrl('phone'))
+  expect(row('cu2')).toBe(emojiUrl('search'))
+})
+// A number found on another page than the place's own source says where it came from (owner, 18 Nov 2026).
+it('names the page a phone number was found on, when it is not the place’s own source', () => {
+  const point = withDistrict({ ...FIXTURE_UNVERIFIED[1], phone: '024197380', phoneSource: 'https://www2.si.mahidol.ac.th/department/dermatology/' })
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={point} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  const sheet = within(screen.getByRole('dialog'))
+  expect(sheet.getByText(th.care.phoneFrom)).toBeInTheDocument()
+  const link = sheet.getByRole('link', { name: 'www2.si.mahidol.ac.th' })
+  expect(link).toHaveAttribute('href', 'https://www2.si.mahidol.ac.th/department/dermatology/')
+  expect(link).toHaveAttribute('target', '_blank')
+  expect(sheet.getByRole('link', { name: th.care.call })).toHaveAttribute('href', 'tel:024197380')
+  cleanup()
+  expect(open('cu1').queryByText(th.care.phoneFrom)).toBeNull()
 })

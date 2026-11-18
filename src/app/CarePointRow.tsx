@@ -38,7 +38,7 @@ export function CarePointRow({ point, onOpen, tone = 'light' }: Props) {
         {verified && point.pep && <span className="mt-1 inline-block rounded-full border-[1.5px] border-ink bg-care-soft px-2.5 py-0.5 text-[12px] font-semibold text-ink">{th.care.pep}</span>}
         {!verified && (
           <span className="mt-1 inline-flex items-center gap-1 rounded-full border-[1.5px] border-ink bg-yellow px-2.5 py-0.5 text-[12px] font-semibold text-ink">
-            <Emoji name="phone" size={14} />
+            <Emoji name={point.phone ? 'phone' : 'search'} size={14} />
             {th.care.unverifiedTag}
           </span>
         )}

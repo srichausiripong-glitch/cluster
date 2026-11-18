@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
@@ -9,7 +9,9 @@ import { th } from '../copy/th'
 import type { PublishedArea } from '../domain/types'
 import { setCarePoints } from '../data/carePoints'
 import { resetPharmaciesForTest, setPharmacySource } from '../data/pharmacies'
+import { toXY } from '../map/geo'
 import { setPublishedForTest } from '../map/published'
+import { cityView, MAP_INSET, toScreen } from '../map/view'
 import type { MapLayer } from '../domain/types'
 import { layersOn, MAP_LAYERS, toggleLayer } from '../store/actions'
 import { phone } from '../store/stores'
@@ -22,6 +24,17 @@ const openApp = (path: string) =>
       <App />
     </MemoryRouter>,
   )
+const PHONE = { w: 390, h: 714, inset: MAP_INSET }
+/** Goes one level in at a place, as a double click there on the city map does: the city level shows no care point (owner, 18 Nov 2026). */
+const goInAt = async (point: { lat: number; lon: number }) => {
+  await waitFor(() => expect(screen.getByRole('button', { name: th.map.zoomIn })).toBeEnabled())
+  const map = document.querySelector('[data-map]') as HTMLElement
+  const [clientX, clientY] = toScreen(cityView(PHONE), PHONE, toXY(point.lat, point.lon))
+  fireEvent.click(map, { detail: 1, clientX, clientY })
+  fireEvent.click(map, { detail: 2, clientX, clientY })
+  fireEvent.doubleClick(map, { clientX, clientY })
+  await waitFor(() => expect(map).toHaveAttribute('data-level', 'district'))
+}
 const area = (areaId: string, state: PublishedArea['state'], density: PublishedArea['density'] = null, step: PublishedArea['step'] = null): PublishedArea => ({ areaId, state, density, step, testing: null, symptoms: null })
 /** What the weekly file says: the city thin and new, as twelve fresh reports would make it; the zones in every state. */
 const SHOWN = [area('bkk', 'shown', 'thin', 'new'), area('bang_rak', 'shown', 'dense', 'new'), area('ratchathewi', 'shown', 'medium', 'followup'), area('chatuchak', 'shown', 'thin', 'expiring'), area('bang_kapi', 'below_threshold'), area('bangkok_yai', 'no_data'), area('bang_khae', 'no_data')]
@@ -57,6 +70,8 @@ it('names the city by its published state, and makes every zone reachable', () =
 it('gives every marker a 44 px target and marks the selected one', async () => {
   const user = userEvent.setup()
   const { container } = openApp('/app')
+  await goInAt(CARE_POINTS[2])
+  await screen.findByRole('button', { name: CARE_POINTS[2].name })
   const hits = container.querySelectorAll('[data-hit]')
   expect(hits).toHaveLength(container.querySelectorAll('.map-pin').length)
   hits.forEach((hit) => expect(Number(hit.getAttribute('r'))).toBeGreaterThanOrEqual(22))
@@ -224,24 +239,30 @@ it('offers the six layers as switches, all on but pharmacies, and remembers a ch
   openApp('/app')
   expect(chip('pharmacy')).toHaveAttribute('aria-pressed', 'true')
 })
+// The whole city reads as its districts only; places to get tested show one level in (owner, 18 Nov 2026: too busy).
+it('shows no care point at city level, says to zoom in for them, and shows them one level in', async () => {
+  openApp('/app')
+  expect(document.querySelectorAll('.map-pin')).toHaveLength(0)
+  expect(screen.getByText(th.map.careZoom)).toBeInTheDocument()
+  await goInAt(CARE_POINTS[2])
+  expect(await screen.findByRole('button', { name: CARE_POINTS[2].name })).toBeInTheDocument()
+  expect(screen.queryByText(th.map.careZoom)).toBeNull()
+})
 it('hides the places of a care layer that is off, and pharmacies until asked', async () => {
   const user = userEvent.setup()
   openApp('/app')
+  await goInAt(CARE_POINTS[2])
   expect(screen.queryByRole('button', { name: 'ร้านยาบางแคตัวอย่าง' })).toBeNull()
-  expect(screen.getByRole('button', { name: 'โรงพยาบาลรัฐตัวอย่าง' })).toBeInTheDocument()
+  expect(await screen.findByRole('button', { name: 'โรงพยาบาลรัฐตัวอย่าง' })).toBeInTheDocument()
   await user.click(chip('hospital'))
   expect(screen.queryByRole('button', { name: 'โรงพยาบาลรัฐตัวอย่าง' })).toBeNull()
 })
-it('says on the map that pharmacies show one level in, and says so when their file cannot be read', async () => {
+it('says on the map when the pharmacy file cannot be read', async () => {
   const user = userEvent.setup()
   setPharmacySource(() => Promise.resolve(FIXTURE_PHARMACIES))
   const view = openApp('/app')
-  expect(th.map.pharmaciesZoom).toBeTruthy()
-  expect(screen.queryByText(th.map.pharmaciesZoom)).toBeNull()
   await user.click(chip('pharmacy'))
-  expect(screen.getByText(th.map.pharmaciesZoom)).toBeInTheDocument()
-  await user.click(view.container.querySelector('[data-many]') as HTMLElement)
-  await waitFor(() => expect(screen.queryByText(th.map.pharmaciesZoom)).toBeNull())
+  expect(screen.queryByText(th.care.pharmaciesFailed)).toBeNull()
   view.unmount()
   setPharmacySource(() => Promise.reject(new Error('offline')))
   resetPharmaciesForTest()
@@ -256,10 +277,9 @@ it('shows pharmacies only when 💊 is on and only below city level, each openin
   const { container } = openApp('/app')
   await user.click(chip('pharmacy'))
   await waitFor(() => expect(load).toHaveBeenCalledTimes(1))
-  // At city level no pharmacy shows, from the file or from the bundled list (cp9 stands alone).
-  expect(screen.queryByRole('button', { name: FIXTURE_PHARMACIES[0].name })).toBeNull()
-  expect(screen.queryByRole('button', { name: 'ร้านยาบางแคตัวอย่าง' })).toBeNull()
-  await user.click(container.querySelector('[data-many]') as HTMLElement)
+  // At city level no care point shows, pharmacies included.
+  expect(container.querySelectorAll('.map-pin')).toHaveLength(0)
+  await goInAt(FIXTURE_PHARMACIES[0])
   await user.click(await screen.findByRole('button', { name: FIXTURE_PHARMACIES[0].name }))
   expect(screen.getByRole('dialog', { name: FIXTURE_PHARMACIES[0].name })).toBeInTheDocument()
 })
@@ -325,6 +345,8 @@ it('explains the marks, the age of a signal and what a signal is not, behind ⓘ
   // The two levels of trust, each by its mark (redesign spec 5.8).
   expect(sheet.getByText(th.map.keyPins.verified).closest('li')?.querySelector('[data-pin-body]')).not.toBeNull()
   expect(sheet.getByText(th.map.keyPins.unverified).closest('li')?.querySelector('[data-dot]')).not.toBeNull()
+  // Most unverified places are pharmacies with no known number: the key does not promise a call.
+  expect(th.map.keyPins.unverified).toBe('ยังไม่ยืนยัน · โทรหรือดูใน Google Maps ก่อนไป')
   expect(dialog.querySelectorAll('[data-gap]')).toHaveLength(3)
   // Confirmed results shade the district whole; each shade is keyed with its dots, never by colour alone.
   expect(dialog.querySelectorAll('[data-dot-r]')).toHaveLength(0)

@@ -181,3 +181,14 @@ export function hospitalsFrom(csv: string, fetched: string, registry: CarePointD
     return [{ id: `bma-hos-${row.id_hos}`, name: row.name, kind: 'hospital', layer: 'hospital', klass: 'A', lat, lon, address: row.address ?? '', ...(phone ? { phone } : {}), ...contacts({ website: cleanUrl(row.www) }), free: false, community: false, source: HOS_SOURCE, fetched, verified: null }]
   })
 }
+
+/** A number found by searching, with the public page that shows it (never a Google listing). */
+export type FoundPhones = Record<string, { phone: string; source: string }>
+
+/** Adds the found numbers, each with its page, to the places whose own source gave none; a source's own number always wins. */
+export function addFoundPhones(points: CarePointData[], found: FoundPhones): CarePointData[] {
+  return points.map((p) => {
+    const hit = found[p.id]
+    return p.phone || !hit ? p : { ...p, phone: hit.phone, phoneSource: hit.source }
+  })
+}

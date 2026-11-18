@@ -84,3 +84,9 @@ it('takes a clinical text with a trusted source, and refuses one without', () =>
   expect(check([{ id: 'a', source: { name: 'WHO', url: 'https://www.who.int/x' } }])).toBe('')
   for (const source of [undefined, { url: 'http://www.who.int/x' }, { url: 'https://example.org/x' }]) expect(check([{ id: 'a', source }]), JSON.stringify(source)).toContain('clinical text a')
 })
+it('refuses a found phone number whose page is not https', () => {
+  const check = (phoneSource: unknown) => launchCheck(ENV, { ...DATA, carePoints: [{ ...point(false), phone: '021234567', phoneSource }] }).join('\n')
+  expect(check('https://www.wongnai.com/businesses/x')).toBe('')
+  expect(check(undefined)).toBe('')
+  for (const bad of ['http://example.org', 'example.org', 42]) expect(check(bad), String(bad)).toContain('care point p')
+})

@@ -59,9 +59,9 @@ export const th = {
     current: 'ตอนนี้',
     key: 'เครื่องหมายบนแผนที่',
     /** The two levels of trust of a care point, by its mark (redesign spec 5.8). */
-    keyPins: { verified: 'ยืนยันแล้ว', unverified: 'ยังไม่ยืนยัน · โทรถามก่อนไป' },
+    keyPins: { verified: 'ยืนยันแล้ว', unverified: 'ยังไม่ยืนยัน · โทรหรือดูใน Google Maps ก่อนไป' },
     /** Pharmacies show below city level only (redesign spec 5.8). */
-    pharmaciesZoom: 'ซูมเข้าเพื่อดูร้านยา',
+    careZoom: 'ซูมเข้าเพื่อดูจุดบริการ',
   },
   care: {
     klassA: 'หน่วยงานรัฐหรือสภากาชาด',
@@ -82,7 +82,10 @@ export const th = {
     /** On a place nobody has confirmed yet (redesign spec 5.8). */
     unverifiedTag: 'ยังไม่ยืนยัน',
     unverified: 'ยังไม่ยืนยัน · โทรถามก่อนไป',
+    /** An unverified place with no known number: its Google Maps listing usually has one, and the hours. */
+    unverifiedMaps: 'ยังไม่ยืนยัน · ดูใน Google Maps ก่อนไป',
     source: 'ที่มา',
+    phoneFrom: 'เบอร์จาก',
     fetched: 'ข้อมูลเมื่อ {date}',
     call: 'โทร',
     directions: 'นำทาง',
@@ -312,7 +315,7 @@ export const th = {
     items: [
       'แอปนี้ไม่ใช่คำวินิจฉัยหรือการรักษา ถ้ามีอาการหรือมีความเสี่ยง ให้ไปจุดบริการ',
       'รายงานเฉพาะเรื่องจริงของคุณเอง การรายงานเท็จหรือส่งซ้ำเพื่อให้เขตหนึ่งดูแย่ ทำร้ายคนในเขตนั้น',
-      'ข้อมูลจุดบริการยืนยันเป็นครั้งคราว ควรโทรถามจุดบริการก่อนไป',
+      'ข้อมูลจุดบริการยืนยันเป็นครั้งคราว ควรโทรถาม หรือดูใน Google Maps ถ้าไม่มีเบอร์ ก่อนไป',
       'ใช้ลิงก์บอกต่อเพื่อบอกเรื่องจริงเท่านั้น',
     ],
   },

@@ -57,6 +57,22 @@ const host = (url: string) => {
   }
 }
 
+/** Where a number found on another page came from, so a person can check it (owner, 18 Nov 2026). */
+function PhoneFrom({ point }: { point: CarePoint }) {
+  if (!point.phone || !point.phoneSource) return null
+  return (
+    <Row
+      label={th.care.phoneFrom}
+      value={
+        <a href={point.phoneSource} target="_blank" rel="noreferrer" className={`inline-flex min-h-11 items-center gap-1.5 break-all ${TEXT_LINK}`}>
+          {host(point.phoneSource)}
+          <ExternalLink size={16} strokeWidth={2} className="shrink-0" aria-hidden="true" />
+        </a>
+      }
+    />
+  )
+}
+
 /**
  * One care point. A confirmed place shows its full detail; a place nobody has confirmed says to
  * call first, where its data came from and when, and none of the detail it cannot vouch for
@@ -84,6 +100,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
               </>
             )}
             {point.verified && <Row label={th.care.verified} value={formatThaiDate(new Date(point.verified.date))} />}
+            <PhoneFrom point={point} />
             <ContactRow point={point} />
           </dl>
           {point.klass === 'B' && (
@@ -99,8 +116,9 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
       ) : (
         <>
           <p className={`mb-3 flex items-center gap-2 px-3 py-2 font-bold ${ALERT}`}>
-            <Emoji name="phone" />
-            {th.care.unverified}
+            {/* Never "call first" where there is no number to call (owner, 18 Nov 2026). */}
+            <Emoji name={point.phone ? 'phone' : 'search'} />
+            {point.phone ? th.care.unverified : th.care.unverifiedMaps}
           </p>
           <dl className="space-y-2 rounded-md border-2 border-ink bg-bg p-3 text-[15px]">
             <Row
@@ -121,6 +139,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
                 </a>
               }
             />
+            <PhoneFrom point={point} />
             <ContactRow point={point} />
           </dl>
           <p className="mt-2 text-[13px] text-muted">{th.care.fetched.replace('{date}', formatThaiDate(new Date(point.fetched)))}</p>

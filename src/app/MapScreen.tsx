@@ -32,11 +32,14 @@ export function MapScreen() {
   const pharmacies = usePharmacies(pharmacy)
   const atCity = seen.level === 'city'
   // The places on the map, kept between renders so the map groups them again only when they change.
-  // Pharmacies show below city level only (redesign spec 5.8), whether bundled or from their file.
+  // None at city level: the whole city reads as its districts only, and places show one level in
+  // (owner, 18 Nov 2026: the numbered groups made the city too busy). "หาที่ตรวจ" and the list still find them.
   const points = useMemo(() => {
-    const shown: Record<CareLayer, boolean> = { sti, health_centre, hospital, pharmacy: pharmacy && !atCity }
+    if (atCity) return []
+    const shown: Record<CareLayer, boolean> = { sti, health_centre, hospital, pharmacy }
     return [...CARE_POINTS, ...pharmacies.points].filter((p) => shown[p.layer])
   }, [sti, health_centre, hospital, pharmacy, atCity, pharmacies.points])
+  const anyCare = sti || health_centre || hospital || pharmacy
 
   // Opened from the weekly notification (/app#follow): the followed district's sheet, from this phone's own store (redesign spec 5.11).
   const openId = areaId ?? (location.hash === '#follow' ? (stored.follow ?? null) : null)
@@ -65,7 +68,7 @@ export function MapScreen() {
         onSelectArea={setAreaId}
         onSelectCarePoint={setPointId}
         onView={setSeen}
-        note={pharmacy ? (pharmacies.failed ? th.care.pharmaciesFailed : atCity ? th.map.pharmaciesZoom : undefined) : undefined}
+        note={pharmacy && pharmacies.failed ? th.care.pharmaciesFailed : atCity && anyCare ? th.map.careZoom : undefined}
       />
 
       <div className="absolute inset-x-0 top-3">
