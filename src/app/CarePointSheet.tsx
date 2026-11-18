@@ -127,7 +127,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
         </>
       )}
       {/* Kept at the foot of the sheet, so a short screen still shows how to call first and the way there. */}
-      <div className="sticky bottom-0 -mx-4 mt-3 flex gap-2 border-t-2 border-ink bg-surface px-4 pb-1 pt-2">
+      <div className="sticky -bottom-6 -mx-4 -mb-6 mt-3 flex gap-2 border-t-2 border-ink bg-surface px-4 pb-7 pt-2">
         {point.phone ? (
           <a href={`tel:${point.phone}`} className={`flex-1 ${QUIET_LINK}`}>
             <Emoji name="phone" />
@@ -135,7 +135,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
           </a>
         ) : (
           // No number is known: Google's listing of the place usually has one (2026-11-18 design, decision 1).
-          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${point.name} ${point.lat},${point.lon}`)}`} target="_blank" rel="noreferrer" className={`flex-1 ${QUIET_LINK}`}>
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${point.name} ${point.lat},${point.lon}`)}`} target="_blank" rel="noreferrer" className={`flex-auto whitespace-nowrap ${QUIET_LINK}`}>
             <Emoji name="search" />
             {th.care.googleMaps}
           </a>

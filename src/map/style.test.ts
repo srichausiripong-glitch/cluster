@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
-import { breath, EDGE, HATCH, PALETTE, ROADS, SAMPLE_PX, SIGNAL_SHADE, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
+import { breath, EDGE, HATCH, PALETTE, ROADS, SAMPLE_PX, SHADE_GROUND, SIGNAL_SHADE, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
 
 it('shows a higher level as a deeper shade, never an opaque one, and lighter at street level', () => {
   expect(SIGNAL_SHADE.thin).toBeLessThan(SIGNAL_SHADE.medium)
@@ -39,8 +39,9 @@ const contrast = (a: number[], b: number[]) => {
   const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x)
   return (hi + 0.05) / (lo + 0.05)
 }
-/** The violet laid over the warm ground at a strength, as the map shows it. */
-const shadeOf = (alpha: number) => rgb(PALETTE.land).map((l, i) => l * (1 - alpha) + rgb(PALETTE.signal)[i] * alpha)
+const mix = (a: number[], b: number[], t: number) => a.map((v, i) => v * (1 - t) + b[i] * t)
+/** The shade as the map shows it: the warm ground lightened with white, then the violet at a strength. */
+const shadeOf = (alpha: number) => mix(mix(rgb(PALETTE.land), rgb(PALETTE.surface), SHADE_GROUND), rgb(PALETTE.signal), alpha)
 it('marks an area below the threshold more lightly than the lightest signal', () => {
   const land = lum(rgb(PALETTE.land))
   // Slanted lines one `gap` apart along the ground are gap / √2 apart across: the share of the ground they darken.
@@ -53,6 +54,9 @@ it('keeps the three shades apart from the ground and from each other, with the i
   expect(contrast(thin, land)).toBeGreaterThanOrEqual(1.3)
   expect(contrast(medium, thin)).toBeGreaterThanOrEqual(1.3)
   expect(contrast(dense, medium)).toBeGreaterThanOrEqual(1.3)
+  // Even the lightest shade reads violet, not peach: more blue than red than green, as the violet is.
+  expect(thin[2]).toBeGreaterThan(thin[0])
+  expect(thin[0]).toBeGreaterThan(thin[1])
   // The symptoms hatch and the names are ink: at least 4.5:1 on the deepest shade.
   expect(contrast(rgb(PALETTE.ink), dense)).toBeGreaterThanOrEqual(4.5)
 })

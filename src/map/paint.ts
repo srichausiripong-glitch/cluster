@@ -5,7 +5,7 @@
 // Zones and care points are not drawn here: they are real buttons in the SVG layer above.
 import type { AreaState, DensityBand, PublishedArea } from '../domain/types'
 import { AREAS, CITY_EDGES } from './areas'
-import { breath, EDGE, HATCH, ROADS, SIGNAL_SHADE, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE, type Palette } from './style'
+import { breath, EDGE, HATCH, ROADS, SHADE_GROUND, SIGNAL_SHADE, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE, type Palette } from './style'
 import type { CityData, Label, Line, RoadClass, Shape, TileData } from './types'
 import { fromScreen, toScreen, type Box, type Size, type View } from './view'
 
@@ -258,6 +258,7 @@ export function paintSignal(ctx: Ctx, s: Scene, timeMs: number | null): void {
   for (const { rings, area } of painted(s)) {
     if (s.showSignal && area?.state === 'shown' && area.density) {
       const pulse = area.step === 'new' && timeMs !== null ? breath(timeMs, false) : 1
+      fill(ctx, s, [rings], s.palette.surface, SHADE_GROUND * street)
       fill(ctx, s, [rings], s.palette.signal, SIGNAL_SHADE[area.density] * street * pulse)
     }
     if (s.showSymptoms && area?.symptoms) symptomsHatch(ctx, s, rings, area.symptoms)

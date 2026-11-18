@@ -8,7 +8,9 @@ import type { RoadClass } from './types'
  * (2026-11-18 design, decision 4). The level is also written as dots in the district's name box,
  * so it is never told by colour alone. A test keeps the three apart and the ink readable on them.
  */
-export const SIGNAL_SHADE: Record<DensityBand, number> = { thin: 0.2, medium: 0.38, dense: 0.58 }
+export const SIGNAL_SHADE: Record<DensityBand, number> = { thin: 0.25, medium: 0.42, dense: 0.62 }
+/** How far the warm ground under a shade is lightened with white first: violet straight over the yellow ground turns peach. */
+export const SHADE_GROUND = 0.6
 /** At street level the shade is lighter, so the roads and buildings under it stay readable. */
 export const STREET_SHADE = 0.6
 /** Length of a legend line sample, in pixels. */

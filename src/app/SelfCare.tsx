@@ -202,7 +202,7 @@ export function SelfCare() {
       <Sheet open={followPicking} onClose={() => setFollowPicking(false)} title={th.follow.title} tall>
         <div className="space-y-3">
           <DistrictPicker district={followPicked} onDistrict={setFollowPicked} name="follow-district" />
-          <div className="sticky bottom-0 -mx-4 border-t-2 border-ink bg-surface px-4 pb-1 pt-2">
+          <div className="sticky -bottom-6 -mx-4 -mb-6 border-t-2 border-ink bg-surface px-4 pb-7 pt-2">
             <Button size="lg" className="w-full" disabled={!followPicked} onClick={useFollow}>
               {th.picker.use}
             </Button>
@@ -212,7 +212,7 @@ export function SelfCare() {
       <Sheet open={changing} onClose={() => setChanging(false)} title={th.tested.title} tall>
         <div className="space-y-3">
           <DistrictPicker district={picked} onDistrict={setPicked} name="my-district" />
-          <div className="sticky bottom-0 -mx-4 border-t-2 border-ink bg-surface px-4 pb-1 pt-2">
+          <div className="sticky -bottom-6 -mx-4 -mb-6 border-t-2 border-ink bg-surface px-4 pb-7 pt-2">
             <Button size="lg" className="w-full" disabled={!picked} onClick={useDistrict}>
               {th.picker.use}
             </Button>

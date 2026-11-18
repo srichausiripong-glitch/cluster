@@ -166,7 +166,7 @@ export function CareList() {
         <div className="space-y-3">
           <DistrictPicker district={chosen} onDistrict={setChosen} name="list-district" />
           {/* Kept at the foot of the sheet, so the press stays in view below a long list, as on the ✅ sheet. */}
-          <div className="sticky bottom-0 -mx-4 space-y-1 border-t-2 border-ink bg-surface px-4 pb-1 pt-1">
+          <div className="sticky -bottom-6 -mx-4 -mb-6 space-y-1 border-t-2 border-ink bg-surface px-4 pb-7 pt-1">
             <Button size="lg" className="w-full" disabled={chosen === null} onClick={() => choose(chosen)}>
               <Emoji name="pin" />
               {th.picker.use}

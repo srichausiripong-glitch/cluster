@@ -4,7 +4,7 @@ import { fakeCtx } from '../test/fakeCtx'
 import { paintGround, paintLines, paintSignal, type Scene } from './paint'
 import { AREAS } from './areas'
 import { PPM } from './geo'
-import { EDGE, PALETTE, SIGNAL_SHADE, STREET_SHADE } from './style'
+import { EDGE, PALETTE, SHADE_GROUND, SIGNAL_SHADE, STREET_SHADE } from './style'
 import type { TileData } from './types'
 import { cityView, MAP_INSET, type View } from './view'
 
@@ -21,6 +21,10 @@ it('fills a district whole at the strength of its level, and nothing for a distr
   paintSignal(f.ctx, scene([area('bang_rak', 'shown', 'dense', 'followup'), area('chatuchak', 'shown', 'thin', 'expiring'), area('pathum_wan', 'shown', 'medium', 'mixed'), area('bang_kapi', 'below_threshold'), area('bangkok_yai', 'no_data'), area('bang_khae', 'suspended')]), null)
   expect(shades(f).sort()).toEqual([SIGNAL_SHADE.thin, SIGNAL_SHADE.medium, SIGNAL_SHADE.dense])
   expect(f.calls.filter((c) => c.name === 'arc')).toHaveLength(0)
+  // Under each shade the warm ground is lightened first, so violet over yellow does not turn peach.
+  const fills = f.calls.filter((c) => c.name === 'fill').map((c) => c.at!)
+  expect(fills.filter((a) => a.fillStyle === PALETTE.surface).map((a) => a.globalAlpha)).toEqual([SHADE_GROUND, SHADE_GROUND, SHADE_GROUND])
+  fills.forEach((a, i) => a.fillStyle === PALETTE.signal && expect(fills[i - 1].fillStyle).toBe(PALETTE.surface))
 })
 it('draws no shade when the signal layer is off', () => {
   const off = fakeCtx()

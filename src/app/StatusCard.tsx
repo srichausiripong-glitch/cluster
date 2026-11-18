@@ -180,7 +180,7 @@ export function StatusCard() {
           <div className="space-y-3">
             <DistrictPicker district={chosen} onDistrict={setChosen} name="tested-district" />
             {/* Kept at the foot of the sheet, so the send press stays in view below a long list. */}
-            <div className="sticky bottom-0 -mx-4 space-y-1 border-t-2 border-ink bg-surface px-4 pb-1 pt-1">
+            <div className="sticky -bottom-6 -mx-4 -mb-6 space-y-1 border-t-2 border-ink bg-surface px-4 pb-7 pt-1">
               <SendsOnly emoji="check" kind={th.home.clear} extra={[th.report.pastOnly]} />
               <Button size="lg" className="w-full" disabled={chosen === null} onClick={sendChosen}>
                 <Emoji name="check" />

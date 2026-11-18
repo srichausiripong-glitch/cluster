@@ -28,12 +28,13 @@ export function HelpNow() {
         <p data-clinical="help.pep" className="mt-1 text-white/85">
           {clinical('help.pep').text}
         </p>
+        {/* Under the sentence it backs, before the list of places, which can be long. */}
+        <Guidance ids={['help.pep']} tone="dark" />
         <div className="mt-3 space-y-2">
           {pepPoints.map((p) => (
             <CarePointRow key={p.id} point={p} tone="dark" onOpen={() => setPointId(p.id)} />
           ))}
         </div>
-        <Guidance ids={['help.pep']} tone="dark" />
       </section>
 
       <Card>
