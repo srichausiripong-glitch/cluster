@@ -8,6 +8,8 @@ const STATE = '/follow-state'
 const TITLE = 'Cluster'
 const CHANGED = 'เขตที่คุณติดตามมีอัปเดต'
 const SAME = 'แผนที่สัปดาห์นี้อัปเดตแล้ว'
+/** The test date set on the phone has come (2026-11-18 design, decision 1). The phone set it; no server knows it. */
+const DUE = 'ถึงวันตรวจที่ตั้งไว้แล้ว'
 /** What counts as a change: the state, or any of the three rows. The age of a signal (step) never does. */
 const ROWS = ['state', 'density', 'symptoms', 'testing']
 
@@ -34,6 +36,9 @@ async function saveState(state) {
   await cache.put(STATE, new Response(JSON.stringify(state), { headers: { 'content-type': 'application/json' } }))
 }
 
+/** Today in Bangkok, YYYY-MM-DD, whatever the phone's own zone. */
+const bangkokToday = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10)
+
 const rowOf = (area) => ({ state: area.state, density: area.density ?? null, symptoms: area.symptoms ?? null, testing: area.testing ?? null })
 const differs = (seen, now) => ROWS.some((key) => seen[key] !== now[key])
 
@@ -43,8 +48,10 @@ const differs = (seen, now) => ROWS.some((key) => seen[key] !== now[key])
  */
 async function weekly() {
   let body = SAME
+  let due = false
   try {
     const state = await readState()
+    due = Boolean(state && state.nextTest && state.nextTest <= bangkokToday())
     if (state && state.district) {
       const res = await fetch('/api/published', { cache: 'no-store' })
       if (res.ok) {
@@ -53,14 +60,14 @@ async function weekly() {
         if (area) {
           const now = rowOf(area)
           if (state.seen && differs(state.seen, now)) body = CHANGED
-          await saveState({ district: state.district, seen: now })
+          await saveState(state.nextTest ? { district: state.district, seen: now, nextTest: state.nextTest } : { district: state.district, seen: now })
         }
       }
     }
   } catch {
     // the plain line
   }
-  await self.registration.showNotification(TITLE, { body, tag: 'cluster-weekly', icon: '/icon-192.png' })
+  await self.registration.showNotification(TITLE, { body: due ? DUE : body, tag: 'cluster-weekly', icon: '/icon-192.png' })
 }
 
 /**

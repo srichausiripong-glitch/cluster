@@ -1,8 +1,8 @@
-import { unfollow } from '../push/follow'
+import { syncNextTest, unfollow } from '../push/follow'
 import type { DiseaseGroup, MapLayer, PendingReport } from '../domain/types'
 import { DISTRICT_IDS } from '../domain/districts'
 import { takingNow } from '../envelope/send'
-import { isoWeek, shiftWeek } from '../domain/weeks'
+import { bangkokDay, isoWeek, shiftWeek } from '../domain/weeks'
 import type { PhoneState, SignalCard } from './stores'
 import { phone } from './stores'
 
@@ -17,8 +17,26 @@ export function saveCard(card: SignalCard): void {
   phone.update((s) => ({ ...s, card }))
 }
 
-export function addReminder(date: string): void {
-  phone.update((s) => ({ ...s, reminders: [...s.reminders, { date }] }))
+/** Sets or clears the day to be reminded to test again. A followed district's service worker learns it too. */
+export function setNextTest(date: string | null): void {
+  phone.update((s) => ({ ...s, nextTest: date }))
+  void syncNextTest(date)
+}
+
+/** "ไม่ต้อง": no reminder is offered again during this four-week wait. */
+export function declineNextTest(): void {
+  phone.update((s) => ({ ...s, nextTestDeclined: s.testedNextWeek }))
+}
+
+/**
+ * What the status card's bottom line says about the next test (decision 3): a date reached, an offer
+ * after a check-in, a date kept, or nothing. `today` is YYYY-MM-DD in Bangkok.
+ */
+export function nextTestState(s: PhoneState, today: string, week: string = currentWeek()): 'due' | 'offer' | 'set' | 'none' {
+  if (s.nextTest && s.nextTest <= today) return 'due'
+  if (s.nextTest) return 'set'
+  const waiting = s.testedNextWeek !== null && s.testedNextWeek > week
+  return waiting && s.nextTestDeclined !== s.testedNextWeek ? 'offer' : 'none'
 }
 
 /** Everything this app keeps on the phone outside the phone store: the sealed envelope waiting to go, and the week's send claim. */
@@ -73,7 +91,11 @@ export function cancelPending(): 'cancelled' | 'sending' | 'none' {
 /** Queues a "tested" report for the district and remembers the district for the next check-in. */
 export function checkIn(district: string): void {
   queueReport({ kind: 'tested', zone: district, savedAt: new Date().toISOString() })
-  phone.update((s) => ({ ...s, myDistrict: district }))
+  // A test made after the reminder's day answers it; one made before keeps the day.
+  const before = phone.get().nextTest ?? null
+  const after = before && before <= bangkokDay() ? null : before
+  phone.update((s) => ({ ...s, myDistrict: district, nextTest: after, nextTestDeclined: null }))
+  if (after !== before) void syncNextTest(null)
 }
 
 /** Remembers the district this phone reports for, without sending anything. Only one of the 50. */

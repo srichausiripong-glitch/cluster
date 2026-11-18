@@ -1,5 +1,6 @@
 import { CalendarPlus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
 import { Emoji } from '../design/Emoji'
 import { Mascot } from '../design/Logo'
@@ -8,7 +9,6 @@ import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
 import { Sheet } from '../design/primitives/Sheet'
 import { districtName } from '../domain/districts'
-import { buildIcs } from '../domain/ics'
 import { cancelPending, forgetMyDistrict, setMyDistrict, wipePhone } from '../store/actions'
 import { districtLabel } from '../domain/districts'
 import { useAreas } from '../map/published'
@@ -17,25 +17,17 @@ import { FOLLOW_NOTE } from './followNote'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 import { DistrictPicker } from './DistrictPicker'
+import { NextTestSheet } from './NextTestSheet'
 import { Go } from './Go'
 import { More } from './More'
 
 /** How long a kept card stays on the phone, per disease group, in days (spec 7.3 bands; HIV and mpox use 28). */
 const CARD_DAYS = { gono_chlam: 28, syphilis: 84, mpox: 28, hiv: 28 } as const
 
-function downloadReminder() {
-  const date = new Date(Date.now() + 90 * 86_400_000).toISOString().slice(0, 10)
-  const url = URL.createObjectURL(new Blob([buildIcs([{ date }])], { type: 'text/calendar' }))
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'reminder.ics'
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 /** 🙂 ของฉัน: what this phone keeps, to see, change, cancel or wipe (redesign spec 5.2, 5.10). */
 export function SelfCare() {
-  const { card, pending, myDistrict, follow: followed } = usePartyStore(phone)
+  const { card, pending, myDistrict, follow: followed, nextTest } = usePartyStore(phone)
+  const [remindOpen, setRemindOpen] = useState(false)
   const { byId } = useAreas()
   const [followPicking, setFollowPicking] = useState(false)
   const [followPicked, setFollowPicked] = useState<string | null>(null)
@@ -46,7 +38,7 @@ export function SelfCare() {
   const [tooLate, setTooLate] = useState(false)
   const days = card ? Math.max(0, Math.floor((Date.now() - new Date(card.sentAt).getTime()) / 86_400_000)) : 0
   const left = card ? Math.max(0, CARD_DAYS[card.group] - days) : 0
-  const empty = !card && !pending && !myDistrictName && !followed
+  const empty = !card && !pending && !myDistrictName && !followed && !nextTest
 
   // Never says a report was cancelled that this week's envelope is taking (round 2 plan, decision 10).
   const cancel = () => setTooLate(cancelPending() === 'sending')
@@ -167,14 +159,16 @@ export function SelfCare() {
       </Card>
 
       <Card>
+        {/* The same reminder the status card offers after a check-in (2026-11-18 design, decision 1). */}
         <h2 className="flex items-center gap-1.5 font-bold">
           <Emoji name="alarm" />
-          {th.me.reminder}
+          {th.nextTest.title}
         </h2>
-        <Button variant="secondary" className="mt-2" onClick={downloadReminder}>
+        <Button variant="secondary" className="mt-2" onClick={() => setRemindOpen(true)}>
           <CalendarPlus size={18} strokeWidth={2} aria-hidden="true" />
-          {th.me.reminderAdd}
+          {nextTest ? th.nextTest.set.replace('{date}', formatThaiDate(new Date(nextTest))) : th.nextTest.pick}
         </Button>
+        <NextTestSheet open={remindOpen} onClose={() => setRemindOpen(false)} />
       </Card>
 
       <Card>

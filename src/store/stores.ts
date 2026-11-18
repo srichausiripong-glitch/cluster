@@ -14,7 +14,6 @@ export interface SignalCard {
  */
 export interface PhoneState {
   card: SignalCard | null
-  reminders: { date: string }[]
   pending: PendingReport | null
   /** The first week "tested" may go to the map again: four weeks after the last one. */
   testedNextWeek: string | null
@@ -24,6 +23,10 @@ export interface PhoneState {
   sendAt: { week: string; at: number } | null
   /** The first week "symptoms" may go to the map again: four weeks after the last one. Optional so stores kept before it stay valid. */
   symptomsNextWeek?: string | null
+  /** The day the person asked to be reminded to test again, YYYY-MM-DD in Bangkok (2026-11-18 design, decision 1). Optional for older stores. */
+  nextTest?: string | null
+  /** The four-week wait (its `testedNextWeek`) in which the person said "ไม่ต้อง" to a reminder, so it is not offered again then. */
+  nextTestDeclined?: string | null
   /** The district this phone checks in for, so the next check-in is one press. Absent until the first; optional for the same reason. */
   myDistrict?: string
   /** The district this phone follows (redesign spec 5.11); the service worker reads its own copy. Never sent anywhere. */
@@ -44,9 +47,7 @@ try {
   // storage unavailable: nothing to clean up
 }
 
-type Rec = Record<string, unknown>
 const has = (value: unknown, ...keys: string[]) => keys.every((k) => k in (value as object))
-const arr = (value: unknown, key: string) => Array.isArray((value as Rec)[key])
 
-export const EMPTY_PHONE: PhoneState = { card: null, reminders: [], pending: null, testedNextWeek: null, sentWeek: null, sendAt: null }
-export const phone = createPartyStore<PhoneState>(STORE_KEYS.phone, EMPTY_PHONE, (v) => has(v, 'card', 'pending', 'testedNextWeek', 'sentWeek', 'sendAt') && arr(v, 'reminders'))
+export const EMPTY_PHONE: PhoneState = { card: null, pending: null, testedNextWeek: null, sentWeek: null, sendAt: null }
+export const phone = createPartyStore<PhoneState>(STORE_KEYS.phone, EMPTY_PHONE, (v) => has(v, 'card', 'pending', 'testedNextWeek', 'sentWeek', 'sendAt'))

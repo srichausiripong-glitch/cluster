@@ -207,3 +207,40 @@ it('forgets the remembered district from the self-care page, and with everything
 it('lists the remembered district among what the phone keeps on the privacy page', () => {
   expect(th.privacy.phone).toContain('เขตที่ใช้ครั้งล่าสุด')
 })
+
+// ---- the next-test reminder (2026-11-18 design, decision 1) ---------------------------------------
+/** A day in Bangkok, N days from now, as the reminder stores it. */
+const bangkokIn = (days: number) => new Date(Date.now() + 7 * 3600_000 + days * 86_400_000).toISOString().slice(0, 10)
+const findTest = () => screen.getByRole('link', { name: `${th.home.notTested} ${th.home.findTest}` })
+
+it('offers a next-test reminder after a check-in, and keeps it quiet after "ไม่ต้อง"', async () => {
+  const user = userEvent.setup()
+  remember('bang_rak')
+  open()
+  expect(findTest()).toBeInTheDocument()
+  await user.click(clear())
+  await user.click(screen.getByRole('button', { name: th.nextTest.offer }))
+  const sheet = screen.getByRole('dialog', { name: th.nextTest.title })
+  await user.click(within(sheet).getByRole('button', { name: th.nextTest.no }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.queryByRole('button', { name: th.nextTest.offer })).toBeNull()
+  expect(findTest()).toBeInTheDocument()
+  expect(phone.get().nextTest ?? null).toBeNull()
+})
+it('saves a reminder three months ahead and says it on the card, then says it is due on the day', async () => {
+  const user = userEvent.setup()
+  remember('bang_rak')
+  const view = open()
+  await user.click(clear())
+  await user.click(screen.getByRole('button', { name: th.nextTest.offer }))
+  const sheet = screen.getByRole('dialog', { name: th.nextTest.title })
+  await user.click(within(sheet).getByRole('button', { name: th.nextTest.in3 }))
+  expect(phone.get().nextTest).toBe(bangkokIn(91))
+  expect(within(screen.getByRole('dialog')).getByRole('button', { name: th.nextTest.calendar })).toBeInTheDocument()
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: th.nextTest.done }))
+  expect(screen.getByRole('button', { name: th.nextTest.set.replace('{date}', formatThaiDate(new Date(bangkokIn(91)))) })).toBeInTheDocument()
+  view.unmount()
+  phone.update((s) => ({ ...s, nextTest: bangkokIn(-1) }))
+  open()
+  expect(screen.getByRole('link', { name: th.nextTest.due })).toHaveAttribute('href', '/app/list?find=test')
+})

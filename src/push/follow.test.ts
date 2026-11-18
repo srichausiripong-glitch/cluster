@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi, type Mock } from 'vitest'
-import { wipePhone } from '../store/actions'
+import { setNextTest, wipePhone } from '../store/actions'
 import { phone } from '../store/stores'
 import { follow, setPushPlatformForTest, unfollow, type PushPlatform, type Seen } from './follow'
 
@@ -21,6 +21,7 @@ function platform(over: Partial<PushPlatform> = {}) {
       return sub
     }),
     save: vi.fn(async () => {}),
+    load: vi.fn(async () => ({ district: 'bang_rak', seen: SEEN })),
     ...over,
   }
   setPushPlatformForTest(p)
@@ -131,4 +132,14 @@ it('asks for permission first, while the press still counts, and sets up nothing
   expect(await follow('bang_rak', SEEN)).toBe('denied')
   expect(refused.register).not.toHaveBeenCalled()
   void p
+})
+it('keeps the test date in the service worker\'s state while following, and only then', async () => {
+  const p = platform()
+  setNextTest('2027-02-20')
+  await Promise.resolve()
+  expect(p.save).not.toHaveBeenCalled()
+  await follow('bang_rak', SEEN)
+  expect(p.save).toHaveBeenLastCalledWith({ district: 'bang_rak', seen: SEEN, nextTest: '2027-02-20' })
+  setNextTest(null)
+  await vi.waitFor(() => expect(p.save).toHaveBeenLastCalledWith({ district: 'bang_rak', seen: SEEN }))
 })

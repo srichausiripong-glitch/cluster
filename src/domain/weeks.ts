@@ -1,5 +1,10 @@
 const DAY = 86_400_000
 
+/** The calendar day in Bangkok, `plusDays` from `now`, as YYYY-MM-DD, whatever the phone's own zone. */
+export function bangkokDay(now: Date = new Date(), plusDays = 0): string {
+  return new Date(now.getTime() + 7 * 3600_000 + plusDays * DAY).toISOString().slice(0, 10)
+}
+
 /** ISO 8601 week of a date in the viewer's own calendar day, as `YYYY-Www`. */
 export function isoWeek(d: Date): string {
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))

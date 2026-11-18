@@ -6,12 +6,13 @@ import { NOTE, PRESS, QUIET_LINK, SOFT } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Sheet } from '../design/primitives/Sheet'
 import { districtName } from '../domain/districts'
-import { mondayDate } from '../domain/weeks'
+import { bangkokDay, mondayDate } from '../domain/weeks'
 import { useIntakeOpen } from '../map/published'
-import { cancelPending, checkIn, currentWeek } from '../store/actions'
+import { cancelPending, checkIn, currentWeek, nextTestState } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
 import { DistrictPicker } from './DistrictPicker'
+import { NextTestSheet } from './NextTestSheet'
 import { Go } from './Go'
 import { SendsOnly } from './SendsOnly'
 
@@ -23,6 +24,8 @@ const TOO_LATE_MS = 2500
 type Toast = { district: string; savedAt: string; late: boolean }
 
 /** On a screen under 360 px the picture goes above the words, so "เจอ / มีอาการ" stays on one line instead of breaking inside มีอาการ. */
+/** The card's last line: a way to find a place to test, or what is kept about the next test. */
+const BOTTOM_LINE = 'mt-1 flex min-h-11 items-center justify-center gap-1 text-[14px] [@media(max-height:560px)]:mt-0 [@media(max-height:560px)]:min-h-9'
 const ANSWER = `flex min-h-14 items-center justify-center gap-1.5 rounded-md border-2 border-ink bg-surface px-2 text-center font-bold leading-tight max-[359px]:flex-col max-[359px]:gap-0.5 [@media(max-height:560px)]:min-h-11 ${PRESS}`
 
 /**
@@ -31,7 +34,10 @@ const ANSWER = `flex min-h-14 items-center justify-center gap-1.5 rounded-md bor
  * first time, or when it cannot go, a sheet asks for the district or says why (5.2). 🩺 opens its flow (5.3).
  */
 export function StatusCard() {
-  const { pending, testedNextWeek, myDistrict } = usePartyStore(phone)
+  const stored = usePartyStore(phone)
+  const { pending, testedNextWeek, myDistrict } = stored
+  const reminder = nextTestState(stored, bangkokDay())
+  const [remindOpen, setRemindOpen] = useState(false)
   const intakeOpen = useIntakeOpen()
   const [open, setOpen] = useState(false)
   const [chosen, setChosen] = useState<string | null>(null)
@@ -154,11 +160,26 @@ export function StatusCard() {
             {th.home.found}
           </Go>
         </div>
-        <Go to="/app/list?find=test" className="mt-1 flex min-h-11 items-center justify-center gap-1 text-[14px] [@media(max-height:560px)]:mt-0 [@media(max-height:560px)]:min-h-9">
-          {th.home.notTested} <Emoji name="pin" size={18} /> <span className="font-bold underline underline-offset-4">{th.home.findTest}</span>
-        </Go>
+        {/* The bottom line speaks of the next test when there is something to say (2026-11-18 design, decision 1). */}
+        {reminder === 'due' ? (
+          <Go to="/app/list?find=test" className={BOTTOM_LINE}>
+            <Emoji name="alarm" size={18} /> <span className="font-bold underline underline-offset-4">{th.nextTest.due}</span>
+          </Go>
+        ) : reminder === 'offer' || reminder === 'set' ? (
+          <button type="button" onClick={() => setRemindOpen(true)} className={`w-full ${BOTTOM_LINE}`}>
+            <Emoji name="alarm" size={18} />{' '}
+            <span className="font-bold underline underline-offset-4">
+              {reminder === 'offer' ? th.nextTest.offer : th.nextTest.set.replace('{date}', formatThaiDate(new Date(stored.nextTest ?? '')))}
+            </span>
+          </button>
+        ) : (
+          <Go to="/app/list?find=test" className={BOTTOM_LINE}>
+            {th.home.notTested} <Emoji name="pin" size={18} /> <span className="font-bold underline underline-offset-4">{th.home.findTest}</span>
+          </Go>
+        )}
       </section>
 
+      <NextTestSheet open={remindOpen} onClose={() => setRemindOpen(false)} />
       <Sheet open={open} onClose={() => setOpen(false)} title={th.tested.title} tall>
         {!intakeOpen ? (
           <p className={`flex items-center gap-2 px-3 py-2 text-[14px] ${NOTE}`}>
