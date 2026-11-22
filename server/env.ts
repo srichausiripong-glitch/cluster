@@ -1,4 +1,5 @@
 import { neonDb, type Db } from './db.js'
+import { databaseUrl } from './dbUrl.js'
 
 /** The server's settings, from Vercel's environment variables. Tests lay their own over them. */
 let override: Record<string, string> | null = null
@@ -15,7 +16,7 @@ export function setDbForTest(test: Db | null): void {
 }
 export function getDb(): Db {
   if (db) return db
-  const url = env('DATABASE_URL')
+  const { url } = databaseUrl(env)
   if (!url) throw new Error('DATABASE_URL is not set')
   db = neonDb(url)
   return db
