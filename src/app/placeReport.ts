@@ -9,7 +9,7 @@ export const PHONE_KINDS: readonly PlaceKind[] = ['wrong_phone', 'add_phone']
 /** The registry's hand-kept places (src/data/care-points.json); a test keeps the two in step. */
 export const REGISTRY_IDS: readonly string[] = [
   'trc-anonymous-clinic', 'ihri-pribta-clinic', 'ihri-tangerine-clinic', 'silom-community-clinic-tropmed', 'siriraj-std-hiv-clinic',
-  'swing-silom', 'swing-saphan-khwai', 'swing-phetkasem', 'rsat-ramkhamhaeng', 'bma-hc23-siphraya', 'bma-hc3-bangsue',
+  'swing-silom', 'swing-saphan-khwai', 'swing-phetkasem', 'swing-udomsuk', 'rsat-ramkhamhaeng', 'bma-hc23-siphraya', 'bma-hc3-bangsue',
   'bma-hc9-prachathipatai', 'bma-hc25-huaikhwang', 'bma-hc43-minburi', 'bma-hc61-saimai', 'bma-klang-hospital', 'bma-taksin-hospital',
   'bma-charoenkrung-hospital', 'bma-luangphothawisak-hospital', 'bma-vejakarunrasmi-hospital', 'bma-latkrabang-hospital',
   'bma-ratchaphiphat-hospital', 'bma-sirindhorn-hospital',
