@@ -4,6 +4,7 @@ import { ALERT, NOTE } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Card } from '../design/primitives/Card'
 import { CARE_POINTS } from '../data/carePoints'
+import { usePharmacies } from '../data/pharmacies'
 import { DISTRICT_IDS, districtLabel } from '../domain/districts'
 
 interface State {
@@ -27,6 +28,9 @@ export function AdminPage() {
   const [password, setPassword] = useState('')
   const [zone, setZone] = useState<string>(DISTRICT_IDS[0])
   const [reason, setReason] = useState('')
+  // The pharmacies are a file of their own, read only when a correction is about one.
+  const pharmacies = usePharmacies((state?.places ?? []).some((r) => r.place.startsWith('osm-')))
+  const placeOf = (id: string) => CARE_POINTS.find((p) => p.id === id) ?? pharmacies.points.find((p) => p.id === id)
 
   const refresh = async () => {
     const res = await ask({ action: 'state' }).catch(() => null)
@@ -162,17 +166,29 @@ export function AdminPage() {
         <h2 className="mb-2 font-bold">{th.admin.places}</h2>
         <table className="w-full text-left text-[14px]">
           <tbody>
-            {(state.places ?? []).map((r) => (
-              <tr key={`${r.week}-${r.place}-${r.kind}-${r.value}`} className="border-b border-line last:border-0">
-                <td className="py-1">{r.week}</td>
-                <td className="py-1 break-all">{CARE_POINTS.find((p) => p.id === r.place)?.name ?? r.place}</td>
-                <td className="py-1">
-                  {th.placeReport.kinds[r.kind as keyof typeof th.placeReport.kinds] ?? r.kind}
-                  {r.value && <span className="block tabular-nums">{r.value}</span>}
-                </td>
-                <td className="py-1 text-right font-bold tabular-nums">{r.n}</td>
-              </tr>
-            ))}
+            {(state.places ?? []).map((r) => {
+              const place = placeOf(r.place)
+              return (
+                <tr key={`${r.week}-${r.place}-${r.kind}-${r.value}`} className="border-b border-line last:border-0">
+                  <td className="py-1">{r.week}</td>
+                  <td className="py-1">
+                    {/* The code stays beside the name: overrides.json is keyed by it. */}
+                    {place && (
+                      <span className="block">
+                        {place.name}
+                        {place.districtId && ` · ${zoneName(place.districtId)}`}
+                      </span>
+                    )}
+                    <span className={place ? 'block text-[12px] break-all text-muted' : 'block break-all'}>{r.place}</span>
+                  </td>
+                  <td className="py-1">
+                    {th.placeReport.kinds[r.kind as keyof typeof th.placeReport.kinds] ?? r.kind}
+                    {r.value && <span className="block tabular-nums">{r.value}</span>}
+                  </td>
+                  <td className="py-1 text-right font-bold tabular-nums">{r.n}</td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </section>
