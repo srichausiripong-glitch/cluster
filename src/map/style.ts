@@ -3,10 +3,16 @@
 import type { DensityBand } from '../domain/types'
 import type { RoadClass } from './types'
 
-/** Distance between neighbouring signal dots, in screen pixels. */
-export const DOT_GAP = 9
-/** A level is the size of the dot, never a colour (plan amendment 15.2). */
-export const DOT_R: Record<DensityBand, number> = { thin: 1.2, medium: 2.1, dense: 3.1 }
+/**
+ * A confirmed level shades its district whole: the strength of the violet over the warm ground
+ * (2026-11-18 design, decision 4). The level is also written as dots in the district's name box,
+ * so it is never told by colour alone. A test keeps the three apart and the ink readable on them.
+ */
+export const SIGNAL_SHADE: Record<DensityBand, number> = { thin: 0.25, medium: 0.42, dense: 0.62 }
+/** How far the warm ground under a shade is lightened with white first: violet straight over the yellow ground turns peach. */
+export const SHADE_GROUND = 0.6
+/** At street level the shade is lighter, so the roads and buildings under it stay readable. */
+export const STREET_SHADE = 0.6
 /** Length of a legend line sample, in pixels. */
 export const SAMPLE_PX = 60
 /** The age of a signal is carried by its edge. Widths and dashes are screen pixels. */
@@ -17,12 +23,18 @@ export const EDGE: Record<'new' | 'followup' | 'expiring' | 'mixed', { width: nu
   mixed: { width: 3, dash: [8, 4, 0.1, 4], cap: 'round' },
 }
 /** How an area without a signal is marked. All three are quieter than any signal. */
-export const QUIET = { below_threshold: 'hatch', no_data: 'none', no_partner: 'grid' } as const
+export const QUIET = { below_threshold: 'hatch', no_data: 'none', suspended: 'none' } as const
 /**
  * The slanted lines of an area below the threshold: how far apart along the ground, how wide, and
  * how opaque, in screen pixels. A test keeps them lighter on the ground than the smallest dots.
  */
 export const HATCH = { gap: 12, width: 1, alpha: 0.5 } as const
+/**
+ * Symptoms reported without a test: black lines slanting "/" (the other way from the city's violet
+ * hatch), closer together for a higher level (redesign spec 5.6, 5.7). Gaps and width are screen pixels.
+ */
+export const SYMPTOM_GAP: Record<DensityBand, number> = { thin: 14, medium: 9, dense: 6 }
+export const SYMPTOM_LINE = { width: 1.1, alpha: 0.55 } as const
 /** Per level, low class to high: class, casing width, fill width, casing opacity. Widths in screen pixels. */
 export const ROADS: Record<'district' | 'street', [RoadClass, number, number, number][]> = {
   district: [
@@ -43,7 +55,7 @@ export const ROADS: Record<'district' | 'street', [RoadClass, number, number, nu
 }
 
 /**
- * How much a dot grows and shrinks: 1 when still, else one slow cycle of about 3.3 seconds.
+ * How much a new signal's shade deepens and lightens: 1 when still, else one slow cycle of about 3.3 seconds.
  * It takes no signal level: a stronger signal never moves faster or further (plan amendment 15.5).
  */
 export function breath(timeMs: number, still: boolean): number {

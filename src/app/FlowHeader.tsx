@@ -1,11 +1,13 @@
 import { ArrowLeft, Check as Tick } from 'lucide-react'
 import { useId } from 'react'
-import { Link } from 'react-router-dom'
 import { th } from '../copy/th'
+import { Emoji } from '../design/Emoji'
+import type { EmojiName } from '../design/emojiCodes'
 import { PRESS } from '../design/look'
+import { Go } from './Go'
 
 /** Title row for a full-screen flow. `onBack` steps back inside the flow; otherwise it returns to `backTo`. */
-export function FlowHeader({ title, onBack, backTo }: { title: string; onBack?: () => void; backTo: string }) {
+export function FlowHeader({ title, emoji, onBack, backTo }: { title: string; emoji?: EmojiName; onBack?: () => void; backTo: string }) {
   const cls = 'grid size-11 shrink-0 place-items-center rounded-full text-ink hover:bg-care-soft'
   const icon = <ArrowLeft size={22} strokeWidth={2} aria-hidden="true" />
   return (
@@ -15,17 +17,20 @@ export function FlowHeader({ title, onBack, backTo }: { title: string; onBack?: 
           {icon}
         </button>
       ) : (
-        <Link to={backTo} aria-label={th.common.back} className={cls}>
+        <Go to={backTo} aria-label={th.common.back} className={cls}>
           {icon}
-        </Link>
+        </Go>
       )}
-      <h1 className="text-[20px] font-bold">{title}</h1>
+      <h1 className="flex items-center gap-2 text-[20px] font-bold">
+        {emoji && <Emoji name={emoji} size={24} />}
+        {title}
+      </h1>
     </div>
   )
 }
 
 /** A large choice row. Its name is the label; the hint is read as its description. A chosen row turns soft pink and carries a tick. */
-export function Choice({ label, hint, onClick, selected }: { label: string; hint?: string; onClick: () => void; selected?: boolean }) {
+export function Choice({ label, hint, emoji, hintEmoji, onClick, selected }: { label: string; hint?: string; emoji?: EmojiName; hintEmoji?: EmojiName; onClick: () => void; selected?: boolean }) {
   const id = useId()
   return (
     <button
@@ -36,12 +41,14 @@ export function Choice({ label, hint, onClick, selected }: { label: string; hint
       onClick={onClick}
       className={`flex min-h-16 w-full items-center gap-3 rounded-md border-2 border-ink px-4 py-2 text-left ${PRESS} ${selected ? 'bg-care-soft' : 'bg-surface hover:bg-care-soft'}`}
     >
+      {emoji && <Emoji name={emoji} size={26} />}
       <span className="flex min-w-0 flex-1 flex-col items-start justify-center">
         <span id={`${id}-label`} className="font-bold">
           {label}
         </span>
         {hint && (
-          <span id={`${id}-hint`} className="text-[13px] text-muted">
+          <span id={`${id}-hint`} className="inline-flex items-center gap-1 text-[13px] text-muted">
+            {hintEmoji && <Emoji name={hintEmoji} size={14} />}
             {hint}
           </span>
         )}

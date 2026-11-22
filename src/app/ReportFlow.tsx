@@ -1,223 +1,242 @@
-import { Ban, Check as CheckIcon, CircleAlert, Phone, Smartphone } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { formatThaiDate } from '../copy/format'
 import { th } from '../copy/th'
-import { codeKind } from '../domain/codes'
-import type { DiseaseGroup, ReportSource } from '../domain/types'
-import { ALERT, PRIMARY_LINK, QUIET_LINK, SOFT, TEXT_LINK } from '../design/look'
+import { Emoji } from '../design/Emoji'
+import type { EmojiName } from '../design/emojiCodes'
+import { Mascot } from '../design/Logo'
+import { NOTE, PRIMARY_LINK, QUIET_LINK, SOFT } from '../design/look'
 import { Button } from '../design/primitives/Button'
 import { Stepper } from '../design/primitives/Stepper'
-import { claimCodeOnPhone, consentCityCount, MAPPED_GROUPS, saveCard } from '../store/actions'
+import { districtName } from '../domain/districts'
+import { buildIcs } from '../domain/ics'
+import type { DiseaseGroup, ReportKind, ReportSource } from '../domain/types'
+import { mondayDate } from '../domain/weeks'
+import { takingNow } from '../envelope/send'
+import { useIntakeOpen } from '../map/published'
+import { currentWeek, queueReport, saveCard, setMyDistrict } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
 import { phone } from '../store/stores'
-import { useEmbedTo } from './embed'
-import { Check, Choice, FlowHeader } from './FlowHeader'
+import { DistrictPicker } from './DistrictPicker'
+import { Choice, FlowHeader } from './FlowHeader'
+import { Go } from './Go'
+import { SendsOnly } from './SendsOnly'
 
-const GROUPS: DiseaseGroup[] = ['gono_chlam', 'syphilis', 'mpox', 'hiv']
-/** Symptoms are accepted only where they mean something; a self-test only for HIV (spec 5.3). */
-const SOURCES: Record<DiseaseGroup, ReportSource[]> = {
-  mpox: ['clinic_code', 'symptoms'],
-  gono_chlam: ['clinic_code', 'symptoms'],
-  syphilis: ['clinic_code'],
-  hiv: ['clinic_code', 'hiv_self_test'],
+type Found = DiseaseGroup | 'symptoms'
+type Step = 'found' | 'source' | 'district' | 'done'
+const STEPS: Step[] = ['found', 'source', 'district', 'done']
+/** What was found, in the order asked, with its picture (redesign spec 5.3). */
+const FOUND: [Found, EmojiName][] = [
+  ['gono_chlam', 'petri'],
+  ['syphilis', 'blood'],
+  ['hiv', 'ribbon'],
+  ['mpox', 'blueCircle'],
+  ['symptoms', 'feverish'],
+]
+const EMOJI_OF = Object.fromEntries(FOUND) as Record<Found, EmojiName>
+/** HIV never goes on the map; mpox only from official figures (amendment 4.1). */
+const NOT_ON_MAP: Found[] = ['hiv', 'mpox']
+/** How a result can be known. A self-test only for HIV (amendment 4.1). */
+const SOURCES: Record<DiseaseGroup, ('lab_result' | 'hiv_self_test')[]> = {
+  gono_chlam: ['lab_result'],
+  syphilis: ['lab_result'],
+  mpox: ['lab_result'],
+  hiv: ['lab_result', 'hiv_self_test'],
 }
-type Outcome = 'counted' | 'kept' | 'nothing'
-type CodeError = 'unknown' | 'slip' | 'fastTrack'
-const CODE_ERROR: Record<CodeError, string> = { unknown: th.report.codeBad, slip: th.report.codeIsSlip, fastTrack: th.report.codeIsFastTrack }
-const OUTCOME_ICON = { counted: CheckIcon, kept: Smartphone, nothing: Ban } as const
-const primaryLink = PRIMARY_LINK
-const quietLink = QUIET_LINK
+const SOURCE_EMOJI = { lab_result: 'testTube', hiv_self_test: 'house' } as const
+const WEEK_MS = 7 * 86_400_000
 
+/** The report that may go to the map, or null: a lab-confirmed gonorrhoea, chlamydia or syphilis, or symptoms on their own (redesign spec 5.4). */
+function mapKind(found: Found | null, source: ReportSource | null): ReportKind | null {
+  if (found === 'symptoms') return 'symptoms'
+  if ((found === 'gono_chlam' || found === 'syphilis') && source === 'lab_result') return found
+  return null
+}
+
+function downloadReminder() {
+  const date = new Date(Date.now() + 13 * WEEK_MS).toISOString().slice(0, 10)
+  const url = URL.createObjectURL(new Blob([buildIcs([{ date }])], { type: 'text/calendar' }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'reminder.ics'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+/**
+ * 🩺 เจอ / มีอาการ (redesign spec 5.3): what was found, how it is known, the district, done. 🤒 skips
+ * "how it is known"; a kind that never goes on the map skips the district. No medical advice here.
+ */
 export function ReportFlow() {
-  const to = useEmbedTo()
-  const [step, setStep] = useState(0)
-  const [group, setGroup] = useState<DiseaseGroup | null>(null)
+  const { pending, symptomsNextWeek, myDistrict } = usePartyStore(phone)
+  const intakeOpen = useIntakeOpen()
+  const [step, setStep] = useState<Step>('found')
+  const [found, setFound] = useState<Found | null>(null)
   const [source, setSource] = useState<ReportSource | null>(null)
-  const [codeText, setCodeText] = useState('')
-  const [codeError, setCodeError] = useState<CodeError | null>(null)
-  // A checked clinic code lives here, in memory. It is never written to the phone, and the
-  // phone never learns its result: every valid code leads to the same screen (spec 3).
-  const [code, setCode] = useState<string | null>(null)
-  const [addToArea, setAddToArea] = useState(false)
-  const [keepCard, setKeepCard] = useState(false)
-  const [result, setResult] = useState<{ outcome: Outcome; kept: boolean; checked: boolean; oldCard: boolean } | null>(null)
-  const { card } = usePartyStore(phone)
+  const [district, setDistrict] = useState<string | null>(null)
+  const [changing, setChanging] = useState(false)
+  const [queued, setQueued] = useState(false)
+  const [kept, setKept] = useState(false)
 
-  // HIV never reaches the map; mpox area information comes from official figures only.
-  const canAddToArea = code !== null && group !== null && MAPPED_GROUPS.includes(group)
-  const willCount = canAddToArea && addToArea
+  const kind = mapKind(found, source)
+  const remembered = myDistrict && districtName(myDistrict) ? myDistrict : null
+  const zone = remembered && !changing ? remembered : district
+  // "Symptoms" go to the map once in four weeks, like ✅; the phone remembers only when they may again.
+  const symptomsWait = kind === 'symptoms' && symptomsNextWeek != null && symptomsNextWeek > currentWeek()
+  const group = found === 'symptoms' ? null : found
 
-  const submitCode = () => {
-    const kind = codeKind(codeText)
-    if (kind === 'slip' || kind === 'fastTrack') return setCodeError(kind)
-    const id = codeText.trim().toUpperCase()
-    if (!claimCodeOnPhone(id).ok) return setCodeError('unknown')
-    setCodeError(null)
-    setCode(id)
-    setStep(2)
+  const pickFound = (f: Found) => {
+    setFound(f)
+    setSource(f === 'symptoms' ? 'symptoms' : null)
+    setDistrict(null)
+    setChanging(false)
+    setQueued(false)
+    setKept(false)
+    setStep(f === 'symptoms' ? 'district' : 'source')
   }
-
-  const finish = () => {
-    if (willCount && code && group) consentCityCount(code, group)
-    if (keepCard && group && source) saveCard({ group, source, sentAt: new Date().toISOString(), hasClinicCode: code !== null })
-    // The receipt speaks for the whole phone, not for this pass alone: a card kept earlier is still there.
-    setResult({ outcome: willCount ? 'counted' : keepCard ? 'kept' : 'nothing', kept: keepCard, checked: code !== null, oldCard: !keepCard && card !== null })
-    setStep(3)
+  const pickSource = (s: 'lab_result' | 'hiv_self_test') => {
+    setSource(s)
+    setStep(mapKind(found, s) ? 'district' : 'done')
   }
-
-  const OutcomeIcon = result ? OUTCOME_ICON[result.outcome] : CheckIcon
-  const notifyLink = (cls: string) => (
-    <Link to={to('/app/notify')} state={{ group, hasClinicCode: code !== null }} className={cls}>
-      {th.report.goNotify}
-    </Link>
+  const send = () => {
+    if (!kind || !zone) return
+    queueReport({ kind, zone, savedAt: new Date().toISOString() })
+    setMyDistrict(zone)
+    setQueued(true)
+    setStep('done')
+  }
+  const keepCard = () => {
+    if (!group) return
+    saveCard({ group, source: source ?? 'lab_result', sentAt: new Date().toISOString(), hasLabResult: source === 'lab_result' })
+    setKept(true)
+  }
+  const back = step === 'source' ? () => setStep('found') : step === 'district' ? () => setStep(found === 'symptoms' ? 'found' : 'source') : undefined
+  const nextButton = (
+    <Button size="lg" className="w-full" onClick={() => setStep('done')}>
+      {th.report.next}
+    </Button>
   )
 
   return (
     <main className="p-4">
-      <FlowHeader title={th.report.cta} backTo={to('/app')} onBack={step > 0 && step < 3 ? () => setStep(step - 1) : undefined} />
-      <Stepper steps={[...th.report.steps]} current={step} />
+      <FlowHeader title={th.report.title} emoji="stethoscope" backTo="/app" onBack={back} />
+      <Stepper steps={[...th.report.steps]} current={STEPS.indexOf(step)} />
 
-      {step === 0 && (
+      {step === 'found' && (
         <section className="step-in mt-5 space-y-2">
-          <h2 className="text-[17px] font-bold">{th.report.askGroup}</h2>
-          <p className="pb-1 text-[13px] text-muted">{th.report.privacy}</p>
-          {GROUPS.map((g) => (
-            <Choice
-              key={g}
-              label={th.group[g]}
-              hint={th.groupHint[g]}
-              onClick={() => {
-                // A new group starts clean: no source, no code, and no box left ticked from before.
-                setGroup(g)
-                setSource(null)
-                setCode(null)
-                setCodeError(null)
-                setAddToArea(false)
-                setKeepCard(false)
-                setStep(1)
-              }}
-            />
-          ))}
+          <h2 className="text-[17px] font-bold">{th.report.askFound}</h2>
+          {FOUND.map(([f, emoji]) => {
+            const off = NOT_ON_MAP.includes(f)
+            return <Choice key={f} emoji={emoji} label={th.report.found[f]} hint={off ? th.report.noMap : undefined} hintEmoji={off ? 'lock' : undefined} onClick={() => pickFound(f)} />
+          })}
         </section>
       )}
 
-      {step === 1 && group && (
+      {step === 'source' && group && (
         <section className="step-in mt-5 space-y-2">
           <h2 className="text-[17px] font-bold">{th.report.askSource}</h2>
           {SOURCES[group].map((s) => (
-            <Choice
-              key={s}
-              label={th.source[s]}
-              hint={th.sourceHint[s]}
-              selected={source === s}
-              onClick={() => {
-                setSource(s)
-                if (s !== 'clinic_code') {
-                  setCode(null)
-                  setStep(2)
-                }
-              }}
-            />
+            <Choice key={s} emoji={SOURCE_EMOJI[s]} label={th.report.source[s]} selected={source === s} onClick={() => pickSource(s)} />
           ))}
-          {source === 'clinic_code' && (
-            <form
-              className="box p-4"
-              onSubmit={(e) => {
-                e.preventDefault()
-                submitCode()
-              }}
-            >
-              <label htmlFor="clinic-code" className="mb-1 block text-[13px] font-semibold">
-                {th.report.codeInput}
-              </label>
-              <div className="flex gap-2">
-                <input
-                  id="clinic-code"
-                  value={codeText}
-                  onChange={(e) => {
-                    setCodeText(e.target.value)
-                    setCodeError(null)
-                  }}
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  inputMode="text"
-                  aria-invalid={codeError !== null}
-                  aria-describedby={`clinic-code-format${codeError ? ' clinic-code-error' : ''}`}
-                  className="min-h-11 min-w-0 flex-1 rounded-md border-2 border-ink bg-bg px-3 text-[17px] font-bold uppercase tracking-widest"
-                />
-                <Button type="submit" disabled={codeText.trim() === ''}>
-                  {th.report.useCode}
-                </Button>
-              </div>
-              {codeError && (
-                <p id="clinic-code-error" role="alert" className={`mt-2 flex items-start gap-2 px-3 py-2 text-[13px] font-semibold ${ALERT}`}>
-                  <CircleAlert size={18} strokeWidth={2} className="mt-0.5 shrink-0" aria-hidden="true" />
-                  {CODE_ERROR[codeError]}
+        </section>
+      )}
+
+      {step === 'district' && found && kind && (
+        <section className="step-in mt-5 space-y-3">
+          <h2 className="text-[17px] font-bold">{th.tested.title}</h2>
+          {!intakeOpen ? (
+            <>
+              <p className={`flex items-center gap-2 px-3 py-2 text-[14px] ${NOTE}`}>
+                <Emoji name="pause" />
+                {th.report.closed}
+              </p>
+              {nextButton}
+            </>
+          ) : symptomsWait && symptomsNextWeek ? (
+            <>
+              <p className={`px-3 py-2 text-[14px] ${NOTE}`}>{th.report.symptomsAgain.replace('{date}', formatThaiDate(mondayDate(symptomsNextWeek)))}</p>
+              {nextButton}
+            </>
+          ) : (
+            <>
+              {pending && (
+                <p className={`flex items-center gap-2 px-3 py-2 text-[14px] font-semibold ${SOFT}`}>
+                  <Emoji name="envelope" />
+                  {takingNow(pending.savedAt) ? th.report.replacesTaken : th.report.replaces}
                 </p>
               )}
-              <p id="clinic-code-format" className="mt-2 text-[13px] text-muted">
-                {th.report.codeFormat}
-              </p>
-              <p className="text-[13px] text-muted">{th.report.codeCheckNote}</p>
-            </form>
-          )}
-          <div className="box flex flex-wrap items-center justify-between gap-x-3 px-4 py-3">
-            <p className="min-w-0 flex-1 text-[13px]">{group === 'syphilis' ? th.report.noCodeSyphilis : th.report.noCodeOther}</p>
-            <Link to={to('/app/list')} className={`inline-flex min-h-11 items-center ${TEXT_LINK}`}>
-              {th.report.findCare}
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {step === 2 && group && (
-        <section className="step-in mt-5 space-y-3">
-          <h2 className="text-[17px] font-bold">{th.report.askActions}</h2>
-          {group === 'hiv' && <p className={`px-4 py-3 text-[15px] ${SOFT}`}>{th.report.hivNoMap}</p>}
-          {group === 'mpox' && <p className={`px-4 py-3 text-[15px] ${SOFT}`}>{th.report.mpoxNoMap}</p>}
-          {code === null && <p className="box px-4 py-3 text-[13px] text-muted">{th.report.noCodeLocal}</p>}
-          {canAddToArea && <Check id="add-to-area" label={th.report.addToArea} hint={th.report.addToAreaHint} checked={addToArea} onChange={setAddToArea} />}
-          <Check id="keep-card" label={th.report.keepCard} hint={th.report.keepCardHint} checked={keepCard} onChange={setKeepCard} />
-          <Button size="lg" className="w-full" onClick={finish}>
-            {willCount ? th.report.finish.area : keepCard ? th.report.finish.card : th.report.finish.none}
-          </Button>
-        </section>
-      )}
-
-      {step === 3 && result && (
-        <section className="step-in mt-6 space-y-4">
-          <div className={`grid size-14 place-items-center rounded-full border-2 border-ink text-ink ${result.outcome === 'counted' ? 'bg-care' : 'bg-surface'}`}>
-            <OutcomeIcon size={28} strokeWidth={2} aria-hidden="true" />
-          </div>
-          <h2 className="text-[24px] font-bold">{th.report.outcome[result.outcome]}</h2>
-          <ul className="box space-y-2 p-4">
-            {result.outcome === 'counted' && <li>{th.report.receiptClinicCarries}</li>}
-            {result.outcome === 'counted' && <li className="text-muted">{th.report.receiptMapWeekly}</li>}
-            {result.checked ? <li className="text-muted">{th.report.receiptCodeChecked}</li> : <li>{th.report.receiptNothingLeft}</li>}
-            <li className="text-muted">{result.kept ? th.report.receiptCard : result.oldCard ? th.report.receiptOldCard : th.report.receiptNoCard}</li>
-          </ul>
-
-          <h3 className="text-[13px] font-medium text-muted">{th.report.next}</h3>
-          {source === 'symptoms' && (
-            <Link to={to('/app/list')} className={primaryLink}>
-              {th.report.nextTest}
-            </Link>
-          )}
-          {source === 'hiv_self_test' && (
-            <>
-              <Link to={to('/app/list')} className={primaryLink}>
-                {th.report.nextConfirm}
-              </Link>
-              <a href="tel:1663" className={quietLink}>
-                <Phone size={18} strokeWidth={2} aria-hidden="true" />
-                {th.report.call1663}
-              </a>
+              {remembered && !changing ? (
+                <div className={`flex items-center justify-between gap-2 px-3 py-1 ${SOFT}`}>
+                  <span className="flex items-center gap-1.5 font-bold">
+                    <Emoji name="pin" />
+                    {districtName(remembered)}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    className="shrink-0"
+                    onClick={() => {
+                      setChanging(true)
+                      setDistrict(remembered)
+                    }}
+                  >
+                    {th.picker.change}
+                  </Button>
+                </div>
+              ) : (
+                <DistrictPicker district={district} onDistrict={setDistrict} name="district" />
+              )}
+              <SendsOnly emoji={EMOJI_OF[found]} kind={th.report.found[found]} />
+              <Button size="lg" className="w-full" disabled={!zone} onClick={send}>
+                <Emoji name={kind === 'symptoms' ? 'feverish' : 'confirmed'} />
+                {th.report.toMap}
+              </Button>
+              <Button variant="ghost" className="w-full" onClick={() => setStep('done')}>
+                {th.report.skip}
+              </Button>
             </>
           )}
-          {notifyLink(source === 'clinic_code' ? primaryLink : quietLink)}
-          <Link to={to('/app')} className={quietLink}>
+        </section>
+      )}
+
+      {step === 'done' && found && (
+        <section aria-label={th.report.summary} className="step-in mt-6 space-y-3">
+          <Mascot />
+          <h2 className="flex items-center gap-2 text-[22px] font-bold">
+            {queued && <Emoji name="envelope" size={26} />}
+            {queued ? th.report.doneQueued : th.report.doneNothing}
+          </h2>
+          {queued && <p className="text-muted">{th.report.doneCancel}</p>}
+          <Go to="/app/list?find=test" className={PRIMARY_LINK}>
+            <Emoji name="pin" />
+            {th.report.findCare}
+          </Go>
+          {/* The partner step takes the disease in router state, so no disease name reaches the address bar or a server log. */}
+          <Go to="/app/notify" state={{ group, hasLabResult: source === 'lab_result' }} className={QUIET_LINK}>
+            <Emoji name="speech" />
+            {th.report.tell}
+          </Go>
+          <Button variant="secondary" className="w-full" onClick={downloadReminder}>
+            <Emoji name="alarm" />
+            {th.report.remind}
+          </Button>
+          {group && (
+            <div className="space-y-1">
+              <p className="text-[13px] text-muted">{th.report.cardWarn}</p>
+              <Button variant="secondary" className="w-full" disabled={kept} onClick={keepCard}>
+                <Emoji name="pushpin" />
+                {kept ? th.report.keptCard : th.report.keepCard}
+              </Button>
+            </div>
+          )}
+          {source === 'hiv_self_test' && (
+            <a href="tel:1663" className={QUIET_LINK}>
+              <Emoji name="phone" />
+              {th.report.call1663}
+            </a>
+          )}
+          <Go to="/app" className={QUIET_LINK}>
+            <Emoji name="map" />
             {th.report.backToMap}
-          </Link>
+          </Go>
         </section>
       )}
     </main>

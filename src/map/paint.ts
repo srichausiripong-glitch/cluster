@@ -1,10 +1,11 @@
 // The map's three canvas layers. Ground: land, parks and the marks of areas without a signal.
-// Dots: the signal, redrawn on its own while the newest zone breathes. Lines: water, buildings,
-// roads, rail, the edge of each signal and the names of the base map.
+// Signal: each district's confirmed shade and the symptoms hatch over it, redrawn on its own while
+// the newest zone breathes. Lines: water, buildings, roads, rail, the edge of each signal and the
+// names of the base map.
 // Zones and care points are not drawn here: they are real buttons in the SVG layer above.
-import type { AreaState, PublishedArea } from '../domain/types'
-import { CITY_EDGES, ZONES } from './areas'
-import { breath, DOT_GAP, DOT_R, EDGE, HATCH, ROADS, type Palette } from './style'
+import type { AreaState, DensityBand, PublishedArea } from '../domain/types'
+import { AREAS, CITY_EDGES } from './areas'
+import { breath, EDGE, HATCH, ROADS, SHADE_GROUND, SIGNAL_SHADE, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE, type Palette } from './style'
 import type { CityData, Label, Line, RoadClass, Shape, TileData } from './types'
 import { fromScreen, toScreen, type Box, type Size, type View } from './view'
 
@@ -19,6 +20,8 @@ export interface Scene {
   areas: Map<string, PublishedArea>
   phase: 1 | 2
   showSignal: boolean
+  /** The symptoms layer (redesign spec 5.1). Off unless given. */
+  showSymptoms?: boolean
   /** Screen boxes that names on the base map keep clear of: markers and zone name boxes. */
   avoid?: Box[]
 }
@@ -137,13 +140,22 @@ interface Painted {
   edges: number[][]
   area: PublishedArea | undefined
 }
-const CITY_RINGS = ZONES.flatMap((z) => z.rings)
-const ZONE_RINGS = ZONES.map((z) => z.rings)
-const ZONE_EDGES = ZONES.map((z) => z.edges)
-/** What carries a signal: each zone in the phase 2 preview; the whole city as one area in phase 1. */
+const CITY_RINGS = AREAS.flatMap((a) => a.rings)
+const AREA_RINGS = AREAS.map((a) => a.rings)
+const AREA_EDGES = AREAS.map((a) => a.edges)
+/** What carries a signal: each of the 50 districts; the whole city as one area in phase 1. */
 function painted(s: Scene): Painted[] {
   if (s.phase === 1) return [{ rings: CITY_RINGS, edges: CITY_EDGES, area: s.areas.get('bkk') }]
-  return ZONES.map((z) => ({ rings: z.rings, edges: z.edges, area: s.areas.get(z.id) }))
+  return AREAS.map((a) => ({ rings: a.rings, edges: a.edges, area: s.areas.get(a.id) }))
+}
+
+/**
+ * The state an area is drawn in. A district below the threshold is drawn with no mark, like one with
+ * no data, since its file entry does not say whether anyone there reported; the city keeps its own
+ * (redesign spec 5.7).
+ */
+export function drawnState(area: PublishedArea): AreaState {
+  return area.areaId !== 'bkk' && area.state === 'below_threshold' ? 'no_data' : area.state
 }
 /** The part of the screen an area covers, or null when it is out of view. */
 function onScreen(s: Scene, rings: number[][]): Box | null {
@@ -165,9 +177,9 @@ function onScreen(s: Scene, rings: number[][]): Box | null {
 }
 
 // ---- ground -----------------------------------------------------------------------------------
-/** An area without a signal is marked quietly: thin slanted lines below the threshold, a faint grid where no clinic reports, nothing where there is no data. */
+/** An area without a signal is marked quietly: thin slanted lines below the threshold, nothing where there is no data or the area is suspended. */
 function quiet(ctx: Ctx, s: Scene, rings: number[][], state: AreaState) {
-  if (state !== 'below_threshold' && state !== 'no_partner') return
+  if (state !== 'below_threshold') return
   const box = onScreen(s, rings)
   if (!box) return
   ctx.save()
@@ -175,28 +187,37 @@ function quiet(ctx: Ctx, s: Scene, rings: number[][], state: AreaState) {
   ctx.clip()
   screen(ctx, s)
   ctx.beginPath()
-  if (state === 'below_threshold') {
-    const reach = box[3] - box[1]
-    for (let x = Math.floor((box[0] - reach) / HATCH.gap) * HATCH.gap; x < box[2]; x += HATCH.gap) {
-      ctx.moveTo(x, box[1])
-      ctx.lineTo(x + reach, box[3])
-    }
-    ctx.strokeStyle = s.palette.signalSoft
-    ctx.globalAlpha = HATCH.alpha
-    ctx.lineWidth = HATCH.width
-  } else {
-    for (let x = Math.floor(box[0] / 12) * 12; x < box[2]; x += 12) {
-      ctx.moveTo(x, box[1])
-      ctx.lineTo(x, box[3])
-    }
-    for (let y = Math.floor(box[1] / 12) * 12; y < box[3]; y += 12) {
-      ctx.moveTo(box[0], y)
-      ctx.lineTo(box[2], y)
-    }
-    ctx.strokeStyle = s.palette.ink
-    ctx.globalAlpha = 0.22
-    ctx.lineWidth = 1
+  const reach = box[3] - box[1]
+  for (let x = Math.floor((box[0] - reach) / HATCH.gap) * HATCH.gap; x < box[2]; x += HATCH.gap) {
+    ctx.moveTo(x, box[1])
+    ctx.lineTo(x + reach, box[3])
   }
+  ctx.strokeStyle = s.palette.signalSoft
+  ctx.globalAlpha = HATCH.alpha
+  ctx.lineWidth = HATCH.width
+  ctx.stroke()
+  ctx.restore()
+  world(ctx, s)
+}
+
+/** Symptoms without a test: black lines slanting "/" over the area, closer together for a higher level (redesign spec 5.6, 5.7). */
+function symptomsHatch(ctx: Ctx, s: Scene, rings: number[][], level: DensityBand) {
+  const box = onScreen(s, rings)
+  if (!box) return
+  const gap = SYMPTOM_GAP[level]
+  ctx.save()
+  outline(ctx, rings)
+  ctx.clip()
+  screen(ctx, s)
+  ctx.beginPath()
+  const reach = box[3] - box[1]
+  for (let x = Math.floor((box[0] - reach) / gap) * gap; x < box[2]; x += gap) {
+    ctx.moveTo(x, box[3])
+    ctx.lineTo(x + reach, box[1])
+  }
+  ctx.strokeStyle = s.palette.ink
+  ctx.globalAlpha = SYMPTOM_LINE.alpha
+  ctx.lineWidth = SYMPTOM_LINE.width
   ctx.stroke()
   ctx.restore()
   world(ctx, s)
@@ -211,54 +232,36 @@ export function paintGround(ctx: Ctx, s: Scene): void {
   // South of the baked tiles there is only the Gulf of Thailand.
   ctx.fillStyle = p.water
   ctx.fillRect(-200000, 55500, 400000, 60000)
-  // The city's ground stays warm: a signal is dots on it, never a wash over it.
-  fill(ctx, s, ZONE_RINGS, p.land)
+  // The city's ground stays warm: a signal's shade is laid over it on its own layer.
+  fill(ctx, s, AREA_RINGS, p.land)
   if (s.view.level === 'city') {
     if (s.city) fill(ctx, s, s.city.green, p.park, 0.75)
   } else {
     for (const tile of s.tiles) fill(ctx, s, tile.green, p.park)
   }
-  if (s.showSignal) for (const { rings, area } of painted(s)) quiet(ctx, s, rings, area?.state ?? 'no_data')
+  if (s.showSignal) for (const { rings, area } of painted(s)) quiet(ctx, s, rings, area ? drawnState(area) : 'no_data')
   if (s.view.level === 'district') for (const tile of s.tiles) if (tile.blocks) fill(ctx, s, tile.blocks, p.ink, 0.07)
 }
 
-// ---- dots -------------------------------------------------------------------------------------
+// ---- signal -----------------------------------------------------------------------------------
 /**
- * The signal: violet dots on a slanted grid, bigger for a higher level. The grid is fixed to the
- * map, so the dots travel with it when it is dragged. `timeMs` moves the dots of a zone that was
- * just reported; null draws everything still.
+ * The signal: each district with a confirmed level filled whole in violet, deeper for a higher level
+ * (2026-11-18 design, decision 4). The data holds district totals only, so nothing inside a district
+ * is shaded differently. The symptoms hatch is drawn over the shade, so a district can show both.
+ * `timeMs` breathes the shade of a zone that was just reported; null draws everything still.
  */
-export function paintDots(ctx: Ctx, s: Scene, timeMs: number | null): void {
+export function paintSignal(ctx: Ctx, s: Scene, timeMs: number | null): void {
   screen(ctx, s)
   ctx.clearRect(0, 0, s.size.w, s.size.h)
-  if (!s.showSignal) return
-  const street = s.view.level === 'street'
-  const d = (street ? 14 : DOT_GAP) * Math.SQRT2
-  const [ox, oy] = toScreen(s.view, s.size, [0, 0])
+  world(ctx, s)
+  const street = s.view.level === 'street' ? STREET_SHADE : 1
   for (const { rings, area } of painted(s)) {
-    if (area?.state !== 'shown' || !area.density) continue
-    const box = onScreen(s, rings)
-    if (!box) continue
-    const r = DOT_R[area.density] * (street ? 1.5 : 1) * (area.step === 'new' && timeMs !== null ? breath(timeMs, false) : 1)
-    ctx.save()
-    world(ctx, s)
-    outline(ctx, rings)
-    ctx.clip()
-    screen(ctx, s)
-    ctx.beginPath()
-    for (let k = Math.floor((box[1] - oy) / (d / 2)) - 1; k <= Math.ceil((box[3] - oy) / (d / 2)) + 1; k++) {
-      const y = oy + k * (d / 2)
-      const shift = k & 1 ? d / 2 : 0
-      for (let i = Math.floor((box[0] - ox - shift) / d) - 1; i <= Math.ceil((box[2] - ox - shift) / d) + 1; i++) {
-        const x = ox + shift + i * d
-        ctx.moveTo(x + r, y)
-        ctx.arc(x, y, r, 0, Math.PI * 2)
-      }
+    if (s.showSignal && area?.state === 'shown' && area.density) {
+      const pulse = area.step === 'new' && timeMs !== null ? breath(timeMs, false) : 1
+      fill(ctx, s, [rings], s.palette.surface, SHADE_GROUND * street)
+      fill(ctx, s, [rings], s.palette.signal, SIGNAL_SHADE[area.density] * street * pulse)
     }
-    ctx.fillStyle = s.palette.signal
-    ctx.globalAlpha = street ? 0.5 : 0.92
-    ctx.fill()
-    ctx.restore()
+    if (s.showSymptoms && area?.symptoms) symptomsHatch(ctx, s, rings, area.symptoms)
   }
 }
 
@@ -349,14 +352,14 @@ function tileLines(ctx: Ctx, s: Scene) {
 /** The edge of each area, in the line of its state. Only the inner half is kept, so two neighbours' edges sit side by side. */
 function areaEdges(ctx: Ctx, s: Scene) {
   const p = s.palette
-  if (s.phase === 1) strokeAll(ctx, s, ZONE_EDGES, 1, p.ink, { alpha: 0.3, dash: [2, 4], cap: 'butt' })
+  if (s.phase === 1) strokeAll(ctx, s, AREA_EDGES, 1, p.ink, { alpha: 0.3, dash: [2, 4], cap: 'butt' })
   for (const { rings, edges, area } of painted(s)) {
-    const state = area?.state ?? 'no_data'
+    const state = area ? drawnState(area) : 'no_data'
     let line: { width: number; dash?: number[]; cap?: CanvasLineCap; color: string; alpha?: number }
     if (!s.showSignal) line = { width: 1, dash: [2, 4], cap: 'butt', color: p.ink, alpha: 0.35 }
     else if (state === 'shown') line = { ...EDGE[area?.step ?? 'mixed'], color: p.signalEdge }
     else if (state === 'below_threshold') line = { width: 1.8, dash: [4, 5], cap: 'butt', color: p.signalEdge, alpha: 0.75 }
-    else if (state === 'no_partner') line = { width: 1.4, color: p.ink, alpha: 0.45 }
+    else if (state === 'suspended') line = { width: 1.4, color: p.ink, alpha: 0.6 }
     else line = { width: 1.4, dash: [0.1, 5], cap: 'round', color: p.ink, alpha: 0.5 }
     ctx.save()
     outline(ctx, rings)
@@ -465,7 +468,8 @@ function names(ctx: Ctx, s: Scene) {
     ctx.textBaseline = 'middle'
     ctx.fillText(l.t, x, y + 0.5)
   }
-  for (const l of of('district')) write(ctx, s, taken, l.t, ...at(l), { size: 12, weight: 700, spacing: '0.06em', halo: p.surface, haloW: 4, pad: 16 })
+  // At district level the name boxes above the map name the districts; the base map's own district names give way.
+  if (street) for (const l of of('district')) write(ctx, s, taken, l.t, ...at(l), { size: 12, weight: 700, spacing: '0.06em', halo: p.surface, haloW: 4, pad: 16 })
   for (const l of of('road')) write(ctx, s, taken, l.t, ...at(l), { size: street ? 11.5 : 10, weight: street ? 700 : 600, angle: l.a, halo: p.surface, haloW: 3.2, pad: 9 })
   for (const l of of('soi')) write(ctx, s, taken, l.t, ...at(l), { size: 10, angle: l.a, halo: p.surface, haloW: 3.2, pad: 8 })
   for (const l of of('water')) write(ctx, s, taken, l.t, ...at(l), { size: 10, weight: 500, alpha: 0.65, angle: l.a, halo: p.surface, haloW: 3, pad: 8 })

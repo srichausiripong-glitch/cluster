@@ -1,16 +1,16 @@
 import { Minus, Plus } from 'lucide-react'
 import { useEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 import { th } from '../copy/th'
-import type { AreaState, PublishedArea } from '../domain/types'
-import type { CarePoint } from '../store/seed'
-import { CITY_EDGES, pathOf, zoneAt, ZONES } from './areas'
+import type { AreaState, DensityBand, PublishedArea } from '../domain/types'
+import { isVerified, type CarePoint } from '../data/carePoints'
+import { areaAt, AREAS, CITY_EDGES, pathOf } from './areas'
 import { LEVELS, PPM, toXY, type Level, type XY } from './geo'
-import { ManyBody, PinBody } from './legend'
-import { paintDots, paintGround, paintLines, type Scene } from './paint'
+import { DotBody, LevelMarks, ManyBody, PinBody } from './legend'
+import { paintGround, paintLines, paintSignal, type Scene } from './paint'
 import { mapSource } from './source'
 import { PALETTE } from './style'
 import type { CityData, Manifest, TileData } from './types'
-import { advances, cityView, clampCity, deepestAt, fromScreen, MAP_INSET, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Box, type Size, type View } from './view'
+import { advances, cityView, clampCity, deepestAt, fromScreen, insetFor, LEVEL_ROOM, markerBox, markers, nameBoxes, step, toScreen, viewAt, type Box, type Size, type View } from './view'
 
 export interface RealMapProps {
   areas: PublishedArea[]
@@ -19,19 +19,23 @@ export interface RealMapProps {
   carePoints: CarePoint[]
   phase: 1 | 2
   showSignal: boolean
+  /** The symptoms hatch (redesign spec 5.6). */
+  showSymptoms?: boolean
   selectedArea?: string | null
   selectedPoint?: string | null
   onSelectArea: (areaId: string) => void
   onSelectCarePoint: (id: string) => void
-  /** Called when the level, or the zone under the middle of the map, changes. */
-  onView?: (seen: { level: Level; zoneId: string | null }) => void
+  /** Called when the level, or the district under the middle of the map, changes. */
+  onView?: (seen: { level: Level; areaId: string | null }) => void
+  /** A line the screen wants said over the map, such as where the pharmacies are; the map's own failure comes first. */
+  note?: string
 }
 
 // The shapes of the button layer, in metres. They never change, so they are built once.
-const CITY_PATH = pathOf(ZONES.flatMap((zone) => zone.rings))
+const CITY_PATH = pathOf(AREAS.flatMap((area) => area.rings))
 const CITY_EDGE_PATH = pathOf(CITY_EDGES, false)
-const ZONE_PATH = new Map(ZONES.map((zone) => [zone.id, pathOf(zone.rings)]))
-const ZONE_EDGE_PATH = new Map(ZONES.map((zone) => [zone.id, pathOf(zone.edges, false)]))
+const AREA_PATH = new Map(AREAS.map((area) => [area.id, pathOf(area.rings)]))
+const AREA_EDGE_PATH = new Map(AREAS.map((area) => [area.id, pathOf(area.edges, false)]))
 /**
  * Where a selected pin or zone is brought to, in pixels down the map: low enough for the pin's name,
  * which sits above it, to clear the state box, and high enough to stay above the sheet on a short phone.
@@ -58,16 +62,16 @@ const wantsStill = () => typeof window.matchMedia === 'function' && window.match
 type Gesture = { kind: 'drag'; from: XY; start: View; moved: boolean } | { kind: 'pinch'; span: number; done: boolean }
 
 /**
- * The real map of Bangkok at three levels. Three canvases draw the ground, the signal dots and
+ * The real map of Bangkok at three levels. Three canvases draw the ground, the signal's shade and
  * the roads; the SVG layer above them holds what a person can act on, as real buttons: the city,
  * the zones and the care points.
  */
-export function RealMap({ areas, cityState, carePoints, phase, showSignal, selectedArea, selectedPoint, onSelectArea, onSelectCarePoint, onView }: RealMapProps) {
+export function RealMap({ areas, cityState, carePoints, phase, showSignal, showSymptoms = false, selectedArea, selectedPoint, onSelectArea, onSelectCarePoint, onView, note }: RealMapProps) {
   const wrap = useRef<HTMLDivElement>(null)
   const stack = useRef<HTMLDivElement>(null)
   const picture = useRef<HTMLDivElement>(null)
   const ground = useRef<HTMLCanvasElement>(null)
-  const dots = useRef<HTMLCanvasElement>(null)
+  const signal = useRef<HTMLCanvasElement>(null)
   const lines = useRef<HTMLCanvasElement>(null)
   // Before the first measurement, lay out for a phone.
   const [box, setBox] = useState({ w: 390, h: 714 })
@@ -103,7 +107,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
   const [, redraw] = useReducer((n: number) => n + 1, 0)
   const lastLevel = useRef<{ level: Level; ppm: number } | null>(null)
 
-  const size = useMemo<Size>(() => ({ w: box.w, h: box.h, inset: MAP_INSET }), [box.w, box.h])
+  const size = useMemo<Size>(() => ({ w: box.w, h: box.h, inset: insetFor(box.h) }), [box.w, box.h])
   const view = useMemo<View>(() => {
     if (!stored) return cityView(size)
     if (stored.level === 'city') return clampCity(size, stored)
@@ -113,7 +117,7 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
 
   // A selected care point, or a selected zone at city level, is brought up under the chips where the sheet does not cover it.
   const point = selectedPoint ? carePoints.find((p) => p.id === selectedPoint) : undefined
-  const zone = selectedArea && view.level === 'city' ? ZONES.find((z) => z.id === selectedArea) : undefined
+  const zone = selectedArea && view.level === 'city' ? AREAS.find((a) => a.id === selectedArea) : undefined
   const focusX = point ? toXY(point.lat, point.lon)[0] : zone ? zone.label[0] : null
   const focusY = point ? toXY(point.lat, point.lon)[1] : zone ? zone.label[1] : null
   const shown = useMemo<View>(() => {
@@ -179,9 +183,16 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
   }, [manifest, level])
 
   const marks = useMemo(() => markers(carePoints, shown, size), [carePoints, shown, size])
-  const names = useMemo(() => (phase === 2 && shown.level === 'city' ? nameBoxes(ZONES, shown, size, marks) : []), [phase, shown, size, marks])
+  // District names are boxes at city level (those that fit) and at district level (redesign spec 5.7).
   const byId = useMemo(() => new Map(areas.map((a) => [a.areaId, a])), [areas])
-  /** Only the dots of an area that was just reported move. */
+  /** The level of every shaded district, while the confirmed layer is on: their name boxes carry it as dots. */
+  const levels = useMemo(() => {
+    const out: Record<string, DensityBand> = {}
+    if (showSignal) for (const a of areas) if (a.state === 'shown' && a.density && a.areaId !== 'bkk') out[a.areaId] = a.density
+    return out
+  }, [areas, showSignal])
+  const names = useMemo(() => (phase === 2 && shown.level !== 'street' ? nameBoxes(AREAS, shown, size, marks, levels) : []), [phase, shown, size, marks, levels])
+  /** Only the shade of an area that was just reported moves. */
   const breathing = !still && showSignal && areas.some((a) => a.state === 'shown' && a.step === 'new' && (phase === 2 ? a.areaId !== 'bkk' : a.areaId === 'bkk'))
 
   // Draw after every render: the view, the data or the layers may have changed.
@@ -208,12 +219,13 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
       areas: byId,
       phase,
       showSignal,
+      showSymptoms,
       avoid: [...marks.map(markerBox), ...names.map((b): Box => [b.x - b.w / 2, b.y - b.h / 2, b.x + b.w / 2, b.y + b.h / 2])],
     }
     const now = scene.current
     const layers: [HTMLCanvasElement | null, (ctx: CanvasRenderingContext2D) => void][] = [
       [ground.current, (ctx) => paintGround(ctx, now)],
-      [dots.current, (ctx) => paintDots(ctx, now, null)],
+      [signal.current, (ctx) => paintSignal(ctx, now, null)],
       [lines.current, (ctx) => paintLines(ctx, now)],
     ]
     for (const [canvas, paint] of layers) {
@@ -232,13 +244,13 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
     carried.current = false
   })
 
-  // The newest zone breathes: its dots are redrawn on their own canvas, frame by frame.
+  // The newest zone breathes: the signal is redrawn on its own canvas, frame by frame.
   useEffect(() => {
     if (!breathing || typeof requestAnimationFrame !== 'function') return
     let frame = 0
     const tick = (time: number) => {
-      const ctx = dots.current?.getContext('2d')
-      if (ctx && scene.current) paintDots(ctx, scene.current, time)
+      const ctx = signal.current?.getContext('2d')
+      if (ctx && scene.current) paintSignal(ctx, scene.current, time)
       frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
@@ -253,14 +265,14 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
     stack.current?.animate?.([{ transform: `scale(${before.ppm / shown.ppm})`, opacity: 0.5 }, { transform: 'none', opacity: 1 }], { duration: 280, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' })
   }, [shown.level, shown.ppm, still])
 
-  const zoneId = zoneAt([shown.cx, shown.cy])?.id ?? null
+  const areaId = areaAt([shown.cx, shown.cy])?.id ?? null
   const tell = useRef(onView)
   useEffect(() => {
     tell.current = onView
   })
   useEffect(() => {
-    tell.current?.({ level: shown.level, zoneId })
-  }, [shown.level, zoneId])
+    tell.current?.({ level: shown.level, areaId })
+  }, [shown.level, areaId])
 
   /** Whether the prototype has map one level in at a place. Without the list of files nothing is known, and nothing is refused. */
   const deeperAt = (p: XY) => !manifest || LEVELS.indexOf(deepestAt(manifest, p)) > LEVELS.indexOf(shown.level)
@@ -367,6 +379,8 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
       ref={wrap}
       data-map
       data-level={shown.level}
+      data-signal={showSignal ? '' : undefined}
+      data-symptoms={showSymptoms ? '' : undefined}
       data-still={still ? '' : undefined}
       className="absolute inset-0 touch-none select-none overflow-hidden bg-land-out"
       onPointerDown={onPointerDown}
@@ -389,17 +403,17 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
       <div ref={stack} className="absolute inset-0">
         <div ref={picture} data-picture className="absolute inset-0" aria-hidden="true">
           <canvas ref={ground} className="absolute inset-0 h-full w-full" />
-          <canvas ref={dots} className="absolute inset-0 h-full w-full" />
+          <canvas ref={signal} className="absolute inset-0 h-full w-full" />
           <canvas ref={lines} className="absolute inset-0 h-full w-full" />
         </div>
         <svg width={size.w} height={size.h} className="absolute left-0 top-0" role="group" aria-label={th.map.source}>
           <g transform={`translate(${round(ox)} ${round(oy)}) scale(${shown.ppm})`}>
             <path d={CITY_PATH} fill="transparent" role="button" tabIndex={0} aria-label={`กรุงเทพฯ: ${th.map.state[cityState]}`} className="map-area cursor-pointer" onClick={pickArea('bkk')} onKeyDown={press(() => onSelectArea('bkk'))} />
             {phase === 2 &&
-              ZONES.map((z) => (
+              AREAS.map((z) => (
                 <path
                   key={z.id}
-                  d={ZONE_PATH.get(z.id)}
+                  d={AREA_PATH.get(z.id)}
                   fill="transparent"
                   role="button"
                   tabIndex={0}
@@ -409,21 +423,25 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
                   onKeyDown={press(() => onSelectArea(z.id))}
                 />
               ))}
-            {selectedArea && (selectedArea === 'bkk' || ZONE_EDGE_PATH.has(selectedArea)) && (
-              <path d={selectedArea === 'bkk' ? CITY_EDGE_PATH : ZONE_EDGE_PATH.get(selectedArea)} fill="none" stroke="var(--color-ink)" strokeWidth="2.5" vectorEffect="non-scaling-stroke" style={{ pointerEvents: 'none' }} />
+            {selectedArea && (selectedArea === 'bkk' || AREA_EDGE_PATH.has(selectedArea)) && (
+              <path d={selectedArea === 'bkk' ? CITY_EDGE_PATH : AREA_EDGE_PATH.get(selectedArea)} fill="none" stroke="var(--color-ink)" strokeWidth="2.5" vectorEffect="non-scaling-stroke" style={{ pointerEvents: 'none' }} />
             )}
           </g>
           {names.map((b) => (
-            <g key={b.id} data-caption transform={`translate(${round(b.x)} ${round(b.y)})`} aria-hidden="true" style={{ pointerEvents: 'none' }}>
+            <g key={b.id} data-caption data-level={b.level} transform={`translate(${round(b.x)} ${round(b.y)})`} aria-hidden="true" style={{ pointerEvents: 'none' }}>
               <rect x={-b.w / 2 + 2.5} y={-b.h / 2 + 2.5} width={b.w} height={b.h} rx="6" fill="var(--color-ink)" />
               <rect data-face x={-b.w / 2} y={-b.h / 2} width={b.w} height={b.h} rx="6" fill="var(--color-surface)" stroke="var(--color-ink)" strokeWidth="1.8" />
-              <text y="4.5" textAnchor="middle" fontSize="12.5" fontWeight="700" fill="var(--color-ink)">
+              <text x={b.level ? -LEVEL_ROOM / 2 : 0} y="4.5" textAnchor="middle" fontSize="12.5" fontWeight="700" fill="var(--color-ink)">
                 {b.name}
               </text>
+              {/* A shaded district's level as dots, so the shade is never read by colour alone (2026-11-18 design, decision 4). */}
+              {b.level && <LevelMarks level={b.level} x={b.w / 2 - LEVEL_ROOM + 9} />}
             </g>
           ))}
           {marks.map((m, i) => {
             const one = m.kind === 'one'
+            // A place nobody has confirmed is a dot centred on its point, never a pin (redesign spec 5.8).
+            const pin = one && isVerified(m.point)
             const open = one ? () => onSelectCarePoint(m.point.id) : () => go(1, fromScreen(shown, size, [m.x, m.y]))
             return (
               <g
@@ -438,16 +456,16 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
                 onClick={open}
                 onKeyDown={press(open)}
               >
-                <circle data-hit cy={one ? -22 : 0} r={one ? 24 : 22} fill="transparent" />
-                <circle className="map-pin-ring" cy={one ? -26 : 0} r={one ? 20 : 22} fill="none" stroke="var(--color-ink)" strokeWidth="2.5" />
+                <circle data-hit cy={pin ? -22 : 0} r={pin ? 24 : 22} fill="transparent" />
+                <circle className="map-pin-ring" cy={pin ? -26 : 0} r={pin ? 20 : one ? 14 : 22} fill="none" stroke="var(--color-ink)" strokeWidth="2.5" />
                 <g className={fresh ? 'pop-in' : undefined} style={fresh ? { animationDelay: `${150 + i * 60}ms` } : undefined}>
-                  {one ? <PinBody kind={m.point.kind} /> : <ManyBody count={m.points.length} />}
+                  {one ? pin ? <PinBody layer={m.point.layer} /> : <DotBody layer={m.point.layer} /> : <ManyBody count={m.points.length} />}
                 </g>
               </g>
             )
           })}
           {picked && pickedName && (
-            <g data-bubble transform={`translate(${round(Math.min(size.w - bubbleW / 2 - 6, Math.max(bubbleW / 2 + 6, picked.x)))} ${round(picked.y - (picked.kind === 'one' ? 62 : 38))})`} aria-hidden="true" style={{ pointerEvents: 'none' }}>
+            <g data-bubble transform={`translate(${round(Math.min(size.w - bubbleW / 2 - 6, Math.max(bubbleW / 2 + 6, picked.x)))} ${round(picked.y - (picked.kind === 'many' ? 38 : isVerified(picked.point) ? 62 : 30))})`} aria-hidden="true" style={{ pointerEvents: 'none' }}>
               <rect x={-bubbleW / 2 + 3} y={-13 + 3} width={bubbleW} height="26" rx="9" fill="var(--color-ink)" />
               <rect x={-bubbleW / 2} y="-13" width={bubbleW} height="26" rx="9" fill="var(--color-surface)" stroke="var(--color-ink)" strokeWidth="2" />
               <text y="4.8" textAnchor="middle" fontSize="13.5" fontWeight="700" fill="var(--color-ink)">
@@ -473,13 +491,11 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, selec
           </p>
         )}
       </div>
-      {(failed.manifest || failed.city || failed.tiles) && (
+      {(failed.manifest || failed.city || failed.tiles || note) && (
         <p role="status" className="absolute inset-x-3 top-[7.5rem] mr-14 rounded-md border-[1.5px] border-ink bg-surface px-3 py-1.5 text-[12px] leading-snug">
-          {th.map.loadFailed}
+          {failed.manifest || failed.city || failed.tiles ? th.map.loadFailed : note}
         </p>
       )}
-      {/* The credit must stay readable beside the send button: on a narrow screen it wraps instead of running under it. */}
-      <p className="absolute bottom-[5.25rem] left-2 max-w-[calc(100%-11.75rem)] rounded-md bg-bg/85 px-1.5 text-[9.5px] leading-4 text-muted">{th.map.credit}</p>
     </div>
   )
 }

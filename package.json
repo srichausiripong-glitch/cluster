@@ -10,17 +10,26 @@
     "preview": "vite preview",
     "test": "vitest run",
     "map:fetch": "node scripts/map/fetch.ts",
-    "map:build": "node scripts/map/build.ts"
+    "map:build": "node scripts/map/build.ts",
+    "map:neighbours": "node scripts/map/neighbours.ts",
+    "care:fetch": "node scripts/care/fetch.ts",
+    "emoji:fetch": "node scripts/emoji/fetch.ts",
+    "admin:hash": "node scripts/admin-hash.ts",
+    "launch-check": "node scripts/launch-check.ts",
+    "db:migrate": "node scripts/migrate.ts",
+    "make-keys": "node scripts/make-keys.ts",
+    "make-vapid": "node scripts/make-vapid.ts"
   },
   "dependencies": {
     "@fontsource-variable/anuphan": "^5.3.0",
+    "@neondatabase/serverless": "1.2.0",
     "lucide-react": "^1.71.0",
-    "qrcode.react": "^4.2.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.13",
     "@mapbox/vector-tile": "^3.0.0",
     "@tailwindcss/vite": "^4.3.5",
     "@testing-library/jest-dom": "^7.0.1",
@@ -37,5 +46,8 @@
     "typescript": "~7.0.2",
     "vite": "^8.3.6",
     "vitest": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }

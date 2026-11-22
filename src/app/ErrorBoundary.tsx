@@ -1,10 +1,10 @@
 import { Component, type ReactNode } from 'react'
 import { th } from '../copy/th'
 import { Button } from '../design/primitives/Button'
-import { resetDemo } from '../store/actions'
+import { wipePhone } from '../store/actions'
 
 /**
- * Demo data lives in the browser and its shape changes between versions of the prototype.
+ * What the phone keeps lives in the browser and its shape can change between versions.
  * If a screen cannot draw what it finds, this offers a reset instead of a blank page.
  */
 export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
         <p className="text-muted">{th.recover.body}</p>
         <Button
           onClick={() => {
-            resetDemo()
+            wipePhone()
             this.setState({ failed: false })
           }}
         >

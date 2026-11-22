@@ -1,11 +1,12 @@
 import { ChevronRight } from 'lucide-react'
 import { th } from '../copy/th'
+import { Emoji } from '../design/Emoji'
 import { PRESS } from '../design/look'
-import { ZONES } from '../map/areas'
-import { PinMark } from '../map/legend'
-import type { CarePoint } from '../store/seed'
+import { districtLabel } from '../domain/districts'
+import { PointMark } from '../map/legend'
+import { isVerified, type CarePoint } from '../data/carePoints'
+import { hoursLine } from './hoursText'
 
-export const zoneName = (zoneId: string): string => ZONES.find((zone) => zone.id === zoneId)?.name ?? ''
 
 /** What kind of place this is, in words. A pharmacy is a pharmacy, even where it may list what it offers. */
 export function carePointType(point: CarePoint): string {
@@ -19,20 +20,32 @@ type Props = { point: CarePoint; onOpen?: () => void; tone?: 'light' | 'dark' }
 /**
  * One care point, drawn the same way wherever it appears: its map mark, name, place and kind,
  * hours and cost in words where the law lets them be shown (class A), and a tag only for PEP.
+ * A point nobody has confirmed shows none of that detail, only a yellow tag to call first
+ * (redesign spec 5.8).
  */
 export function CarePointRow({ point, onOpen, tone = 'light' }: Props) {
   const sub = tone === 'dark' ? 'text-white/85' : 'text-muted'
-  const detail = point.klass === 'A' ? [point.hours, point.cost].filter(Boolean).join(' · ') : ''
+  const verified = isVerified(point)
+  const detail = verified && point.klass === 'A' ? [point.hours, point.cost].filter(Boolean).join(' · ') : ''
+  const hours = hoursLine(point.open)
   const body = (
     <>
-      <PinMark kind={point.kind} />
+      <PointMark point={point} />
       <span className="min-w-0 flex-1">
         <span className="block font-bold">{point.name}</span>
         <span className={`block text-[13px] ${sub}`}>
-          {zoneName(point.zoneId)} · {carePointType(point)}
+          {districtLabel(point.districtId)} · {carePointType(point)}
         </span>
         {detail && <span className={`block text-[13px] ${sub}`}>{detail}</span>}
-        {point.pep && <span className="mt-1 inline-block rounded-full border-[1.5px] border-ink bg-care-soft px-2.5 py-0.5 text-[12px] font-semibold text-ink">{th.care.pep}</span>}
+        {/* Only a known status: most places' hours are unknown, and "ไม่ทราบเวลา" on every row says nothing the sheet does not. */}
+        {hours && <span className={`block text-[13px] font-semibold ${tone === 'dark' ? 'text-white' : 'text-ink'}`}>{hours}</span>}
+        {verified && point.pep && <span className="mt-1 inline-block rounded-full border-[1.5px] border-ink bg-care-soft px-2.5 py-0.5 text-[12px] font-semibold text-ink">{th.care.pep}</span>}
+        {!verified && (
+          <span className="mt-1 inline-flex items-center gap-1 rounded-full border-[1.5px] border-ink bg-yellow px-2.5 py-0.5 text-[12px] font-semibold text-ink">
+            <Emoji name={point.phone ? 'phone' : 'search'} size={14} />
+            {th.care.unverifiedTag}
+          </span>
+        )}
       </span>
       {onOpen && <ChevronRight size={18} strokeWidth={1.75} className={`shrink-0 ${sub}`} aria-hidden="true" />}
     </>

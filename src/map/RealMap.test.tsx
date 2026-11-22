@@ -1,18 +1,32 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { useState } from 'react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { th } from '../copy/th'
-import { CARE_POINTS } from '../store/seed'
+import { DISTRICTS } from '../domain/districts'
+import { withDistrict } from '../data/carePoints'
+import { emojiUrl } from '../design/emojiUrl'
+import { FIXTURE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
+
+const CARE_POINTS = FIXTURE_POINTS.map(withDistrict)
 import { fakeCtx } from '../test/fakeCtx'
 import { STUB_MANIFEST, stubSource } from '../test/mapStub'
-import { zoneAt } from './areas'
+import { areaAt, AREAS, CITY_BOX } from './areas'
 import { RealMap } from './RealMap'
+import { setPublishedForTest } from './published'
 import { fetchSource, setMapSource } from './source'
+import { toXY } from './geo'
 import { cityView, MAP_INSET, toScreen, viewAt } from './view'
+import { toggleLayer } from '../store/actions'
+
+// These tests count and open markers, so every fixture point is shown: pharmacies are off by default (redesign spec 5.1).
+// Even switched on, a pharmacy shows only below city level (5.8), so cp5 is not in the city's numbered marker.
+beforeEach(() => toggleLayer('pharmacy'))
 
 afterEach(() => {
+  setPublishedForTest(null)
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
@@ -31,12 +45,31 @@ const doubleClickInside = (el: Element) => {
   fireEvent.click(el, { detail: 2, clientX, clientY })
   fireEvent.doubleClick(el, { clientX, clientY })
 }
-const many = () => screen.getByRole('button', { name: th.map.many.replace('{n}', '4') })
+/** The numbered marker over the centre: cp1, cp2 and cp4 in the app, and cp5 too on a bare map, which draws pharmacies at every level. */
+const many = (n = 3) => screen.getByRole('button', { name: th.map.many.replace('{n}', String(n)) })
 const zoomIn = () => screen.getByRole('button', { name: th.map.zoomIn })
 /** Where a marker or a name box sits: the first two numbers of its transform. */
 const spot = (el: Element) => {
   const [x, y] = (el.getAttribute('transform') ?? '').match(/-?[\d.]+/g)!.map(Number)
   return { x, y }
+}
+/**
+ * The map alone, given every fixture place at every level. The app gives it none at city level
+ * (owner, 18 Nov 2026), so how markers look and behave is tested here; `Bare` keeps the selection.
+ */
+const bare = (over = {}) => render(<RealMap areas={[]} cityState="no_data" carePoints={CARE_POINTS} phase={1} showSignal onSelectArea={() => {}} onSelectCarePoint={() => {}} {...over} />)
+function Bare() {
+  const [picked, setPicked] = useState<string | null>(null)
+  return <RealMap areas={[]} cityState="no_data" carePoints={CARE_POINTS} phase={1} showSignal selectedPoint={picked} onSelectArea={() => {}} onSelectCarePoint={setPicked} />
+}
+/** Goes one level in, in the app, at a place: a double click where it is on the city map. */
+const goInAt = async (point: { lat: number; lon: number }) => {
+  await waitFor(() => expect(zoomIn()).toBeEnabled())
+  const [clientX, clientY] = toScreen(cityView(PHONE), PHONE, toXY(point.lat, point.lon))
+  fireEvent.click(map(), { detail: 1, clientX, clientY })
+  fireEvent.click(map(), { detail: 2, clientX, clientY })
+  fireEvent.doubleClick(map(), { clientX, clientY })
+  expect(map()).toHaveAttribute('data-level', 'district')
 }
 
 it('starts at the whole-city level and says which level it is', () => {
@@ -48,17 +81,32 @@ it('credits OpenStreetMap on the map', () => {
   openApp('/app')
   expect(screen.getByText(th.map.credit)).toBeInTheDocument()
 })
-it('writes the six zone names in white boxes with a black edge', () => {
-  openApp('/app?phase=2')
+it('writes the district names that fit in white boxes with a black edge', () => {
+  openApp('/app')
   const boxes = [...document.querySelectorAll('[data-caption]')]
-  expect(boxes.map((b) => b.textContent).sort()).toEqual(['กรุงธนเหนือ', 'กรุงธนใต้', 'กรุงเทพกลาง', 'กรุงเทพตะวันออก', 'กรุงเทพเหนือ', 'กรุงเทพใต้'].sort())
+  expect(boxes.length).toBeGreaterThan(0)
+  for (const b of boxes) expect(DISTRICTS.map((d) => d.name)).toContain(b.textContent)
   for (const b of boxes) {
     expect(b.querySelector('rect[data-face]')).toHaveAttribute('fill', 'var(--color-surface)')
     expect(b.querySelector('rect[data-face]')).toHaveAttribute('stroke', 'var(--color-ink)')
     expect(b.querySelector('text')).toHaveAttribute('fill', 'var(--color-ink)')
   }
 })
-it('asks only for its own map files, never another site', async () => {
+it('writes a shaded district’s level as dots in its name box', () => {
+  const shaded = ['chatuchak', 'lat_krabang', 'nong_chok', 'bang_khun_thian', 'khlong_sam_wa', 'don_mueang']
+  setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: shaded.map((areaId) => ({ areaId, state: 'shown', density: 'medium', step: 'followup', testing: null, symptoms: null })) })
+  openApp('/app')
+  const boxes = [...document.querySelectorAll('[data-caption]')]
+  const names = shaded.map((id) => AREAS.find((a) => a.id === id)!.name)
+  const withLevel = boxes.filter((b) => names.includes(b.textContent ?? ''))
+  expect(withLevel.length).toBeGreaterThan(0)
+  for (const box of withLevel) {
+    expect(box.getAttribute('data-level')).toBe('medium')
+    expect([...box.querySelectorAll('[data-level-dot]')].map((d) => d.getAttribute('fill'))).toEqual(['var(--color-ink)', 'var(--color-ink)', 'var(--color-surface)'])
+  }
+  for (const plain of boxes.filter((b) => !withLevel.includes(b))) expect(plain.querySelector('[data-level-dot]')).toBeNull()
+})
+it('asks only for its own map files and its own server, never another site', async () => {
   const asked: string[] = []
   vi.stubGlobal('fetch', (url: string) => {
     asked.push(String(url))
@@ -67,22 +115,30 @@ it('asks only for its own map files, never another site', async () => {
   setMapSource(fetchSource())
   openApp('/app')
   await waitFor(() => expect(asked.length).toBeGreaterThan(0))
-  expect(asked.filter((url) => !url.startsWith(`${import.meta.env.BASE_URL}map/`))).toEqual([])
+  // The map reads its own files; the app's only other requests go to its own server's /api/.
+  expect(asked.filter((url) => !url.startsWith(`${import.meta.env.BASE_URL}map/`) && !url.startsWith('/api/'))).toEqual([])
+})
+it('shows no care point in the app at city level, and its places one level in', async () => {
+  openApp('/app')
+  expect(document.querySelectorAll('.map-pin')).toHaveLength(0)
+  await goInAt(CARE_POINTS[2])
+  expect(await screen.findByRole('button', { name: CARE_POINTS[2].name })).toBeInTheDocument()
 })
 it('gathers care points that sit close together into one numbered marker, and separates them one level in', async () => {
   const user = userEvent.setup()
-  openApp('/app')
-  expect(many()).toHaveAttribute('data-many', '4')
+  bare()
+  expect(many(4)).toHaveAttribute('data-many', '4')
   expect(screen.queryByRole('button', { name: CARE_POINTS[0].name })).toBeNull()
-  await user.click(many())
+  await user.click(many(4))
   expect(map()).toHaveAttribute('data-level', 'district')
   expect(screen.getByRole('button', { name: CARE_POINTS[0].name })).toBeInTheDocument()
+  expect(await screen.findByRole('button', { name: CARE_POINTS[4].name })).toBeInTheDocument()
   expect(screen.getByRole('status', { name: th.map.levelNow })).toHaveTextContent(th.map.level.district)
 })
 it('opens a grouped marker from the keyboard, and keeps every marker a named button at each level', async () => {
   const user = userEvent.setup()
-  openApp('/app')
-  many().focus()
+  bare()
+  many(4).focus()
   await user.keyboard('{Enter}')
   expect(map()).toHaveAttribute('data-level', 'district')
   const pins = [...document.querySelectorAll('.map-pin')]
@@ -102,15 +158,45 @@ it('goes one level in and out with the two buttons', async () => {
   expect(map()).toHaveAttribute('data-level', 'city')
   expect(screen.getByRole('button', { name: th.map.zoomOut })).toBeDisabled()
 })
-it('draws a pin in pink with a black outline and a black mark, and names the selected one above it', async () => {
+it('draws a pin in pink with a black outline, and names the selected one above it', async () => {
   const user = userEvent.setup()
-  openApp('/app')
+  render(<Bare />)
   const pin = screen.getByRole('button', { name: CARE_POINTS[2].name })
   expect(pin.querySelector('[data-pin-body]')).toHaveAttribute('fill', 'var(--color-care)')
   expect(pin.querySelector('[data-pin-body]')).toHaveAttribute('stroke', 'var(--color-ink)')
-  expect(pin.querySelector('[data-glyph]')?.getAttribute('stroke') ?? pin.querySelector('[data-glyph]')?.getAttribute('fill')).toBe('var(--color-ink)')
   await user.click(pin)
   expect(document.querySelector('[data-bubble]')).toHaveTextContent(CARE_POINTS[2].name)
+})
+// Two levels of trust (redesign spec 5.8): a confirmed place is a big pin with its layer's emoji, any
+// other place a small white dot with it, never a pin.
+it('draws a verified place as a pink pin with its layer’s emoji', () => {
+  bare()
+  const pin = screen.getByRole('button', { name: CARE_POINTS[2].name })
+  expect(pin.querySelector('[data-pin-body]')).toHaveAttribute('fill', 'var(--color-care)')
+  expect(pin.querySelector('image[data-emoji]')).toHaveAttribute('href', emojiUrl('hospital'))
+  expect(pin.querySelector('[data-dot]')).toBeNull()
+})
+it('draws an unverified place as a small dot with its emoji, never as a pin', () => {
+  bare({ carePoints: [...FIXTURE_POINTS, ...FIXTURE_UNVERIFIED].map(withDistrict) })
+  const dot = screen.getByRole('button', { name: 'โรงพยาบาลทดสอบตัวอย่าง' })
+  expect(dot.querySelector('[data-dot]')).not.toBeNull()
+  expect(dot.querySelector('image[data-emoji]')).toHaveAttribute('href', emojiUrl('hospital'))
+  expect(dot.querySelector('[data-pin-body]')).toBeNull()
+  const hit = dot.querySelector('[data-hit]')!
+  expect(Number(hit.getAttribute('r'))).toBeGreaterThanOrEqual(22)
+  expect(Number(hit.getAttribute('cy') ?? 0)).toBe(0)
+})
+it('draws every group as a white numbered disc, so no group stands for trust by colour alone', () => {
+  const near = { ...FIXTURE_UNVERIFIED[1], id: 'cu3', name: 'โรงพยาบาลทดสอบสองตัวอย่าง', lat: 13.881, lon: 100.721 }
+  const view = bare({ carePoints: [...FIXTURE_UNVERIFIED, near].map(withDistrict) })
+  const unconfirmed = screen.getByRole('button', { name: th.map.many.replace('{n}', '2') })
+  expect(unconfirmed.querySelector('[data-pin-body]')).toBeNull()
+  expect(unconfirmed.querySelector('[data-dot]')).not.toBeNull()
+  view.unmount()
+  // Confirmed places only: still a white disc; trust is told by each place's own mark, a pin or a dot.
+  bare()
+  expect(many(4).querySelector('[data-pin-body]')).toBeNull()
+  expect(many(4).querySelector('[data-dot]')).toHaveAttribute('fill', 'var(--color-surface)')
 })
 
 it('goes one level in on a double click, at the place that was clicked', async () => {
@@ -120,7 +206,8 @@ it('goes one level in on a double click, at the place that was clicked', async (
   expect(map()).toHaveAttribute('data-level', 'district')
 })
 it('goes down to street level where the prototype has street map at the middle of the screen, and stops there', async () => {
-  setMapSource(stubSource({ manifest: () => Promise.resolve({ ...STUB_MANIFEST, street: [{ file: 'street/stub.json', box: STUB_MANIFEST.district[0].box }] }) }))
+  // Street map under the middle of the screen: the district level now opens where it was asked, not on the detailed centre.
+  setMapSource(stubSource({ manifest: () => Promise.resolve({ ...STUB_MANIFEST, street: [{ file: 'street/stub.json', box: CITY_BOX }] }) }))
   const user = userEvent.setup()
   openApp('/app')
   await user.click(zoomIn())
@@ -132,7 +219,7 @@ it('goes down to street level where the prototype has street map at the middle o
 it('stops where the prototype has no deeper map, and says why, without going blank', async () => {
   setMapSource(stubSource({ manifest: () => Promise.resolve({ ...STUB_MANIFEST, street: [] }) }))
   const user = userEvent.setup()
-  openApp('/app?phase=2')
+  openApp('/app')
   await user.click(zoomIn())
   expect(map()).toHaveAttribute('data-level', 'district')
   expect(zoomIn()).toBeDisabled()
@@ -142,24 +229,26 @@ it('stops where the prototype has no deeper map, and says why, without going bla
 it('keeps zones, markers and sheets working when the map files cannot be loaded', async () => {
   setMapSource(stubSource({ city: () => Promise.reject(new Error('offline')) }))
   const user = userEvent.setup()
-  openApp('/app?phase=2')
+  openApp('/app')
   await waitFor(() => expect(screen.getByText(th.map.loadFailed)).toBeInTheDocument())
-  // The city and its six zones.
-  expect(document.querySelectorAll('.map-area')).toHaveLength(7)
-  await user.click(screen.getByRole('button', { name: CARE_POINTS[2].name }))
+  // The city and its fifty districts.
+  expect(document.querySelectorAll('.map-area')).toHaveLength(51)
+  await goInAt(CARE_POINTS[2])
+  await user.click(await screen.findByRole('button', { name: CARE_POINTS[2].name }))
   expect(screen.getByRole('dialog')).toBeInTheDocument()
 })
 it('does not open a marker at the end of a drag', () => {
-  openApp('/app')
+  const opened = vi.fn()
+  bare({ onSelectCarePoint: opened })
   const pin = screen.getByRole('button', { name: CARE_POINTS[2].name })
   fireEvent.pointerDown(map(), { pointerId: 1, clientX: 200, clientY: 300 })
   fireEvent.pointerMove(map(), { pointerId: 1, clientX: 240, clientY: 330 })
   fireEvent.pointerUp(map(), { pointerId: 1, clientX: 240, clientY: 330 })
   fireEvent.click(pin)
-  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(opened).not.toHaveBeenCalled()
 })
 it('moves the map with one finger', () => {
-  openApp('/app')
+  bare()
   const before = spot(screen.getByRole('button', { name: CARE_POINTS[2].name }))
   fireEvent.pointerDown(map(), { pointerId: 1, clientX: 200, clientY: 300 })
   fireEvent.pointerMove(map(), { pointerId: 1, clientX: 240, clientY: 330 })
@@ -177,7 +266,7 @@ it('changes one level for one two-finger gesture, however far the fingers move',
 })
 it('brings a selected care point, with its name, into the space left clear between the state box and the sheet', async () => {
   const user = userEvent.setup()
-  openApp('/app')
+  render(<Bare />)
   await user.click(screen.getByRole('button', { name: CARE_POINTS[2].name }))
   const pin = spot(screen.getByRole('button', { name: CARE_POINTS[2].name, hidden: true }))
   const name = spot(document.querySelector('[data-bubble]')!)
@@ -186,20 +275,20 @@ it('brings a selected care point, with its name, into the space left clear betwe
   // On the shortest phone (640 px) the sheet starts 202 px down the map: the pin's point stays above it.
   expect(pin.y).toBeLessThanOrEqual(190)
 })
-it('tells the screen which level and which zone it is showing', async () => {
+it('tells the screen which level and which district it is showing', async () => {
   const seen = vi.fn()
   const user = userEvent.setup()
   const phone = { w: 390, h: 714, inset: MAP_INSET }
   render(<RealMap areas={[]} cityState="no_data" carePoints={[]} phase={2} showSignal onSelectArea={() => {}} onSelectCarePoint={() => {}} onView={seen} />)
   await user.click(zoomIn())
   const centre = viewAt(STUB_MANIFEST, phone, 'district', [cityView(phone).cx, cityView(phone).cy])
-  expect(seen).toHaveBeenLastCalledWith({ level: 'district', zoneId: zoneAt([centre.cx, centre.cy])?.id ?? null })
+  expect(seen).toHaveBeenLastCalledWith({ level: 'district', areaId: areaAt([centre.cx, centre.cy])?.id ?? null })
 })
 it('keeps still for a person who asks for reduced motion', () => {
   vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('reduce'), addEventListener() {}, removeEventListener() {} }))
   const frames = vi.fn(() => 0)
   vi.stubGlobal('requestAnimationFrame', frames)
-  openApp('/app?phase=2')
+  openApp('/app')
   expect(map()).toHaveAttribute('data-still')
   expect(frames).not.toHaveBeenCalled()
   expect(document.querySelector('.pop-in')).toBeNull()
@@ -207,7 +296,7 @@ it('keeps still for a person who asks for reduced motion', () => {
 it('lets the newest zone breathe and the markers pop in when motion is allowed', () => {
   const frames = vi.fn(() => 0)
   vi.stubGlobal('requestAnimationFrame', frames)
-  openApp('/app?phase=2')
+  bare({ areas: [{ areaId: 'bkk', state: 'shown', density: 'dense', step: 'new', testing: null, symptoms: null }] })
   expect(map()).not.toHaveAttribute('data-still')
   expect(frames).toHaveBeenCalled()
   expect(document.querySelector('.pop-in')).not.toBeNull()
@@ -291,7 +380,7 @@ it('opens the sheet of an area on one click, after the short wait that tells it 
   const user = userEvent.setup()
   openApp('/app')
   await user.click(cityArea())
-  expect(await screen.findByRole('dialog')).toHaveAttribute('aria-label', th.map.signalTitle)
+  expect(await screen.findByRole('dialog')).toHaveAttribute('aria-label', th.map.city)
 })
 it('opens the sheet of an area from the keyboard at once', async () => {
   const user = userEvent.setup()
@@ -302,7 +391,6 @@ it('opens the sheet of an area from the keyboard at once', async () => {
 })
 
 // ---- found by the final code review --------------------------------------------------------------
-const bare = (over = {}) => render(<RealMap areas={[]} cityState="no_data" carePoints={CARE_POINTS} phase={1} showSignal onSelectArea={() => {}} onSelectCarePoint={() => {}} {...over} />)
 
 it('stays where it is and says why when a double click asks for a place with no deeper map', async () => {
   bare()
@@ -342,15 +430,34 @@ it('still separates a grouped marker when the list of map files cannot be loaded
   const user = userEvent.setup()
   bare()
   await screen.findByText(th.map.loadFailed)
-  await user.click(many())
+  await user.click(many(4))
   expect(map()).toHaveAttribute('data-level', 'district')
 })
 it('goes one level, not two, on a double click on a grouped marker', async () => {
-  openApp('/app')
+  bare()
   await waitFor(() => expect(zoomIn()).toBeEnabled())
-  fireEvent.click(many(), { detail: 1 })
+  fireEvent.click(many(4), { detail: 1 })
   // The group has opened, so the second click and the double click land on the area now under the pointer.
   fireEvent.click(cityArea(), { detail: 2 })
   fireEvent.doubleClick(cityArea())
   expect(map()).toHaveAttribute('data-level', 'district')
+})
+
+// ---- round 2: a district level over the whole city, with district names ---------------------------
+it('goes to district level over an outer district, outside the detailed centre, and names it', async () => {
+  openApp('/app')
+  await waitFor(() => expect(zoomIn()).toBeEnabled())
+  const [x, y] = toScreen(cityView(PHONE), PHONE, AREAS.find((a) => a.id === 'bang_khae')!.label)
+  fireEvent.doubleClick(map(), { clientX: x, clientY: y })
+  // Not refused: the map is at district level there. It has no street level, so the note beside the buttons says so.
+  expect(map()).toHaveAttribute('data-level', 'district')
+  expect(screen.getByRole('button', { name: th.map.openSignal })).toHaveTextContent('บางแค')
+})
+it('writes the names of the districts in view at district level, in the same white boxes', async () => {
+  const user = userEvent.setup()
+  openApp('/app')
+  await user.click(zoomIn())
+  const boxes = [...document.querySelectorAll('[data-caption]')]
+  expect(boxes.length).toBeGreaterThan(0)
+  for (const b of boxes) expect(DISTRICTS.map((d) => d.name)).toContain(b.textContent)
 })

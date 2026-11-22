@@ -1,100 +1,55 @@
-import type { DiseaseGroup, Party, PublishedFile, ReportSource } from '../domain/types'
+import type { DiseaseGroup, MapLayer, PendingReport, ReportSource } from '../domain/types'
 import { createPartyStore } from './partyStore'
 
 export interface SignalCard {
   group: DiseaseGroup
   source: ReportSource
   sentAt: string
-  hasClinicCode: boolean
+  /** The sender said the result came from a clinic or a lab. Nobody checks it. */
+  hasLabResult: boolean
 }
-/** The phone keeps nothing unless the person opts in (spec 5.6). A claimed clinic code is never stored here. */
+/**
+ * What the phone keeps (amendment 7): by default only this week's envelope time; a report waits
+ * here until its envelope goes; a card and reminders only when the person asks.
+ */
 export interface PhoneState {
   card: SignalCard | null
-  reminders: { date: string }[]
+  pending: PendingReport | null
+  /** The first week "tested" may go to the map again: four weeks after the last one. */
+  testedNextWeek: string | null
+  /** The server week this phone last sent its envelope in. */
+  sentWeek: string | null
+  /** When in the server week this phone sends its envelope, as a time in ms. */
+  sendAt: { week: string; at: number } | null
+  /** The first week "symptoms" may go to the map again: four weeks after the last one. Optional so stores kept before it stay valid. */
+  symptomsNextWeek?: string | null
+  /** The day the person asked to be reminded to test again, YYYY-MM-DD in Bangkok (2026-11-18 design, decision 1). Optional for older stores. */
+  nextTest?: string | null
+  /** The four-week wait (its `testedNextWeek`) in which the person said "ไม่ต้อง" to a reminder, so it is not offered again then. */
+  nextTestDeclined?: string | null
+  /** The server week and district of the last "tested" report that went with an envelope, for the one-time "sent" note (2026-11-18 design, decision 2). */
+  counted?: { week: string; zone: string } | null
+  /** The district this phone checks in for, so the next check-in is one press. Absent until the first; optional for the same reason. */
+  myDistrict?: string
+  /** The district this phone follows (redesign spec 5.11); the service worker reads its own copy. Never sent anywhere. */
+  follow?: string
+  /** The map layers this person switched on or off; the rest keep their defaults. Optional for stores kept before it. */
+  layers?: Partial<Record<MapLayer, boolean>>
 }
-export interface ClinicCode {
-  id: string
-  issuedAt: string
-  /** The result lives here, at the clinic. The phone never learns it. */
-  positiveGroup: DiseaseGroup | null
-  cityConsent: boolean
-  /** The group the person chose on the phone when agreeing to be counted. */
-  consentGroup: DiseaseGroup | null
-  /** The clinic answered a check for this code, so it knows the code was used in the app. */
-  appChecked: boolean
-  week: string
-}
-export interface ClinicState {
-  staff: string
-  codes: ClinicCode[]
-  fastTrackTally: Record<string, number>
-  slips: { id: string; at: string }[]
-  /** The last week this clinic sent its totals for. */
-  lastBatchWeek: string | null
-}
-export interface WeeklyBatch {
-  clinicId: string
-  week: string
-  counts: Partial<Record<DiseaseGroup, number>>
-}
-export interface OperatorState {
-  connectionLog: { at: string; path: string }[]
-  batches: WeeklyBatch[]
-  harmReports: { at: string; kind: string }[]
-  suppressedAreas: string[]
-}
-export interface PublicState {
-  files: PublishedFile[]
-}
-export interface LedgerEntry {
-  at: string
-  party: Party
-  action: string
-  detail: string
-}
-export interface LedgerState {
-  entries: LedgerEntry[]
-}
-/** Demo-only state shared across the stage's panes: which preset is loaded, the phase preview, and skipped weeks. */
-export interface DemoState {
-  phase: 1 | 2
-  seed: 'empty' | 'pilot' | 'threshold'
-  weekOffset: number
-}
-
 /** The key carries a version: a change of stored shape starts from empty instead of breaking the page. */
 export const STORE_KEYS = {
-  phone: 'cluster.v2.phone',
-  clinic: 'cluster.v2.clinic',
-  operator: 'cluster.v2.operator',
-  public: 'cluster.v2.public',
-  ledger: 'cluster.v2.ledger',
-  demo: 'cluster.v2.demo',
+  phone: 'cluster.v3.phone',
 } as const
 
+// The prototype kept every party's data in this browser. The real app keeps only the phone's own.
 try {
   for (const name of ['phone', 'clinic', 'operator', 'public', 'ledger', 'demo']) localStorage.removeItem(`cluster.${name}`)
+  for (const name of ['phone', 'clinic', 'operator', 'public', 'ledger', 'demo']) localStorage.removeItem(`cluster.v2.${name}`)
 } catch {
   // storage unavailable: nothing to clean up
 }
 
-type Rec = Record<string, unknown>
 const has = (value: unknown, ...keys: string[]) => keys.every((k) => k in (value as object))
-const arr = (value: unknown, key: string) => Array.isArray((value as Rec)[key])
-const each = (value: unknown, key: string, ok: (item: Rec) => boolean) =>
-  arr(value, key) && ((value as Rec)[key] as unknown[]).every((item) => item !== null && typeof item === 'object' && ok(item as Rec))
 
-export const phone = createPartyStore<PhoneState>(STORE_KEYS.phone, { card: null, reminders: [] }, (v) => has(v, 'card') && arr(v, 'reminders'))
-export const clinic = createPartyStore<ClinicState>(
-  STORE_KEYS.clinic,
-  { staff: 'เจ้าหน้าที่ตัวอย่าง', codes: [], fastTrackTally: {}, slips: [], lastBatchWeek: null },
-  (v) => each(v, 'codes', (c) => typeof c.id === 'string' && typeof c.week === 'string' && 'consentGroup' in c) && arr(v, 'slips') && has(v, 'fastTrackTally', 'lastBatchWeek'),
-)
-export const operator = createPartyStore<OperatorState>(
-  STORE_KEYS.operator,
-  { connectionLog: [], batches: [], harmReports: [], suppressedAreas: [] },
-  (v) => arr(v, 'connectionLog') && each(v, 'batches', (b) => typeof b.week === 'string' && b.counts !== null && typeof b.counts === 'object') && arr(v, 'harmReports') && arr(v, 'suppressedAreas'),
-)
-export const pub = createPartyStore<PublicState>(STORE_KEYS.public, { files: [] }, (v) => each(v, 'files', (f) => typeof f.week === 'string' && Array.isArray(f.areas)))
-export const ledger = createPartyStore<LedgerState>(STORE_KEYS.ledger, { entries: [] }, (v) => arr(v, 'entries'))
-export const demo = createPartyStore<DemoState>(STORE_KEYS.demo, { phase: 1, seed: 'empty', weekOffset: 0 }, (v) => has(v, 'phase', 'seed') && typeof (v as Rec).weekOffset === 'number')
+export const EMPTY_PHONE: PhoneState = { card: null, pending: null, testedNextWeek: null, sentWeek: null, sendAt: null }
+export const phone = createPartyStore<PhoneState>(STORE_KEYS.phone, EMPTY_PHONE, (v) => has(v, 'card', 'pending', 'testedNextWeek', 'sentWeek', 'sendAt'))

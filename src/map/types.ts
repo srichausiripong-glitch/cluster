@@ -28,7 +28,7 @@ export interface CityData {
   sec: Line[]
   ter: Line[]
   labels: Label[]
-  districts: { name: string; zone: string; rings: Ring[] }[]
+  districts: { name: string; id: string; rings: Ring[] }[]
 }
 export interface TileData {
   water: Shape[]
@@ -59,7 +59,7 @@ export interface Manifest {
   /** Care point id -> metres to the nearest real clinic or hospital. */
   clearance: Record<string, number>
 }
-export interface ZoneData {
+export interface AreaData {
   id: string
   name: string
   label: [number, number]

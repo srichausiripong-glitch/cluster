@@ -1,22 +1,25 @@
-import { Check } from 'lucide-react'
+import { Check, ChevronRight } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { th } from '../copy/th'
-import type { PublishedArea } from '../domain/types'
+import { CARE_POINTS, canTest } from '../data/carePoints'
+import { OFFICIAL } from '../data/official'
+import { Emoji } from '../design/Emoji'
+import type { EmojiName } from '../design/emojiCodes'
+import { QUIET_LINK } from '../design/look'
+import { FollowButton } from './FollowButton'
 import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
-import { DotSwatch, EdgeSample, PinMark, QuietSwatch } from '../map/legend'
-import { OFFICIAL_FIGURES, type CarePoint } from '../store/seed'
-import { CarePointRow } from './CarePointRow'
+import { districtLabel } from '../domain/districts'
+import type { DensityBand, PublishedArea, TestingLevel } from '../domain/types'
+import { DotMark, EdgeSample, HatchSwatch, PinMark, QuietSwatch, ShadeSwatch } from '../map/legend'
+import { Go } from './Go'
+import { levelOf } from './level'
+import { LevelDots } from './LevelDots'
+import { More } from './More'
 
 const DENSITIES = ['thin', 'medium', 'dense'] as const
 const STEPS = ['new', 'followup', 'expiring', 'mixed'] as const
-const QUIET_STATES = ['below_threshold', 'no_data', 'no_partner'] as const
-const PIN_KINDS = ['clinic', 'pharmacy', 'lab'] as const
-
-/** The area's own patch: the map's dots and edge when it has a signal, the map's quiet mark when it has none. */
-function Swatch({ area }: { area: PublishedArea }) {
-  if (area.state === 'shown') return <DotSwatch density={area.density ?? 'thin'} edge={area.step ?? 'mixed'} large />
-  return <QuietSwatch state={area.state} large />
-}
+const QUIET_STATES = ['below_threshold', 'no_data', 'suspended'] as const
 
 /** The value that applies now is marked with a tick and the word "ตอนนี้", never by weight or colour alone. */
 function Value({ label, current }: { label: string; current: boolean }) {
@@ -35,90 +38,153 @@ function Value({ label, current }: { label: string; current: boolean }) {
   )
 }
 
-type Props = { area: PublishedArea; title: string; open: boolean; onClose: () => void; pair: CarePoint; onOpenCarePoint: (id: string) => void }
+/** A level as dots, named in words. Never a count (redesign spec 5.7). */
+function Dots({ band }: { band: DensityBand | TestingLevel }) {
+  const level = levelOf(band)
+  return <LevelDots level={level} label={th.map.sheet.level[level - 1]} />
+}
 
-/** The signal for one area: level and age as words and marks, never a count (spec 7.2), always with a care point (spec 7.3). */
-export function SignalSheet({ area, title, open, onClose, pair, onOpenCarePoint }: Props) {
+/** Why a row has no level: one state below the threshold whatever lies under it (redesign spec 5.5), or no file yet. */
+function Without({ area }: { area: PublishedArea }) {
+  return <span className="text-[14px] text-muted">{area.state === 'no_data' ? th.map.state.no_data : th.map.state.below_threshold}</span>
+}
+
+type Props = { area: PublishedArea; open: boolean; onClose: () => void }
+
+/**
+ * A district, or the city, in three rows: confirmed results, symptoms and testing, each as dots or
+ * "ยังไม่ถึงเกณฑ์" (redesign spec 5.7). The marks, the age of a signal and what a signal is not wait
+ * behind ⓘ. A way to care always closes the sheet (v1 spec 7.3).
+ */
+export function SignalSheet({ area, open, onClose }: Props) {
+  const isCity = area.areaId === 'bkk'
   const shown = area.state === 'shown'
-  return (
-    <Sheet open={open} onClose={onClose} title={title}>
-      <div className="flex items-center gap-3">
-        <Swatch area={area} />
-        <div>
-          <h3 className="font-bold">{th.map.state[area.state]}</h3>
-          <p className="text-[13px] text-muted">{th.map.stateHint[area.state]}</p>
-        </div>
-      </div>
+  // A pharmacy is not a place to test (redesign spec 5.1), so it does not count here.
+  const hasPlace = !isCity && CARE_POINTS.some((p) => p.districtId === area.areaId && canTest(p))
+  const rows: { emoji: EmojiName; label: string; value: ReactNode }[] = [
+    { emoji: 'confirmed', label: th.map.sheet.confirmed, value: shown && area.density ? <Dots band={area.density} /> : <span className="text-[14px] text-muted">{th.map.state[area.state]}</span> },
+    { emoji: 'feverish', label: th.map.sheet.symptoms, value: area.symptoms ? <Dots band={area.symptoms} /> : <Without area={area} /> },
+    { emoji: 'check', label: th.map.sheet.testing, value: area.testing ? <Dots band={area.testing} /> : <Without area={area} /> },
+  ]
 
-      {shown && (
-        <div className="mt-4 grid grid-cols-1 gap-4 min-[360px]:grid-cols-[2fr_3fr]">
-          <div>
-            <h3 className="mb-1 text-[13px] font-medium text-muted">{th.map.densityLabel}</h3>
-            <ul className="space-y-1.5">
-              {DENSITIES.map((d) => (
-                <li key={d} className="flex items-center gap-2">
-                  <DotSwatch density={d} />
-                  <Value label={th.map.density[d]} current={area.density === d} />
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="mb-1 text-[13px] font-medium text-muted">{th.map.stepLabel}</h3>
-            <ul className="space-y-1.5">
-              {STEPS.map((s) => (
-                <li key={s} className="flex items-center gap-2">
-                  <EdgeSample step={s} />
-                  <Value label={th.map.step[s]} current={area.step === s} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+  return (
+    // Tall, so a short screen still shows the way to care and 🔔 above the fold (round 4 plan, Task 7).
+    <Sheet open={open} onClose={onClose} title={isCity ? th.map.city : districtLabel(area.areaId)} tall>
+      {area.state === 'suspended' ? (
+        <More
+          summary={
+            <span className="inline-flex items-center gap-1.5 text-[15px]">
+              <Emoji name="pause" />
+              {th.map.sheet.suspended}
+            </span>
+          }
+        >
+          <p>{th.map.stateHint.suspended}</p>
+        </More>
+      ) : (
+        <dl className="divide-y divide-line rounded-md border-2 border-ink">
+          {rows.map(({ emoji, label, value }) => (
+            <div key={label} className="flex min-h-11 items-center justify-between gap-3 px-3 py-2">
+              <dt className="flex items-center gap-2 font-bold">
+                <Emoji name={emoji} />
+                {label}
+              </dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
       )}
 
-      <div className="mt-4 rounded-md border-2 border-ink bg-bg p-3 text-[13px]">
-        <p className="font-semibold">{th.map.legendNotSafe}</p>
-        <p className="text-muted">{th.map.legendWhat}</p>
-        <p className="text-muted">
-          {th.map.weekly} · {th.map.source}
-        </p>
+      <div className="mt-2">
+        <More summary={th.map.sheet.from}>
+          <p className="font-semibold">{th.map.legendNotSafe}</p>
+          <p>{th.map.legendWhat}</p>
+          <p>{th.map.testingNotSafe}</p>
+          <p className="text-muted">
+            {th.map.weekly} · {th.map.source}
+          </p>
+          <h3 className="pt-2 font-bold">{th.map.key}</h3>
+          <p className="font-semibold">{th.map.sheet.shade}</p>
+          <ul className="space-y-1.5">
+            {DENSITIES.map((d, i) => (
+              <li key={d} className="flex items-center gap-2">
+                <ShadeSwatch density={d} />
+                <Value label={th.map.sheet.level[i]} current={shown && area.density === d} />
+              </li>
+            ))}
+          </ul>
+          <p className="pt-1 font-semibold">{th.map.stepLabel}</p>
+          <ul className="space-y-1.5">
+            {STEPS.map((s) => (
+              <li key={s} className="flex items-center gap-2">
+                <EdgeSample step={s} />
+                <Value label={th.map.step[s]} current={shown && area.step === s} />
+              </li>
+            ))}
+          </ul>
+          <p className="pt-1 font-semibold">{th.map.sheet.hatch}</p>
+          <ul className="space-y-1.5">
+            {DENSITIES.map((d, i) => (
+              <li key={d} className="flex items-center gap-2">
+                <HatchSwatch level={d} />
+                <Value label={th.map.sheet.level[i]} current={area.symptoms === d} />
+              </li>
+            ))}
+          </ul>
+          <ul className="grid grid-cols-2 gap-x-3 gap-y-2 pt-2">
+            {/* Keyed as drawn: a district below the threshold has no mark (redesign spec 5.7), so no hatch is taught. */}
+            {QUIET_STATES.map((state) => (
+              <li key={state} className="flex items-center gap-2">
+                <QuietSwatch state={state === 'below_threshold' ? 'no_data' : state} />
+                <span>{th.map.state[state]}</span>
+              </li>
+            ))}
+            {/* The two levels of trust of a care point (redesign spec 5.8): a confirmed place's pin, any other's dot. */}
+            <li className="flex items-center gap-2">
+              <span className="grid w-[34px] shrink-0 place-items-center">
+                <PinMark layer="sti" size={22} />
+              </span>
+              <span>{th.map.keyPins.verified}</span>
+            </li>
+            <li className="col-span-2 flex items-center gap-2">
+              <span className="grid w-[34px] shrink-0 place-items-center">
+                <DotMark layer="sti" size={22} />
+              </span>
+              <span>{th.map.keyPins.unverified}</span>
+            </li>
+          </ul>
+        </More>
       </div>
 
-      <h3 className="mb-2 mt-4 text-[13px] font-medium text-muted">{th.map.pair}</h3>
-      <CarePointRow point={pair} onOpen={() => onOpenCarePoint(pair.id)} />
+      {/* A district without a place to test still leads to its own list, which then begins with its neighbours' places (spec 5.7). */}
+      <Go to={isCity ? '/app/list?find=test' : `/app/list?district=${area.areaId}&find=test`} onClick={onClose} className={`mt-3 ${QUIET_LINK}`}>
+        <Emoji name={hasPlace ? 'testTube' : 'pin'} />
+        {hasPlace ? th.map.sheet.careHere : th.map.sheet.findCare}
+        <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
+      </Go>
+      {/* What the phone saw of the district when it began to follow it: the state and the three rows, as published. */}
+      {!isCity && <FollowButton district={area.areaId} seen={{ state: area.state, density: area.density, symptoms: area.symptoms, testing: area.testing }} />}
 
-      <h3 className="mb-2 mt-4 text-[13px] font-medium text-muted">{th.map.key}</h3>
-      <ul className="grid grid-cols-2 gap-x-3 gap-y-2 text-[13px]">
-        {QUIET_STATES.map((state) => (
-          <li key={state} className="flex items-center gap-2">
-            <QuietSwatch state={state} />
-            <span>{th.map.state[state]}</span>
-          </li>
-        ))}
-        {PIN_KINDS.map((kind) => (
-          <li key={kind} className="flex items-center gap-2">
-            <span className="grid w-[34px] shrink-0 place-items-center">
-              <PinMark kind={kind} size={22} />
-            </span>
-            <span>{th.map.keyPins[kind]}</span>
-          </li>
-        ))}
-      </ul>
-
-      <h3 className="mb-1 mt-4 flex items-center gap-2 text-[13px] font-medium text-muted">
-        {th.map.official} <Chip>{th.common.sample}</Chip>
-      </h3>
-      <dl className="space-y-1 text-[15px]">
-        {OFFICIAL_FIGURES.map((f) => (
-          <div key={f.label}>
-            <dt>
-              {f.label} <span className="text-[13px] text-muted">({f.period})</span>
-            </dt>
-            <dd className="text-muted">{f.value}</dd>
-          </div>
-        ))}
-      </dl>
+      {OFFICIAL.length > 0 && (
+        <>
+          <h3 className="mb-1 mt-4 text-[13px] font-medium text-muted">{th.map.official}</h3>
+          <dl className="space-y-1 text-[15px]">
+            {OFFICIAL.map((f) => (
+              <div key={f.label}>
+                <dt>
+                  {f.label} <span className="text-[13px] text-muted">({f.period})</span>
+                </dt>
+                <dd className="text-muted">
+                  {f.value} ·{' '}
+                  <a href={f.source} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+                    {th.map.officialSource}
+                  </a>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </>
+      )}
     </Sheet>
   )
 }

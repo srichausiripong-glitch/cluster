@@ -1,7 +1,8 @@
 import { X } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
 
-type Props = { open: boolean; onClose: () => void; title: string; children: ReactNode }
+/** `tall` lets a sheet that holds a long list take most of a short screen. */
+type Props = { open: boolean; onClose: () => void; title: string; children: ReactNode; tall?: boolean }
 /** How long after opening a tap on the veil is taken for the end of a double tap. */
 const GUARD_MS = 300
 
@@ -13,7 +14,7 @@ const GUARD_MS = 300
  * except in the instant after the sheet opened: that tap is the second half of a double tap on
  * whatever opened the sheet, not a wish to close it.
  */
-export function Sheet({ open, onClose, title, children }: Props) {
+export function Sheet({ open, onClose, title, children, tall = false }: Props) {
   const closeButton = useRef<HTMLButtonElement>(null)
   const openedAt = useRef(0)
   const close = useRef(onClose)
@@ -50,7 +51,7 @@ export function Sheet({ open, onClose, title, children }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="sheet-in relative z-10 max-h-[56dvh] w-full overflow-y-auto rounded-t-lg border-t-[2.5px] border-ink bg-surface px-4 pb-6 pt-2"
+        className={`sheet-in relative z-10 ${tall ? 'max-h-[85dvh]' : 'max-h-[56dvh]'} w-full overflow-y-auto rounded-t-lg border-t-[2.5px] border-ink bg-surface px-4 pb-6 pt-2`}
       >
         <div className="mx-auto mb-2 h-1.5 w-11 rounded-full bg-ink" aria-hidden="true" />
         <div className="mb-2 flex items-start justify-between gap-3">

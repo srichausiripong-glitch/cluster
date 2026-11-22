@@ -1,6 +1,7 @@
 /** A stand-in for a canvas context: it draws nothing and remembers what it was asked to draw. */
 export interface FakeCtx {
-  calls: { name: string; args: unknown[] }[]
+  /** `at` is what fillStyle, strokeStyle and globalAlpha were when a fill or stroke was asked for. */
+  calls: { name: string; args: unknown[]; at?: { fillStyle: unknown; strokeStyle: unknown; globalAlpha: unknown } }[]
   sets: { prop: string; value: unknown }[]
   ctx: CanvasRenderingContext2D
 }
@@ -17,7 +18,8 @@ export function fakeCtx(): FakeCtx {
         const name = String(prop)
         if (values.has(name)) return values.get(name)
         return (...args: unknown[]) => {
-          calls.push({ name, args })
+          const at = name === 'fill' || name === 'stroke' ? { fillStyle: values.get('fillStyle'), strokeStyle: values.get('strokeStyle'), globalAlpha: values.get('globalAlpha') ?? 1 } : undefined
+          calls.push(at ? { name, args, at } : { name, args })
           return name === 'measureText' ? { width: String(args[0]).length * 6 } : undefined
         }
       },

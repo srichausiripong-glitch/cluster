@@ -1,0 +1,362 @@
+{
+  "bang_bon": [
+    "bang_khae",
+    "bang_khun_thian",
+    "chom_thong",
+    "nong_khaem",
+    "phasi_charoen"
+  ],
+  "bang_kapi": [
+    "bueng_kum",
+    "huai_khwang",
+    "lat_phrao",
+    "prawet",
+    "saphan_sung",
+    "suan_luang",
+    "wang_thonglang"
+  ],
+  "bang_khae": [
+    "bang_bon",
+    "nong_khaem",
+    "phasi_charoen",
+    "taling_chan",
+    "thawi_watthana"
+  ],
+  "bang_khen": [
+    "bueng_kum",
+    "chatuchak",
+    "don_mueang",
+    "khan_na_yao",
+    "khlong_sam_wa",
+    "lak_si",
+    "lat_phrao",
+    "sai_mai"
+  ],
+  "bang_kho_laem": [
+    "khlong_san",
+    "rat_burana",
+    "sathon",
+    "thon_buri",
+    "yan_nawa"
+  ],
+  "bang_khun_thian": [
+    "bang_bon",
+    "chom_thong",
+    "thung_khru"
+  ],
+  "bang_na": [
+    "phra_khanong",
+    "prawet"
+  ],
+  "bang_phlat": [
+    "bang_sue",
+    "bangkok_noi",
+    "dusit",
+    "phra_nakhon",
+    "taling_chan"
+  ],
+  "bang_rak": [
+    "khlong_san",
+    "pathum_wan",
+    "pom_prap_sattru_phai",
+    "samphanthawong",
+    "sathon"
+  ],
+  "bang_sue": [
+    "bang_phlat",
+    "chatuchak",
+    "dusit",
+    "lak_si",
+    "phaya_thai"
+  ],
+  "bangkok_noi": [
+    "bang_phlat",
+    "bangkok_yai",
+    "phasi_charoen",
+    "phra_nakhon",
+    "taling_chan"
+  ],
+  "bangkok_yai": [
+    "bangkok_noi",
+    "phasi_charoen",
+    "phra_nakhon",
+    "taling_chan",
+    "thon_buri"
+  ],
+  "bueng_kum": [
+    "bang_kapi",
+    "bang_khen",
+    "khan_na_yao",
+    "lat_phrao",
+    "saphan_sung"
+  ],
+  "chatuchak": [
+    "bang_khen",
+    "bang_sue",
+    "din_daeng",
+    "huai_khwang",
+    "lak_si",
+    "lat_phrao",
+    "phaya_thai"
+  ],
+  "chom_thong": [
+    "bang_bon",
+    "bang_khun_thian",
+    "phasi_charoen",
+    "rat_burana",
+    "thon_buri",
+    "thung_khru"
+  ],
+  "din_daeng": [
+    "chatuchak",
+    "huai_khwang",
+    "phaya_thai",
+    "ratchathewi"
+  ],
+  "don_mueang": [
+    "bang_khen",
+    "lak_si",
+    "sai_mai"
+  ],
+  "dusit": [
+    "bang_phlat",
+    "bang_sue",
+    "pathum_wan",
+    "phaya_thai",
+    "phra_nakhon",
+    "pom_prap_sattru_phai",
+    "ratchathewi"
+  ],
+  "huai_khwang": [
+    "bang_kapi",
+    "chatuchak",
+    "din_daeng",
+    "lat_phrao",
+    "ratchathewi",
+    "suan_luang",
+    "wang_thonglang",
+    "watthana"
+  ],
+  "khan_na_yao": [
+    "bang_khen",
+    "bueng_kum",
+    "khlong_sam_wa",
+    "min_buri",
+    "saphan_sung"
+  ],
+  "khlong_sam_wa": [
+    "bang_khen",
+    "khan_na_yao",
+    "min_buri",
+    "nong_chok",
+    "sai_mai"
+  ],
+  "khlong_san": [
+    "bang_kho_laem",
+    "bang_rak",
+    "phra_nakhon",
+    "samphanthawong",
+    "sathon",
+    "thon_buri"
+  ],
+  "khlong_toei": [
+    "pathum_wan",
+    "phra_khanong",
+    "sathon",
+    "watthana",
+    "yan_nawa"
+  ],
+  "lak_si": [
+    "bang_khen",
+    "bang_sue",
+    "chatuchak",
+    "don_mueang"
+  ],
+  "lat_krabang": [
+    "min_buri",
+    "nong_chok",
+    "prawet",
+    "saphan_sung"
+  ],
+  "lat_phrao": [
+    "bang_kapi",
+    "bang_khen",
+    "bueng_kum",
+    "chatuchak",
+    "huai_khwang",
+    "wang_thonglang"
+  ],
+  "min_buri": [
+    "khan_na_yao",
+    "khlong_sam_wa",
+    "lat_krabang",
+    "nong_chok",
+    "saphan_sung"
+  ],
+  "nong_chok": [
+    "khlong_sam_wa",
+    "lat_krabang",
+    "min_buri"
+  ],
+  "nong_khaem": [
+    "bang_bon",
+    "bang_khae",
+    "thawi_watthana"
+  ],
+  "pathum_wan": [
+    "bang_rak",
+    "dusit",
+    "khlong_toei",
+    "pom_prap_sattru_phai",
+    "ratchathewi",
+    "samphanthawong",
+    "sathon",
+    "watthana"
+  ],
+  "phasi_charoen": [
+    "bang_bon",
+    "bang_khae",
+    "bangkok_noi",
+    "bangkok_yai",
+    "chom_thong",
+    "taling_chan",
+    "thon_buri"
+  ],
+  "phaya_thai": [
+    "bang_sue",
+    "chatuchak",
+    "din_daeng",
+    "dusit",
+    "ratchathewi"
+  ],
+  "phra_khanong": [
+    "bang_na",
+    "khlong_toei",
+    "prawet",
+    "suan_luang",
+    "watthana"
+  ],
+  "phra_nakhon": [
+    "bang_phlat",
+    "bangkok_noi",
+    "bangkok_yai",
+    "dusit",
+    "khlong_san",
+    "pom_prap_sattru_phai",
+    "samphanthawong",
+    "thon_buri"
+  ],
+  "pom_prap_sattru_phai": [
+    "bang_rak",
+    "dusit",
+    "pathum_wan",
+    "phra_nakhon",
+    "samphanthawong"
+  ],
+  "prawet": [
+    "bang_kapi",
+    "bang_na",
+    "lat_krabang",
+    "phra_khanong",
+    "saphan_sung",
+    "suan_luang"
+  ],
+  "rat_burana": [
+    "bang_kho_laem",
+    "chom_thong",
+    "thon_buri",
+    "thung_khru",
+    "yan_nawa"
+  ],
+  "ratchathewi": [
+    "din_daeng",
+    "dusit",
+    "huai_khwang",
+    "pathum_wan",
+    "phaya_thai",
+    "watthana"
+  ],
+  "sai_mai": [
+    "bang_khen",
+    "don_mueang",
+    "khlong_sam_wa"
+  ],
+  "samphanthawong": [
+    "bang_rak",
+    "khlong_san",
+    "pathum_wan",
+    "phra_nakhon",
+    "pom_prap_sattru_phai"
+  ],
+  "saphan_sung": [
+    "bang_kapi",
+    "bueng_kum",
+    "khan_na_yao",
+    "lat_krabang",
+    "min_buri",
+    "prawet",
+    "suan_luang"
+  ],
+  "sathon": [
+    "bang_kho_laem",
+    "bang_rak",
+    "khlong_san",
+    "khlong_toei",
+    "pathum_wan",
+    "yan_nawa"
+  ],
+  "suan_luang": [
+    "bang_kapi",
+    "huai_khwang",
+    "phra_khanong",
+    "prawet",
+    "saphan_sung",
+    "watthana"
+  ],
+  "taling_chan": [
+    "bang_khae",
+    "bang_phlat",
+    "bangkok_noi",
+    "bangkok_yai",
+    "phasi_charoen",
+    "thawi_watthana"
+  ],
+  "thawi_watthana": [
+    "bang_khae",
+    "nong_khaem",
+    "taling_chan"
+  ],
+  "thon_buri": [
+    "bang_kho_laem",
+    "bangkok_yai",
+    "chom_thong",
+    "khlong_san",
+    "phasi_charoen",
+    "phra_nakhon",
+    "rat_burana"
+  ],
+  "thung_khru": [
+    "bang_khun_thian",
+    "chom_thong",
+    "rat_burana"
+  ],
+  "wang_thonglang": [
+    "bang_kapi",
+    "huai_khwang",
+    "lat_phrao"
+  ],
+  "watthana": [
+    "huai_khwang",
+    "khlong_toei",
+    "pathum_wan",
+    "phra_khanong",
+    "ratchathewi",
+    "suan_luang"
+  ],
+  "yan_nawa": [
+    "bang_kho_laem",
+    "khlong_toei",
+    "rat_burana",
+    "sathon"
+  ]
+}

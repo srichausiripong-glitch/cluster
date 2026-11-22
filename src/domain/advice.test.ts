@@ -24,12 +24,12 @@ it('tells every recipient of a 72-hour link to go today, whether or not a diseas
   }
   expect(adviceFor(null, 2, 'w4').urgent).toBe(false)
 })
-it('does not point at a code when the link carried none', () => {
-  expect(adviceFor(null, 2, 'w4', false).steps.join(' ')).not.toContain('รหัส')
-  expect(adviceFor(null, 2, 'w4', true).steps.join(' ')).toContain('รหัส')
+it('asks for a full set of tests when the link names no disease, and never points at a code', () => {
+  expect(adviceFor(null, 2, 'w4').steps.join(' ')).toContain('ครบชุด')
+  expect(adviceFor(null, 2, 'w4').steps.join(' ')).not.toContain('รหัส')
 })
 it('uses the blood-test advice for a syphilis contact older than three months', () => {
   const steps = adviceFor('syphilis', 1, 'older').steps.join(' ')
   expect(steps).not.toContain('แม้ผลเลือดปกติ')
-  expect(steps).toContain('12 สัปดาห์')
+  expect(steps).toContain('เจาะเลือดตรวจซิฟิลิสตอนนี้')
 })

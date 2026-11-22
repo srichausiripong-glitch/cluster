@@ -3,7 +3,8 @@
 // outlines of Bangkok's districts from the Overpass API. Run: npm run map:fetch
 import { existsSync } from 'node:fs'
 import { copyFile, mkdir, writeFile } from 'node:fs/promises'
-import { CARE_POINTS } from '../../src/store/seed.ts'
+// The made-up points of the tests: the clearance check keeps them away from real clinics and hospitals.
+import { FIXTURE_POINTS as CARE_POINTS } from '../../src/test/carePoints.ts'
 import { idOf, SETS, tileAt, type TileId } from './sets.ts'
 
 const CACHE = new URL('./.cache/', import.meta.url)

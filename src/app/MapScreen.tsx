@@ -1,64 +1,78 @@
 import { ChevronRight, Waves } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { th } from '../copy/th'
 import { PRESS } from '../design/look'
-import { ZONES } from '../map/areas'
 import type { Level } from '../map/geo'
-import { PinMark } from '../map/legend'
+import { useAreas } from '../map/published'
 import { RealMap } from '../map/RealMap'
-import { usePartyStore } from '../store/partyStore'
-import { CARE_POINTS, orderedCarePoints, PHASE2_AREAS } from '../store/seed'
-import { demo } from '../store/stores'
-import { zoneName } from './CarePointRow'
+import { CARE_POINTS } from '../data/carePoints'
+import { usePharmacies } from '../data/pharmacies'
+import type { CareLayer } from '../domain/types'
+import { districtName } from '../domain/districts'
 import { CarePointSheet } from './CarePointSheet'
-import { SendSignalLink } from './SendSignalLink'
+import { useGo } from './Go'
 import { SignalSheet } from './SignalSheet'
-import { carePointFor, useCity } from './useCity'
+import { StatusCard } from './StatusCard'
+import { LayerChips } from './LayerChips'
+import { layersOn, toggleLayer } from '../store/actions'
+import { usePartyStore } from '../store/partyStore'
+import { phone } from '../store/stores'
 
 export function MapScreen() {
-  const city = useCity()
-  const { phase } = usePartyStore(demo)
-  const [showCare, setShowCare] = useState(true)
-  const [showSignal, setShowSignal] = useState(true)
+  const { districts, city, byId } = useAreas()
+  const stored = usePartyStore(phone)
+  const on = layersOn(stored)
+  const location = useLocation()
+  const go = useGo()
   const [areaId, setAreaId] = useState<string | null>(null)
   const [pointId, setPointId] = useState<string | null>(null)
-  const [seen, setSeen] = useState<{ level: Level; zoneId: string | null }>({ level: 'city', zoneId: null })
+  const [seen, setSeen] = useState<{ level: Level; areaId: string | null }>({ level: 'city', areaId: null })
+  const { sti, health_centre, hospital, pharmacy } = on
+  const pharmacies = usePharmacies(pharmacy)
+  const atCity = seen.level === 'city'
+  // The places on the map, kept between renders so the map groups them again only when they change.
+  // None at city level: the whole city reads as its districts only, and places show one level in
+  // (owner, 18 Nov 2026: the numbered groups made the city too busy). "หาที่ตรวจ" and the list still find them.
+  const points = useMemo(() => {
+    if (atCity) return []
+    const shown: Record<CareLayer, boolean> = { sti, health_centre, hospital, pharmacy }
+    return [...CARE_POINTS, ...pharmacies.points].filter((p) => shown[p.layer])
+  }, [sti, health_centre, hospital, pharmacy, atCity, pharmacies.points])
+  const anyCare = sti || health_centre || hospital || pharmacy
 
-  const areas = phase === 2 ? PHASE2_AREAS : [city]
-  const selected = areaId === null ? null : areaId === 'bkk' ? city : (PHASE2_AREAS.find((a) => a.areaId === areaId) ?? city)
-  const selectedZone = areaId && areaId !== 'bkk' ? ZONES.find((z) => z.id === areaId) : undefined
-  const selectedTitle = selectedZone ? th.map.signalTitleOf.replace('{zone}', selectedZone.name) : th.map.signalTitle
-  // In the phase 2 preview, below city level, the state box speaks for the zone in the middle of the map.
-  const zoneInView = phase === 2 && seen.level !== 'city' ? ZONES.find((z) => z.id === seen.zoneId) : undefined
-  const place = zoneInView
-    ? { id: zoneInView.id, name: zoneInView.name, state: PHASE2_AREAS.find((a) => a.areaId === zoneInView.id)?.state ?? ('no_data' as const) }
+  // Opened from the weekly notification (/app#follow): the followed district's sheet, from this phone's own store (redesign spec 5.11).
+  const openId = areaId ?? (location.hash === '#follow' ? (stored.follow ?? null) : null)
+  const selected = openId === null ? null : byId(openId)
+  const closeArea = () => {
+    setAreaId(null)
+    if (location.hash) go('/app')
+  }
+  // Below city level, the state box speaks for the district in the middle of the map.
+  const inView = seen.level !== 'city' && seen.areaId ? seen.areaId : null
+  const place = inView
+    ? { id: inView, name: districtName(inView), state: byId(inView).state }
     : { id: 'bkk', name: 'กรุงเทพฯ', state: city.state }
-  const first = orderedCarePoints()[0]
-  const toggle = `min-h-9 rounded-full border-2 border-ink px-3 text-[13px] font-bold ${PRESS}`
 
   return (
     <div className="relative h-full overflow-hidden">
       <RealMap
-        areas={areas}
+        areas={districts}
         cityState={city.state}
-        carePoints={showCare ? CARE_POINTS : []}
-        phase={phase}
-        showSignal={showSignal}
-        selectedArea={areaId}
+        carePoints={points}
+        phase={2}
+        showSignal={on.confirmed}
+        showSymptoms={on.symptoms}
+        selectedArea={openId}
         selectedPoint={pointId}
         onSelectArea={setAreaId}
         onSelectCarePoint={setPointId}
         onView={setSeen}
+        note={pharmacy && pharmacies.failed ? th.care.pharmaciesFailed : atCity && anyCare ? th.map.careZoom : undefined}
       />
 
-      <div className="absolute inset-x-3 top-3 flex flex-wrap items-center gap-2">
-        <button type="button" aria-pressed={showCare} onClick={() => setShowCare((v) => !v)} className={`${toggle} ${showCare ? 'bg-care text-ink' : 'bg-surface text-muted'}`}>
-          {th.map.layers.care}
-        </button>
-        <button type="button" aria-pressed={showSignal} onClick={() => setShowSignal((v) => !v)} className={`${toggle} ${showSignal ? 'bg-signal text-white' : 'bg-surface text-muted'}`}>
-          {th.map.layers.signal}
-        </button>
-        {phase === 2 && <span className="rounded-full border-2 border-ink bg-surface px-3 py-1 text-[12px] font-bold text-ink">{th.map.phase2}</span>}
+      <div className="absolute inset-x-0 top-3">
+        <LayerChips on={on} onToggle={toggleLayer} />
       </div>
 
       <button
@@ -74,32 +88,16 @@ export function MapScreen() {
         <ChevronRight size={16} strokeWidth={2.25} className="shrink-0" aria-hidden="true" />
       </button>
 
-      <SendSignalLink className="absolute bottom-[5.25rem] right-3" />
+      {/* The credit keeps its own line right above the status card, which floats over the map (owner's design A). */}
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex flex-col items-start gap-1">
+        <p className="max-w-full rounded-md bg-bg/85 px-1.5 text-[9.5px] leading-4 text-muted">{th.map.credit}</p>
+        <div className="pointer-events-auto w-full">
+          <StatusCard />
+        </div>
+      </div>
 
-      <button type="button" onClick={() => setPointId(first.id)} className={`absolute inset-x-3 bottom-3 flex min-h-16 items-center gap-3 box px-3 text-left ${PRESS}`}>
-        <PinMark kind={first.kind} />
-        <span className="min-w-0 flex-1">
-          <span className="block text-[12px] text-muted">{th.map.nearest}</span>
-          <span className="block truncate font-semibold">{first.name}</span>
-          <span className="block truncate text-[12px] text-muted">{zoneName(first.zoneId)}</span>
-        </span>
-        <ChevronRight size={20} strokeWidth={1.75} className="shrink-0 text-muted" aria-hidden="true" />
-      </button>
-
-      {selected && areaId && (
-        <SignalSheet
-          area={selected}
-          title={selectedTitle}
-          open
-          onClose={() => setAreaId(null)}
-          pair={carePointFor(areaId)}
-          onOpenCarePoint={(id) => {
-            setAreaId(null)
-            setPointId(id)
-          }}
-        />
-      )}
-      <CarePointSheet point={CARE_POINTS.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
+      {selected && <SignalSheet area={selected} open onClose={closeArea} />}
+      <CarePointSheet point={points.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
     </div>
   )
 }

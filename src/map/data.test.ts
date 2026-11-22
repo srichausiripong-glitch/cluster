@@ -1,8 +1,9 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { expect, it } from 'vitest'
-import { pointInRings } from '../../scripts/map/geometry.ts'
-import { CARE_POINTS, ZONE_IDS } from '../store/seed'
-import zones from './data/zones.json'
+import { DISTRICT_IDS, districtName } from '../domain/districts'
+import { areaAt, AREAS } from './areas'
+import { toXY } from './geo'
+import { FIXTURE_POINTS as CARE_POINTS } from '../test/carePoints'
 import type { CityData, LabelKind, Manifest, TileData } from './types'
 
 // Paths are from the project root: under Vitest's jsdom environment import.meta.url is not a file URL.
@@ -24,10 +25,20 @@ it('carries the credit line and lists only files that exist', () => {
   expect(manifest.street).toHaveLength(3)
   for (const ref of [...manifest.district, ...manifest.street]) expect(statSync(dir + ref.file).size).toBeGreaterThan(1000)
 })
-it('has six zones made of all fifty districts', () => {
-  expect(zones.map((z) => z.id).sort()).toEqual([...ZONE_IDS].sort())
-  expect(zones.map((z) => z.name).sort()).toEqual(['กรุงธนเหนือ', 'กรุงธนใต้', 'กรุงเทพกลาง', 'กรุงเทพตะวันออก', 'กรุงเทพเหนือ', 'กรุงเทพใต้'].sort())
-  expect(city.districts).toHaveLength(50)
+it('lists all fifty districts, by id, in the city file', () => {
+  expect(city.districts.map((d) => d.id).sort()).toEqual([...DISTRICT_IDS].sort())
+})
+it('carries one shape for each of the 50 districts', () => {
+  expect(AREAS.map((a) => a.id).sort()).toEqual([...DISTRICT_IDS].sort())
+  for (const a of AREAS) {
+    expect(a.rings.length, a.id).toBeGreaterThan(0)
+    expect(a.name).toBe(districtName(a.id))
+  }
+})
+it('finds the district under a point, and none outside the city', () => {
+  expect(areaAt(toXY(13.7275, 100.5325))?.id).toBe('bang_rak')
+  expect(areaAt(toXY(13.835, 100.565))?.id).toBe('chatuchak')
+  expect(areaAt(toXY(13.0, 100.0))).toBeUndefined()
 })
 it('labels only streets, lanes, stations, parks, water, districts, towns, public offices and places of worship', () => {
   const tiles = [...manifest.district, ...manifest.street].map((ref) => read<TileData>(ref.file))
@@ -43,14 +54,14 @@ it('has street-level and district-level map round the four care points of the pi
   for (const id of ['cp1', 'cp2', 'cp4', 'cp5']) expect(manifest.street.some((ref) => inBox(at(id), ref.box)), id).toBe(true)
   for (const id of ['cp1', 'cp2', 'cp4', 'cp5']) expect(manifest.district.some((ref) => inBox(at(id), ref.box)), id).toBe(true)
 })
-it('adds no map library: the app still runs on the same six packages', () => {
+it('adds no map library: the app runs on its own six packages plus the database driver', () => {
   const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
-  expect(Object.keys(pkg.dependencies).sort()).toEqual(['@fontsource-variable/anuphan', 'lucide-react', 'qrcode.react', 'react', 'react-dom', 'react-router-dom'])
+  expect(Object.keys(pkg.dependencies).sort()).toEqual(['@fontsource-variable/anuphan', '@neondatabase/serverless', 'lucide-react', 'react', 'react-dom', 'react-router-dom'])
 })
-it('keeps every example care point inside its zone and at least 60 m from a real clinic or hospital', () => {
+it('keeps every example care point inside a district and at least 60 m from a real clinic or hospital', () => {
   for (const p of CARE_POINTS) {
     expect(p.name.endsWith('ตัวอย่าง'), p.id).toBe(true)
-    expect(pointInRings(xy(p.lat, p.lon), zones.find((z) => z.id === p.zoneId)!.rings), `${p.id} in ${p.zoneId}`).toBe(true)
+    expect(areaAt(toXY(p.lat, p.lon)), p.id).toBeDefined()
     expect(manifest.clearance[p.id], p.id).toBeGreaterThanOrEqual(60)
   }
 })

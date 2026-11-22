@@ -1,30 +1,28 @@
 import { Check as Tick } from 'lucide-react'
-import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { th } from '../copy/th'
 import { buildLink } from '../domain/link'
 import { composeNotice } from '../domain/notify'
 import type { DiseaseGroup, ExposureBand } from '../domain/types'
 import { ALERT, NOTE, PRESS, PRIMARY_LINK, TEXT_LINK } from '../design/look'
 import { Button } from '../design/primitives/Button'
-import { createSlip, currentWeek } from '../store/actions'
-import { useEmbedTo } from './embed'
+import { currentWeek } from '../store/actions'
 import { Check, Choice, FlowHeader } from './FlowHeader'
+import { Go } from './Go'
 
 const GROUPS: DiseaseGroup[] = ['gono_chlam', 'syphilis', 'mpox', 'hiv']
 const BANDS: ExposureBand[] = ['h72', 'w2', 'w4', 'm3', 'older']
 type View = 'safety' | 'channel' | 'link' | 'slip' | 'later'
 
 /** The report step hands over the group in router state, so no disease name reaches the address bar or a server log. */
-function fromReport(state: unknown): { group: DiseaseGroup | null; hasClinicCode: boolean } {
-  const s = (state ?? {}) as { group?: unknown; hasClinicCode?: unknown }
+function fromReport(state: unknown): { group: DiseaseGroup | null; hasLabResult: boolean } {
+  const s = (state ?? {}) as { group?: unknown; hasLabResult?: unknown }
   const group = GROUPS.find((g) => g === s.group) ?? null
-  return { group, hasClinicCode: group !== null && s.hasClinicCode === true }
+  return { group, hasLabResult: group !== null && s.hasLabResult === true }
 }
 
 export function NotifyFlow() {
-  const to = useEmbedTo()
   const handed = fromReport(useLocation().state)
   const [group, setGroup] = useState<DiseaseGroup | null>(handed.group)
   const [view, setView] = useState<View>('safety')
@@ -33,7 +31,6 @@ export function NotifyFlow() {
   const [nameDisease, setNameDisease] = useState(false)
   const [link, setLink] = useState<string | null>(null)
   const [copied, setCopied] = useState<'no' | 'done' | 'failed'>('no')
-  const [slip, setSlip] = useState<string | null>(null)
   const linkCard = useRef<HTMLDivElement>(null)
   const linkField = useRef<HTMLInputElement>(null)
   const copyButton = useRef<HTMLButtonElement>(null)
@@ -52,7 +49,7 @@ export function NotifyFlow() {
 
   const makeLink = () => {
     if (!group || !band) return
-    const notice = composeNotice({ group, hasClinicCode: handed.hasClinicCode, nameDisease: named, band, week: currentWeek() })
+    const notice = composeNotice({ group, hasLabResult: handed.hasLabResult, nameDisease: named, band, week: currentWeek() })
     setLink(buildLink(window.location.origin, notice))
     setCopied('no')
   }
@@ -68,12 +65,12 @@ export function NotifyFlow() {
       linkField.current?.select()
     }
   }
-  const recipientPath = link ? to('/r') + link.slice(link.indexOf('#')) : ''
+  const recipientPath = link ? '/r' + link.slice(link.indexOf('#')) : ''
   const note = `${NOTE} p-3 text-[13px] text-muted`
 
   return (
     <main className="p-4">
-      <FlowHeader title={th.notify.title} backTo={to('/app')} onBack={back} />
+      <FlowHeader title={th.notify.title} backTo={'/app'} onBack={back} />
 
       {!group && (
         <section className="space-y-2">
@@ -96,9 +93,9 @@ export function NotifyFlow() {
       {group && view === 'later' && (
         <section className="step-in space-y-3">
           <p className="box p-4">{th.notify.laterDone}</p>
-          <Link to={to('/app')} className={PRIMARY_LINK}>
+          <Go to={'/app'} className={PRIMARY_LINK}>
             {th.report.backToMap}
-          </Link>
+          </Go>
         </section>
       )}
 
@@ -182,9 +179,10 @@ export function NotifyFlow() {
                 <Button ref={copyButton} variant="secondary" onClick={() => void copyLink()}>
                   {copied === 'done' ? th.common.copied : th.notify.copyLink}
                 </Button>
-                <Link to={recipientPath} className={`inline-flex min-h-11 items-center px-2 ${TEXT_LINK}`}>
+                {/* A new tab, so the link just made stays here when the preview is closed. */}
+                <a href={recipientPath} target="_blank" rel="noreferrer" className={`inline-flex min-h-11 items-center px-2 ${TEXT_LINK}`}>
                   {th.notify.openRecipient}
-                </Link>
+                </a>
               </div>
             </div>
           )}
@@ -197,20 +195,10 @@ export function NotifyFlow() {
             <p>{th.notify.clinicWho}</p>
             <p className="mt-1">{th.notify.truthClinic}</p>
           </div>
-          {!slip ? (
-            <Button size="lg" className="w-full" onClick={() => setSlip(createSlip())}>
-              {th.notify.makeSlip}
-            </Button>
-          ) : (
-            <div className="box p-5 text-center">
-              <h2 className="font-bold">{th.notify.slipTitle}</h2>
-              <div className="mx-auto my-4 w-fit rounded-md border-2 border-ink bg-white p-3">
-                <QRCodeSVG value={slip} size={148} fgColor="#1e1f1c" />
-              </div>
-              <p className="text-[32px] font-bold tracking-[0.2em]">{slip}</p>
-              <p className="mt-3 text-left text-[13px] text-muted">{th.notify.slipBody}</p>
-            </div>
-          )}
+          <p className="box p-4">{th.notify.clinicAdvice}</p>
+          <Go to="/app/list" className={PRIMARY_LINK}>
+            {th.common.openList}
+          </Go>
         </section>
       )}
     </main>

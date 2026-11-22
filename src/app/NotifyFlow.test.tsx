@@ -11,7 +11,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
-const open = (state?: { group: DiseaseGroup; hasClinicCode: boolean }) =>
+const open = (state?: { group: DiseaseGroup; hasLabResult: boolean }) =>
   render(
     <MemoryRouter initialEntries={[{ pathname: '/app/notify', state }]}>
       <App />
@@ -24,7 +24,7 @@ const toLinkForm = async (user: UserEvent) => {
 }
 
 it('takes the disease group from the report step without a query string', () => {
-  open({ group: 'syphilis', hasClinicCode: true })
+  open({ group: 'syphilis', hasLabResult: true })
   expect(screen.getByText(th.notify.safetyQ)).toBeInTheDocument()
   expect(screen.queryByText(th.report.askGroup)).toBeNull()
 })
@@ -34,7 +34,7 @@ it('asks for the group when opened on its own', () => {
 })
 it('does not threaten on the safety question, and warns truthfully on each way of telling', async () => {
   const user = userEvent.setup()
-  open({ group: 'syphilis', hasClinicCode: true })
+  open({ group: 'syphilis', hasLabResult: true })
   expect(screen.queryByText(/ศาล/)).toBeNull()
   await toLinkForm(user)
   expect(screen.getByText(th.notify.truthLink)).toBeInTheDocument()
@@ -44,7 +44,7 @@ it('does not threaten on the safety question, and warns truthfully on each way o
 })
 it('preselects no time, will not make a link until one is chosen, and offers "older or not sure"', async () => {
   const user = userEvent.setup()
-  open({ group: 'syphilis', hasClinicCode: true })
+  open({ group: 'syphilis', hasLabResult: true })
   await toLinkForm(user)
   const radios = screen.getAllByRole('radio') as HTMLInputElement[]
   expect(radios).toHaveLength(5)
@@ -56,7 +56,7 @@ it('preselects no time, will not make a link until one is chosen, and offers "ol
 })
 it('tells the sender what the recipient will see, including the same-day advice for 72 hours', async () => {
   const user = userEvent.setup()
-  open({ group: 'syphilis', hasClinicCode: true })
+  open({ group: 'syphilis', hasLabResult: true })
   await toLinkForm(user)
   expect(screen.getByText(th.notify.seeUnnamed, { exact: false })).toBeInTheDocument()
   expect(screen.queryByText(th.notify.seeUrgent, { exact: false })).toBeNull()
@@ -67,14 +67,14 @@ it('tells the sender what the recipient will see, including the same-day advice 
 })
 it('gives a way out after postponing or skipping', async () => {
   const user = userEvent.setup()
-  open({ group: 'syphilis', hasClinicCode: true })
+  open({ group: 'syphilis', hasLabResult: true })
   await user.click(screen.getByRole('button', { name: th.notify.safeLater }))
   expect(screen.getByText(th.notify.laterDone)).toBeInTheDocument()
   expect(screen.getByRole('link', { name: th.report.backToMap })).toHaveAttribute('href', '/app')
 })
 it('builds a 72-hour HIV link that names no disease by default', async () => {
   const user = userEvent.setup()
-  open({ group: 'hiv', hasClinicCode: false })
+  open({ group: 'hiv', hasLabResult: false })
   await toLinkForm(user)
   await user.click(screen.getByRole('radio', { name: th.notify.bands.h72 }))
   await user.click(screen.getByRole('button', { name: th.notify.makeLink }))
@@ -85,7 +85,7 @@ it('builds a 72-hour HIV link that names no disease by default', async () => {
 
 // ---- found by the use walk-through ---------------------------------------------------------------
 const makeLink = async (user: UserEvent) => {
-  open({ group: 'syphilis', hasClinicCode: true })
+  open({ group: 'syphilis', hasLabResult: true })
   await toLinkForm(user)
   await user.click(screen.getByLabelText(th.notify.bands.w2))
   await user.click(screen.getByRole('button', { name: th.notify.makeLink }))
@@ -130,5 +130,35 @@ it('can be opened again from the self-care screen, as the "later" answer promise
       <App />
     </MemoryRouter>,
   )
-  expect(screen.getByRole('link', { name: th.report.goNotify })).toHaveAttribute('href', '/app/notify')
+  expect(screen.getByRole('link', { name: th.report.tell })).toHaveAttribute('href', '/app/notify')
+})
+it('turns "let a clinic tell them" into advice and the list of care points, with no slip and no QR code', async () => {
+  const user = userEvent.setup()
+  open({ group: 'syphilis', hasLabResult: true })
+  await user.click(screen.getByRole('button', { name: th.notify.safeClinic }))
+  expect(screen.getByText(th.notify.clinicAdvice)).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: th.common.openList })).toHaveAttribute('href', '/app/list')
+  expect(document.querySelector('svg[role="img"], canvas')).toBeNull()
+  expect(document.body.textContent).not.toMatch(/ใบนำ|รหัส/)
+})
+it('opens the page of the recipient in a new tab, so the link just made is not lost', async () => {
+  const user = userEvent.setup()
+  Element.prototype.scrollIntoView = () => {}
+  await makeLink(user)
+  const preview = screen.getByRole('link', { name: th.notify.openRecipient })
+  expect(preview).toHaveAttribute('target', '_blank')
+  expect(preview).toHaveAttribute('rel', 'noreferrer')
+})
+it('puts a sender who has a lab result in tier 1 and anyone else in tier 2', async () => {
+  for (const [hasLabResult, tier] of [[true, 1], [false, 2]] as const) {
+    const user = userEvent.setup()
+    Element.prototype.scrollIntoView = () => {}
+    const view = open({ group: 'syphilis', hasLabResult })
+    await toLinkForm(user)
+    await user.click(screen.getByLabelText(th.notify.bands.w2))
+    await user.click(screen.getByRole('button', { name: th.notify.makeLink }))
+    const link = (screen.getByLabelText(th.notify.linkLabel) as HTMLInputElement).value
+    expect(decodeNotice(link.slice(link.indexOf('#')))?.tier).toBe(tier)
+    view.unmount()
+  }
 })
