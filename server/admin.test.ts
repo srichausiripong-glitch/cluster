@@ -92,7 +92,7 @@ it('closes and opens intake, and gives totals only, never one envelope', async (
   expect((await db.query<{ value: string }>("select value from settings where name = 'intake'"))[0].value).toBe('closed')
   const state = await (await call({ action: 'state' }, koi)).json()
   expect(state.intakeOpen).toBe(false)
-  expect(Object.keys(state).sort()).toEqual(['envelopes', 'harm', 'held', 'intakeOpen', 'places', 'suspensions'])
+  expect(Object.keys(state).sort()).toEqual(['city', 'districts', 'envelopes', 'followers', 'harm', 'held', 'intakeOpen', 'lastPublished', 'places', 'suspensions', 'week'])
 })
 
 it('suspends a district by id and refuses an old zone id', async () => {
@@ -108,4 +108,31 @@ it('shows corrections to reviewers, newest week first', async () => {
     { week: '2026-W46', place: 'osm-node-2', kind: 'add_phone', value: '021234567', n: 1 },
     { week: '2026-W45', place: 'osm-node-1', kind: 'closed', value: '', n: 2 },
   ])
+})
+
+// The overview (owner, 22 Nov 2026): what the server already keeps, summed. A district is sent only at
+// ten or more, as the map never says whether a district below the threshold had none or a few.
+it('sums the city per week and kind, sends a district only at ten or more, and counts followers', async () => {
+  await db.query(
+    "insert into counts (zone, kind, week, n) values ('bang_rak', 'syphilis', '2026-W46', 12), ('chatuchak', 'syphilis', '2026-W46', 3), ('bang_rak', 'tested', '2026-W45', 4), ('chatuchak', 'tested', '2026-W45', 9)",
+  )
+  await db.query("insert into push_subscriptions (endpoint, created_on) values ('https://push.example/1', '2026-11-01'), ('https://push.example/2', '2026-11-02')")
+  const koi = await login('ก้อย', 'pw-koi')
+  const state = await (await call({ action: 'state' }, koi)).json()
+  expect(state.city).toEqual([
+    { week: '2026-W46', kind: 'syphilis', n: 15 },
+    { week: '2026-W45', kind: 'tested', n: 13 },
+  ])
+  expect(state.districts).toEqual([{ week: '2026-W46', zone: 'bang_rak', kind: 'syphilis', n: 12 }])
+  expect(state.followers).toBe(2)
+  expect(state.week).toMatch(/^\d{4}-W\d{2}$/)
+  expect(JSON.stringify(state)).not.toMatch(/push\.example/)
+})
+it('names the districts the last weekly file showed, and nothing before the first one', async () => {
+  const koi = await login('ก้อย', 'pw-koi')
+  expect((await (await call({ action: 'state' }, koi)).json()).lastPublished).toBeNull()
+  const area = (areaId: string, state: string) => ({ areaId, state, density: null, step: null, testing: null, symptoms: null })
+  const file = { week: '2026-W46', publishedAt: '2026-11-16T20:00:00.000Z', intakeOpen: true, areas: [area('bang_rak', 'shown'), area('chatuchak', 'below_threshold'), area('bkk', 'shown')] }
+  await db.query('insert into published (week, file) values ($1, $2)', ['2026-W46', JSON.stringify(file)])
+  expect((await (await call({ action: 'state' }, koi)).json()).lastPublished).toEqual({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00.000Z', shown: ['bang_rak'] })
 })

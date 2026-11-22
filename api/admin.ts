@@ -25,7 +25,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!reviewer) return new Response(null, { status: 401 })
   switch (body.action) {
     case 'state':
-      return json(await adminState(db))
+      return json(await adminState(db, now))
     case 'intake':
       await setIntake(db, now, reviewer, body.open === true)
       return json({ ok: true })

@@ -6,10 +6,10 @@ import { Card } from '../design/primitives/Card'
 import { CARE_POINTS } from '../data/carePoints'
 import { usePharmacies } from '../data/pharmacies'
 import { DISTRICT_IDS, districtLabel } from '../domain/districts'
+import { Overview, type OverviewData } from './Overview'
 
-interface State {
+interface State extends OverviewData {
   intakeOpen: boolean
-  envelopes: { week: string; n: number }[]
   held: { id: number; zone: string; kind: string; week: string; n: number; status: string; first_reviewer: string | null; first_choice: string | null }[]
   suspensions: { id: number; zone: string; reason: string; started: string; ended: string | null }[]
   harm: { week: string; kind: string; n: number }[]
@@ -84,6 +84,8 @@ export function AdminPage() {
         </Button>
       </header>
       {failed && <p role="alert" className={`px-3 py-2 text-[13px] font-semibold ${ALERT}`}>{failed}</p>}
+
+      <Overview data={state} />
 
       <Card>
         <h2 className="font-bold">{th.admin.intake}</h2>
@@ -206,18 +208,6 @@ export function AdminPage() {
             ))}
           </tbody>
         </table>
-      </section>
-
-      <section aria-label={th.admin.envelopes} className="box p-4">
-        <h2 className="mb-2 font-bold">{th.admin.envelopes}</h2>
-        <ul className="space-y-1 text-[14px]">
-          {state.envelopes.map((e) => (
-            <li key={e.week} className="flex justify-between">
-              <span>{e.week}</span>
-              <span className="font-bold tabular-nums">{e.n}</span>
-            </li>
-          ))}
-        </ul>
       </section>
     </main>
   )
