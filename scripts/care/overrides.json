@@ -180,7 +180,7 @@
   },
   "osm-node-10300758612": {
     "phone": "026826422",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.6743728&longitude=100.545625&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-10572161875": {
     "phone": "0918081540",
@@ -192,7 +192,7 @@
   },
   "osm-node-11269092098": {
     "phone": "021368016",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8579044&longitude=100.6452965&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-11275228405": {
     "phone": "0922463212",
@@ -200,7 +200,7 @@
   },
   "osm-node-11275228409": {
     "phone": "026736224",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.6981214&longitude=100.5382061&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-11278824679": {
     "phone": "0922463254",
@@ -224,15 +224,15 @@
   },
   "osm-node-12430030602": {
     "phone": "022365623",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7303632&longitude=100.5131214&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-12435141506": {
     "phone": "025137696",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8101213&longitude=100.5686396&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-12586875503": {
     "phone": "023815208",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.724518&longitude=100.5793269&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-12623227839": {
     "phone": "0632311794",
@@ -244,11 +244,11 @@
   },
   "osm-node-2072480289": {
     "phone": "029301690",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8283256&longitude=100.5667927&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-2104145400": {
     "phone": "0800708396",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7799797&longitude=100.5453085&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-3234302724": {
     "phone": "0922463522",
@@ -256,7 +256,7 @@
   },
   "osm-node-3354527921": {
     "phone": "023821940",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7214919&longitude=100.5835056&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-4132492350": {
     "phone": "0922463488",
@@ -264,7 +264,7 @@
   },
   "osm-node-4132492351": {
     "phone": "021085839",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7726397&longitude=100.6101066&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-4141894476": {
     "phone": "0922463243",
@@ -272,19 +272,19 @@
   },
   "osm-node-4221178589": {
     "phone": "020636631",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7129678&longitude=100.6007385&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-4589153190": {
     "phone": "023464450",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7207109&longitude=100.7273171&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-4620844193": {
     "phone": "029301690",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.8287494&longitude=100.5682482&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-4665569197": {
     "phone": "026327224",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7281336&longitude=100.5326595&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-5569329721": {
     "phone": "0659984358",
@@ -296,7 +296,7 @@
   },
   "osm-node-6287470185": {
     "phone": "022525101",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7451933&longitude=100.5355462&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-6339281868": {
     "phone": "0922463342",
@@ -304,11 +304,11 @@
   },
   "osm-node-6339281872": {
     "phone": "022450063",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7619145&longitude=100.5370022&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-6609503990": {
     "phone": "025043373",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.9185225&longitude=100.6022917&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-node-8293950989": {
     "phone": "0922254047",
@@ -324,7 +324,7 @@
   },
   "osm-way-1226659212": {
     "phone": "022330571",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7288681&longitude=100.534538&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-way-1241448325": {
     "phone": "0818452825",
@@ -340,7 +340,7 @@
   },
   "osm-way-1516368694": {
     "phone": "022820780",
-    "phoneSource": "https://store.boots.co.th/api/v1/branches/web?locale=th&latitude=13.7585658&longitude=100.498264&filter_type=1&page=1"
+    "phoneSource": "https://store.boots.co.th/"
   },
   "osm-way-1548850264": {
     "phone": "024114024",

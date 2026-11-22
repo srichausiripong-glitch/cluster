@@ -24,8 +24,9 @@ export function isPlaceId(id: unknown): id is string {
 
 /** A Thai number as digits: 9 from 0 for a fixed line, 10 from 06/08/09 for a mobile; anything else is null. */
 export function thaiPhone(raw: unknown): string | null {
-  if (typeof raw !== 'string' || !/^[\d\s-]+$/.test(raw.trim())) return null
-  const digits = raw.replace(/\D/g, '')
+  if (typeof raw !== 'string' || !/^(\+\s*66)?[\d\s-]+$/.test(raw.trim())) return null
+  // "+66 81 …" is how phones write a Thai number: the country code stands for the leading 0.
+  const digits = raw.trim().replace(/^\+\s*66[\s-]*/, '0').replace(/\D/g, '')
   return /^0[689]\d{8}$/.test(digits) || /^0[1-57]\d{7}$/.test(digits) ? digits : null
 }
 

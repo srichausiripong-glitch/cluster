@@ -21,7 +21,7 @@ function platform(over: Partial<PushPlatform> = {}) {
       return sub
     }),
     save: vi.fn(async () => {}),
-    load: vi.fn(async () => ({ district: 'bang_rak', seen: SEEN })),
+    saveNextTest: vi.fn(async () => {}),
     ...over,
   }
   setPushPlatformForTest(p)
@@ -133,13 +133,22 @@ it('asks for permission first, while the press still counts, and sets up nothing
   expect(refused.register).not.toHaveBeenCalled()
   void p
 })
-it('keeps the test date in the service worker\'s state while following, and only then', async () => {
+it('gives the service worker the test date while following, and only then', async () => {
   const p = platform()
   setNextTest('2027-02-20')
   await Promise.resolve()
-  expect(p.save).not.toHaveBeenCalled()
+  expect(p.saveNextTest).not.toHaveBeenCalled()
   await follow('bang_rak', SEEN)
-  expect(p.save).toHaveBeenLastCalledWith({ district: 'bang_rak', seen: SEEN, nextTest: '2027-02-20' })
+  expect(p.save).toHaveBeenLastCalledWith({ district: 'bang_rak', seen: SEEN })
+  expect(p.saveNextTest).toHaveBeenLastCalledWith('2027-02-20')
   setNextTest(null)
-  await vi.waitFor(() => expect(p.save).toHaveBeenLastCalledWith({ district: 'bang_rak', seen: SEEN }))
+  await vi.waitFor(() => expect(p.saveNextTest).toHaveBeenLastCalledWith(null))
+})
+it('passes a date set while already following, and forgets it when following stops', async () => {
+  const p = platform()
+  await follow('bang_rak', SEEN)
+  setNextTest('2027-05-01')
+  await vi.waitFor(() => expect(p.saveNextTest).toHaveBeenLastCalledWith('2027-05-01'))
+  await unfollow()
+  expect(p.saveNextTest).toHaveBeenLastCalledWith(null)
 })

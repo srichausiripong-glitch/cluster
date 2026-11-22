@@ -1,6 +1,6 @@
 import { CalendarPlus } from 'lucide-react'
 import { useState } from 'react'
-import { formatThaiDate } from '../copy/format'
+import { formatThaiDay } from '../copy/format'
 import { th } from '../copy/th'
 import { Emoji } from '../design/Emoji'
 import { SOFT } from '../design/look'
@@ -48,7 +48,7 @@ export function NextTestSheet({ open, onClose }: { open: boolean; onClose: () =>
         <div className="space-y-3">
           <p role="status" className={`flex items-center gap-2 px-3 py-2 font-semibold ${SOFT}`}>
             <Emoji name="alarm" />
-            {th.nextTest.saved.replace('{date}', formatThaiDate(new Date(chosen)))}
+            {th.nextTest.saved.replace('{date}', formatThaiDay(chosen))}
           </p>
           <Button variant="secondary" className="w-full" onClick={() => downloadCalendar(chosen)}>
             <CalendarPlus size={18} strokeWidth={2} aria-hidden="true" />

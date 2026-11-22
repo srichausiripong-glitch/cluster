@@ -94,6 +94,12 @@ function intervals(spans: OpenSpan[]): [number, number][] {
     if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1])
     else merged.push([...r])
   }
+  // Hours that run past Saturday night join those that start the week: they are one stretch.
+  const last = merged[merged.length - 1]
+  if (merged.length > 1 && merged[0][0] <= last[1] - WEEK_MIN) {
+    last[1] = Math.max(last[1], merged[0][1] + WEEK_MIN)
+    merged.shift()
+  }
   return merged
 }
 
@@ -103,6 +109,7 @@ export function openStatus(spans: OpenSpan[] | undefined, now: Date): OpenStatus
   const local = new Date(now.getTime() + 7 * 3600_000)
   const at = local.getUTCDay() * 1440 + local.getUTCHours() * 60 + local.getUTCMinutes()
   const list = intervals(spans)
+  if (!list.length) return null
   if (list.length === 1 && list[0][1] - list[0][0] >= WEEK_MIN) return { open: true, closes: null }
   // An interval that runs past Saturday night also covers the start of the week.
   for (const [start, end] of list) {

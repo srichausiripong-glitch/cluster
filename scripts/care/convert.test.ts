@@ -141,3 +141,15 @@ it('knows every registry place by id, so a correction to it is taken', async () 
   const registry = (await import('../../src/data/care-points.json')).default as { id: string }[]
   expect([...REGISTRY_IDS].sort()).toEqual(registry.map((p) => p.id).sort())
 })
+it('drops the old page of hours an override replaces without naming its own', () => {
+  const base = { kind: 'pharmacy', layer: 'pharmacy', klass: 'B', lat: 13.7, lon: 100.5, address: '', free: false, community: false, source: 'https://www.openstreetmap.org/node/1', fetched: '2026-11-18', verified: null } as const
+  const [p] = applyOverrides([{ ...base, id: 'a', name: 'ก', open: [{ days: [1], from: '08:00', to: '12:00' }], openSource: 'https://www.openstreetmap.org/node/1', openKind: 'office' }], { a: { open: [{ days: [2], from: '09:00', to: '10:00' }] } })
+  expect(p.open).toEqual([{ days: [2], from: '09:00', to: '10:00' }])
+  expect(p.openSource).toBeUndefined()
+})
+// Final review, minor: a "เบอร์จาก" link opens a page a person can read, never a data API.
+it('links every found number to a page a person can read, not a data API', async () => {
+  const overrides = (await import('./overrides.json')).default as Record<string, { phoneSource?: string }>
+  const api = Object.entries(overrides).filter(([, o]) => o.phoneSource && /\/api\//.test(o.phoneSource))
+  expect(api.map(([id]) => id)).toEqual([])
+})

@@ -9,8 +9,7 @@ import { phone } from '../store/stores'
 
 /** What the phone last saw of the followed district: its state and its three rows (the age of a signal never counts). */
 export type Seen = Pick<PublishedArea, 'state' | 'density' | 'symptoms' | 'testing'>
-/** What the service worker reads: the followed district, what was last seen of it, and the test date if one is set. */
-type Saved = { district: string; seen: Seen | null; nextTest?: string }
+type Saved = { district: string; seen: Seen | null }
 type Subscription = { endpoint: string; unsubscribe(): Promise<boolean> }
 
 /** The browser's part, behind one seam so tests can stand in for it. */
@@ -22,7 +21,8 @@ export interface PushPlatform {
   subscription(): Promise<Subscription | null>
   subscribe(key: string): Promise<{ endpoint: string }>
   save(state: Saved | null): Promise<void>
-  load(): Promise<Saved | null>
+  /** The test date for the service worker, under its own key: only the page writes it (decision 5). */
+  saveNextTest(date: string | null): Promise<void>
 }
 
 export type FollowResult = 'following' | 'home-screen' | 'unsupported' | 'denied' | 'failed'
@@ -32,6 +32,7 @@ const API = `${BASE}api/push`
 /** Where the service worker looks: public/sw.js names the same two. */
 const CACHE = 'cluster-follow'
 const STATE = '/follow-state'
+const NEXT_TEST = '/next-test'
 
 const appleTouch = () => /iPhone|iPad|iPod/.test(navigator.userAgent)
 
@@ -59,9 +60,10 @@ export const browserPlatform: PushPlatform = {
     if (state) await cache.put(STATE, new Response(JSON.stringify(state), { headers: { 'content-type': 'application/json' } }))
     else await cache.delete(STATE)
   },
-  async load() {
-    const hit = await (await caches.open(CACHE)).match(STATE)
-    return hit ? ((await hit.json()) as Saved) : null
+  async saveNextTest(date) {
+    const cache = await caches.open(CACHE)
+    if (date) await cache.put(NEXT_TEST, new Response(JSON.stringify({ date }), { headers: { 'content-type': 'application/json' } }))
+    else await cache.delete(NEXT_TEST)
   },
 }
 
@@ -70,12 +72,6 @@ export function setPushPlatformForTest(platform: PushPlatform | null): void {
   override = platform
 }
 const platform = () => override ?? browserPlatform
-
-/** The state for the service worker: the test date goes with it only when one is set. */
-const stateFor = (district: string, seen: Seen | null): Saved => {
-  const nextTest = phone.get().nextTest
-  return nextTest ? { district, seen, nextTest } : { district, seen }
-}
 
 const tell = (method: 'POST' | 'DELETE', endpoint: string) => fetch(API, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ endpoint }) })
 
@@ -87,7 +83,8 @@ export async function follow(district: string, seen: Seen | null): Promise<Follo
   if (support === 'no') return 'unsupported'
   try {
     if (phone.get().follow && (await p.subscription())) {
-      await p.save(stateFor(district, seen))
+      await p.save({ district, seen })
+      await p.saveNextTest(phone.get().nextTest ?? null)
       phone.update((s) => ({ ...s, follow: district }))
       return 'following'
     }
@@ -98,7 +95,8 @@ export async function follow(district: string, seen: Seen | null): Promise<Follo
     if (!key.ok) return 'failed'
     const subscription = await p.subscribe(((await key.json()) as { key: string }).key)
     if (!(await tell('POST', subscription.endpoint)).ok) return 'failed'
-    await p.save(stateFor(district, seen))
+    await p.save({ district, seen })
+    await p.saveNextTest(phone.get().nextTest ?? null)
     phone.update((s) => ({ ...s, follow: district }))
     return 'following'
   } catch {
@@ -116,6 +114,7 @@ export async function unfollow(): Promise<void> {
   })
   try {
     await p.save(null)
+    await p.saveNextTest(null)
   } catch {
     // nothing kept to clear
   }
@@ -130,17 +129,13 @@ export async function unfollow(): Promise<void> {
 }
 
 /**
- * Tells a followed district's service worker the test date, keeping what it last saw (2026-11-18
- * design, decision 1). Nothing happens when no district is followed: nothing then reads it.
+ * Tells a followed district's service worker the test date (2026-11-18 design, decision 1), under its
+ * own key. Nothing happens when no district is followed: nothing then reads it.
  */
 export async function syncNextTest(date: string | null): Promise<void> {
-  const district = phone.get().follow
-  if (!district) return
-  const p = platform()
+  if (!phone.get().follow) return
   try {
-    const kept = await p.load()
-    const seen = kept?.seen ?? null
-    await p.save(date ? { district, seen, nextTest: date } : { district, seen })
+    await platform().saveNextTest(date)
   } catch {
     // the next follow writes it again
   }

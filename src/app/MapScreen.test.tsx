@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 import App from '../App'
-import { formatThaiDate } from '../copy/format'
+import { formatThaiDay } from '../copy/format'
 import { DISTRICTS, districtLabel } from '../domain/districts'
 import { th } from '../copy/th'
 import type { PublishedArea } from '../domain/types'
@@ -206,7 +206,7 @@ it('writes the day a care point was last checked in Thai, not as a raw date', as
   openApp('/app/list')
   await user.click(within(screen.getByRole('list')).getByRole('button', { name: /ศูนย์บริการสาธารณสุขตัวอย่าง/ }))
   const sheet = within(screen.getByRole('dialog'))
-  expect(sheet.getByText(formatThaiDate(new Date('2026-11-03')))).toBeInTheDocument()
+  expect(sheet.getByText(formatThaiDay('2026-11-03'))).toBeInTheDocument()
   expect(sheet.queryByText('2026-11-03')).toBeNull()
 })
 it('says so, instead of breaking, while no care point has been confirmed', async () => {

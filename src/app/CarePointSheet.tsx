@@ -1,6 +1,6 @@
 import { ExternalLink } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { formatThaiDate } from '../copy/format'
+import { formatThaiDay } from '../copy/format'
 import { th } from '../copy/th'
 import { Emoji } from '../design/Emoji'
 import { ALERT, QUIET_LINK, TEXT_LINK } from '../design/look'
@@ -101,7 +101,7 @@ function PhoneFrom({ point }: { point: CarePoint }) {
             <ExternalLink size={16} strokeWidth={2} className="shrink-0" aria-hidden="true" />
           </a>
         ) : (
-          th.care.phoneConfirmed.replace('{date}', formatThaiDate(new Date(point.phoneConfirmed!.date)))
+          th.care.phoneConfirmed.replace('{date}', formatThaiDay(point.phoneConfirmed!.date))
         )
       }
     />
@@ -134,7 +134,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
                 {point.cost && <Row label={th.care.cost} value={<Chip tone="free">{point.cost}</Chip>} />}
               </>
             )}
-            {point.verified && <Row label={th.care.verified} value={formatThaiDate(new Date(point.verified.date))} />}
+            {point.verified && <Row label={th.care.verified} value={formatThaiDay(point.verified.date)} />}
             <PhoneFrom point={point} />
             <ContactRow point={point} />
             <HoursRow point={point} />
@@ -179,7 +179,7 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
             <ContactRow point={point} />
             <HoursRow point={point} />
           </dl>
-          <p className="mt-2 text-[13px] text-muted">{th.care.fetched.replace('{date}', formatThaiDate(new Date(point.fetched)))}</p>
+          <p className="mt-2 text-[13px] text-muted">{th.care.fetched.replace('{date}', formatThaiDay(point.fetched))}</p>
         </>
       )}
       <PlaceCorrection key={point.id} place={point.id} />

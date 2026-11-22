@@ -60,3 +60,12 @@ it('refuses a public-holiday tag inside a day range instead of looping', () => {
   expect(parseOsmHours('Mo-PH 08:00-20:00')).toBeNull()
   expect(parseOsmHours('PH-Fr 08:00-20:00')).toBeNull()
 })
+// Final review, minors: hours that run from Saturday night into Sunday, and spans with no day.
+it('joins hours that run from Saturday night into Sunday morning', () => {
+  const spans = parseOsmHours('Sa 20:00-24:00; Su 00:00-10:00')!
+  expect(openStatus(spans, bangkok('2026-11-21T22:00:00'))).toEqual({ open: true, closes: '10:00' })
+  expect(openStatus([{ days: [6], from: '22:00', to: '02:00' }, { days: [0], from: '01:00', to: '06:00' }], bangkok('2026-11-22T01:30:00'))).toEqual({ open: true, closes: '06:00' })
+})
+it('treats spans that name no day as unknown hours', () => {
+  expect(openStatus([{ days: [], from: '08:00', to: '16:00' }], bangkok('2026-11-21T10:00:00'))).toBeNull()
+})

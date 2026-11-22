@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import App from '../App'
-import { formatThaiDate } from '../copy/format'
+import { formatThaiDay } from '../copy/format'
 import { th } from '../copy/th'
 import { queueReport, wipePhone } from '../store/actions'
 import { phone } from '../store/stores'
@@ -118,7 +118,7 @@ it('shows a kept test date with ways to change or clear it, and the wipe clears 
   const view = open()
   const main = screen.getByRole('main')
   expect(within(main).queryByText(th.me.none)).toBeNull()
-  await user.click(within(main).getByRole('button', { name: th.nextTest.set.replace('{date}', formatThaiDate(new Date('2027-02-20'))) }))
+  await user.click(within(main).getByRole('button', { name: th.nextTest.set.replace('{date}', formatThaiDay('2027-02-20')) }))
   await user.click(within(screen.getByRole('dialog', { name: th.nextTest.title })).getByRole('button', { name: th.nextTest.clear }))
   expect(phone.get().nextTest ?? null).toBeNull()
   view.unmount()

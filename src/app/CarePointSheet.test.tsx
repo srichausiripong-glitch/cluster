@@ -2,7 +2,7 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
-import { formatThaiDate } from '../copy/format'
+import { formatThaiDay } from '../copy/format'
 import { th } from '../copy/th'
 import { withDistrict } from '../data/carePoints'
 import { FIXTURE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
@@ -28,7 +28,7 @@ it('shows an unverified place’s source and date and the call-first label, and 
   const source = sheet.getByRole('link', { name: 'example.org' })
   expect(source).toHaveAttribute('href', 'https://example.org/care')
   expect(source).toHaveAttribute('target', '_blank')
-  expect(sheet.getByText(th.care.fetched.replace('{date}', formatThaiDate(new Date('2026-11-17'))))).toBeInTheDocument()
+  expect(sheet.getByText(th.care.fetched.replace('{date}', formatThaiDay('2026-11-17')))).toBeInTheDocument()
   for (const word of ['ตรวจเอชไอวี', 'จันทร์-ศุกร์', th.care.pep, th.care.klassBNote]) expect(sheet.queryByText(word), word).toBeNull()
 })
 it('offers a call and the way there, the way there in a new tab', () => {
@@ -183,5 +183,5 @@ it('says a number was confirmed by the team, with the day, when no page backs it
   )
   const sheet = within(screen.getByRole('dialog'))
   expect(sheet.getByText(th.care.phoneFrom)).toBeInTheDocument()
-  expect(sheet.getByText(th.care.phoneConfirmed.replace('{date}', formatThaiDate(new Date('2026-11-20'))))).toBeInTheDocument()
+  expect(sheet.getByText(th.care.phoneConfirmed.replace('{date}', formatThaiDay('2026-11-20')))).toBeInTheDocument()
 })

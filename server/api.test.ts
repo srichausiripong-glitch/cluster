@@ -115,3 +115,7 @@ it('takes only the ids the place lists use, so no text can ride in an id', async
   for (const id of ['osm-node-123', 'osm-way-45', 'bma-phc-13646', 'bma-hos-9', 'trc-anonymous-clinic']) expect((await place(post('/api/place', { place: id, kind: 'closed' }, `198.51.100.${id.length}`))).status, id).toBe(202)
   for (const id of ['somchai-0812345678-hiv', 'osm-node-12a', 'bma-phc-abc']) expect((await place(post('/api/place', { place: id, kind: 'closed' }))).status, id).toBe(400)
 })
+it('takes a place number written with +66, as the phone writes it', async () => {
+  expect((await place(post('/api/place', { place: 'osm-node-1', kind: 'add_phone', phone: '+66 81 234 5678' }))).status).toBe(202)
+  expect((await rows())[0].value).toBe('0812345678')
+})

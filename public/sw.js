@@ -5,6 +5,8 @@
 
 const CACHE = 'cluster-follow'
 const STATE = '/follow-state'
+/** The test date set on the phone, written only by the page, never here: a push cannot bring back a cleared date. */
+const NEXT_TEST = '/next-test'
 const TITLE = 'Cluster'
 const CHANGED = 'เขตที่คุณติดตามมีอัปเดต'
 const SAME = 'แผนที่สัปดาห์นี้อัปเดตแล้ว'
@@ -31,6 +33,16 @@ async function readState() {
   }
 }
 
+async function readNextTest() {
+  try {
+    const hit = await (await caches.open(CACHE)).match(NEXT_TEST)
+    const kept = hit ? await hit.json() : null
+    return kept && typeof kept.date === 'string' ? kept.date : null
+  } catch {
+    return null
+  }
+}
+
 async function saveState(state) {
   const cache = await caches.open(CACHE)
   await cache.put(STATE, new Response(JSON.stringify(state), { headers: { 'content-type': 'application/json' } }))
@@ -51,7 +63,8 @@ async function weekly() {
   let due = false
   try {
     const state = await readState()
-    due = Boolean(state && state.nextTest && state.nextTest <= bangkokToday())
+    const nextTest = await readNextTest()
+    due = Boolean(nextTest && nextTest <= bangkokToday())
     if (state && state.district) {
       const res = await fetch('/api/published', { cache: 'no-store' })
       if (res.ok) {
@@ -60,7 +73,7 @@ async function weekly() {
         if (area) {
           const now = rowOf(area)
           if (state.seen && differs(state.seen, now)) body = CHANGED
-          await saveState(state.nextTest ? { district: state.district, seen: now, nextTest: state.nextTest } : { district: state.district, seen: now })
+          await saveState({ district: state.district, seen: now })
         }
       }
     }

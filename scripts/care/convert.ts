@@ -220,7 +220,10 @@ export function applyOverrides(points: CarePointData[], overrides: Overrides): C
       if (o.phoneConfirmed) next.phoneConfirmed = o.phoneConfirmed
     }
     if (o.open) {
+      // New hours replace the old with their page: never the page of the hours they replace.
       next.open = o.open
+      delete next.openSource
+      delete next.openKind
       if (o.openSource) next.openSource = o.openSource
       if (o.openKind) next.openKind = o.openKind
     }

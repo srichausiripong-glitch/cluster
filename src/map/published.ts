@@ -64,7 +64,6 @@ export async function loadPublished(): Promise<void> {
   }
 }
 
-/** Whether the server counts reports now. True until a file says otherwise. */
 /** The weekly file as last read, or null before one arrived. */
 export function usePublishedFile(): PublishedFile | null {
   return useSyncExternalStore(
@@ -76,6 +75,7 @@ export function usePublishedFile(): PublishedFile | null {
   )
 }
 
+/** Whether the server counts reports now. True until a file says otherwise. */
 export function useIntakeOpen(): boolean {
   const file = useSyncExternalStore(
     (fn) => {

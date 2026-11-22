@@ -23,6 +23,7 @@ function carePointReasons(p: LaunchData['carePoints'][number]): string[] {
     if (!(typeof c.date === 'string' && DAY.test(c.date) && typeof c.by === 'string' && c.by.trim() !== '')) reasons.push(`care point ${p.id} has a phone number confirmed without saying when and by whom (phoneConfirmed)`)
   }
   if (p.open !== undefined && (typeof p.openSource !== 'string' || !p.openSource.startsWith('https://'))) reasons.push(`care point ${p.id} has hours without an https page they come from (openSource)`)
+  if (p.open !== undefined && !spansOk(p.open)) reasons.push(`care point ${p.id} has hours that are not spans of days 0–6 with HH:MM times (open)`)
   if (p.verified === null || p.verified === undefined) return reasons
   const v = (typeof p.verified === 'object' ? p.verified : {}) as { date?: unknown; by?: unknown; method?: unknown }
   const whole = typeof v.date === 'string' && DAY.test(v.date) && typeof v.by === 'string' && v.by.trim() !== '' && METHODS.includes(v.method)
@@ -39,6 +40,15 @@ function trustedSource(url: unknown): boolean {
   } catch {
     return false
   }
+}
+const HHMM = /^([01]\d|2[0-4]):[0-5]\d$/
+/** Opening hours as the app reads them: each span names days 0–6 and HH:MM times. */
+function spansOk(open: unknown): boolean {
+  return (
+    Array.isArray(open) &&
+    open.length > 0 &&
+    open.every((s: { days?: unknown; from?: unknown; to?: unknown }) => Array.isArray(s?.days) && s.days.length > 0 && s.days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6) && typeof s.from === 'string' && HHMM.test(s.from) && typeof s.to === 'string' && HHMM.test(s.to))
+  )
 }
 const REQUIRED = ['VITE_CONTROLLER_NAME', 'VITE_CONTACT_EMAIL', 'ENVELOPE_PRIVATE_JWK', 'SESSION_SECRET', 'DATABASE_URL', 'CRON_SECRET'] as const
 /** Needed by a real deploy only: a preview may try everything else without the push key (round 4 plan, decision 2). */

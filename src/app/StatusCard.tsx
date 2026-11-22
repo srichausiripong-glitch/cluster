@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
-import { formatThaiDate } from '../copy/format'
+import { formatThaiDate, formatThaiDay } from '../copy/format'
 import { th } from '../copy/th'
 import { Emoji } from '../design/Emoji'
 import { NOTE, PRESS, QUIET_LINK, SOFT } from '../design/look'
@@ -26,9 +26,9 @@ const TOO_LATE_MS = 2500
 
 type Toast = { district: string; savedAt: string; late: boolean }
 
-/** On a screen under 360 px the picture goes above the words, so "เจอ / มีอาการ" stays on one line instead of breaking inside มีอาการ. */
 /** The card's last line: a way to find a place to test, or what is kept about the next test. */
 const BOTTOM_LINE = 'mt-1 flex min-h-11 items-center justify-center gap-1 text-[14px] [@media(max-height:560px)]:mt-0 [@media(max-height:560px)]:min-h-9'
+/** On a screen under 360 px the picture goes above the words, so "เจอ / มีอาการ" stays on one line instead of breaking inside มีอาการ. */
 const ANSWER = `flex min-h-14 items-center justify-center gap-1.5 rounded-md border-2 border-ink bg-surface px-2 text-center font-bold leading-tight max-[359px]:flex-col max-[359px]:gap-0.5 [@media(max-height:560px)]:min-h-11 ${PRESS}`
 
 /**
@@ -150,7 +150,7 @@ export function StatusCard() {
                 {sentNote.testing ? <LevelDots level={levelOf(sentNote.testing)} label={th.map.sheet.level[levelOf(sentNote.testing) - 1]} /> : <span>{th.map.state.below_threshold}</span>}
               </span>
             </span>
-            <button type="button" aria-label={th.counted.close} onClick={dismissCounted} className="-m-1 grid size-9 shrink-0 place-items-center">
+            <button type="button" aria-label={th.counted.close} onClick={dismissCounted} className="-m-2 grid size-11 shrink-0 place-items-center">
               <X size={18} strokeWidth={2.25} aria-hidden="true" />
             </button>
           </div>
@@ -188,7 +188,7 @@ export function StatusCard() {
           <button type="button" onClick={() => setRemindOpen(true)} className={`w-full ${BOTTOM_LINE}`}>
             <Emoji name="alarm" size={18} />{' '}
             <span className="font-bold underline underline-offset-4">
-              {reminder === 'offer' ? th.nextTest.offer : th.nextTest.set.replace('{date}', formatThaiDate(new Date(stored.nextTest ?? '')))}
+              {reminder === 'offer' ? th.nextTest.offer : th.nextTest.set.replace('{date}', formatThaiDay(stored.nextTest ?? ''))}
             </span>
           </button>
         ) : (

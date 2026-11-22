@@ -21,7 +21,7 @@ export function fakePush(over: Partial<PushPlatform> = {}) {
       return subscription
     },
     save: async () => {},
-    load: async () => null,
+    saveNextTest: async () => {},
     ...over,
   }
   setPushPlatformForTest(platform)

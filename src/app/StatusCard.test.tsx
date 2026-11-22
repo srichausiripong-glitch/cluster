@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import App from '../App'
-import { formatThaiDate } from '../copy/format'
+import { formatThaiDate, formatThaiDay } from '../copy/format'
 import { th } from '../copy/th'
 import { mondayDate, shiftWeek } from '../domain/weeks'
 import { setPublishedForTest } from '../map/published'
@@ -238,7 +238,7 @@ it('saves a reminder three months ahead and says it on the card, then says it is
   expect(phone.get().nextTest).toBe(bangkokIn(91))
   expect(within(screen.getByRole('dialog')).getByRole('button', { name: th.nextTest.calendar })).toBeInTheDocument()
   await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: th.nextTest.done }))
-  expect(screen.getByRole('button', { name: th.nextTest.set.replace('{date}', formatThaiDate(new Date(bangkokIn(91)))) })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: th.nextTest.set.replace('{date}', formatThaiDay(bangkokIn(91))) })).toBeInTheDocument()
   view.unmount()
   phone.update((s) => ({ ...s, nextTest: bangkokIn(-1) }))
   open()
@@ -258,7 +258,7 @@ it('tells once that a "ไม่เจอ" report arrived, with the district\'s 
   const view = open()
   expect(note()).toBeInTheDocument()
   expect(screen.getByText(th.counted.row.replace('{name}', 'บางรัก'))).toBeInTheDocument()
-  expect(document.querySelectorAll('[role="status"] [data-filled]').length + document.querySelectorAll('[data-counted] [data-filled]').length).toBeGreaterThanOrEqual(2)
+  expect(document.querySelectorAll('[data-counted] [data-filled]')).toHaveLength(2)
   await user.click(screen.getByRole('button', { name: th.counted.close }))
   expect(note()).toBeNull()
   view.unmount()

@@ -1,6 +1,6 @@
 import { CalendarPlus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { formatThaiDate } from '../copy/format'
+import { formatThaiDay } from '../copy/format'
 import { th } from '../copy/th'
 import { Emoji } from '../design/Emoji'
 import { Mascot } from '../design/Logo'
@@ -166,7 +166,7 @@ export function SelfCare() {
         </h2>
         <Button variant="secondary" className="mt-2" onClick={() => setRemindOpen(true)}>
           <CalendarPlus size={18} strokeWidth={2} aria-hidden="true" />
-          {nextTest ? th.nextTest.set.replace('{date}', formatThaiDate(new Date(nextTest))) : th.nextTest.pick}
+          {nextTest ? th.nextTest.set.replace('{date}', formatThaiDay(nextTest)) : th.nextTest.pick}
         </Button>
         <NextTestSheet open={remindOpen} onClose={() => setRemindOpen(false)} />
       </Card>
