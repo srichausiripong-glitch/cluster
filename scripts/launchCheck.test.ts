@@ -111,3 +111,8 @@ it('migrates the database on every deploy, after the launch check and before the
   const steps = (JSON.parse(readFileSync('vercel.json', 'utf8')) as { buildCommand: string }).buildCommand.split('&&').map((s) => s.trim())
   expect(steps).toEqual(['npm run launch-check', 'npm run db:migrate', 'npm run build'])
 })
+it('refuses a booking link that is not https', () => {
+  const check = (booking: unknown) => launchCheck(ENV, { ...DATA, carePoints: [{ ...point(false), booking }] }).join('\n')
+  expect(check('https://testd.website/booking')).toBe('')
+  for (const bad of ['http://testd.website/booking', 'testd.website', 7]) expect(check(bad), String(bad)).toContain('care point p')
+})

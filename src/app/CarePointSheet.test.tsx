@@ -185,3 +185,19 @@ it('says a number was confirmed by the team, with the day, when no page backs it
   expect(sheet.getByText(th.care.phoneFrom)).toBeInTheDocument()
   expect(sheet.getByText(th.care.phoneConfirmed.replace('{date}', formatThaiDay('2026-11-20')))).toBeInTheDocument()
 })
+
+// ---- booking at a partner's site (owner, 22 Nov 2026: SWING clinics book through testD) ---------------
+it('offers to book at the place\'s own booking page, opening on its own, and nothing for a place without one', () => {
+  const point = withDistrict({ ...FIXTURE_UNVERIFIED[0], booking: 'https://testd.website/booking' })
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={point} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  const link = within(screen.getByRole('dialog')).getByRole('link', { name: new RegExp(th.care.booking) })
+  expect(link).toHaveAttribute('href', 'https://testd.website/booking')
+  expect(link).toHaveAttribute('target', '_blank')
+  expect(link).toHaveAttribute('rel', 'noreferrer')
+  cleanup()
+  expect(open('cu2').queryByRole('link', { name: new RegExp(th.care.booking) })).toBeNull()
+})

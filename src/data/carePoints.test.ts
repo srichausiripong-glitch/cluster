@@ -124,3 +124,11 @@ it('gives every BMA health centre an email or a website as well as a phone', () 
     expect(p.email ?? p.website, p.id).toBeTruthy()
   }
 })
+it('sends the three SWING clinics to testD to book, and no other place', async () => {
+  const registry = (await import('./care-points.json')).default as { id: string; booking?: string }[]
+  expect(registry.filter((p) => p.booking).map((p) => [p.id, p.booking])).toEqual([
+    ['swing-silom', 'https://testd.website/booking'],
+    ['swing-saphan-khwai', 'https://testd.website/booking'],
+    ['swing-phetkasem', 'https://testd.website/booking'],
+  ])
+})
