@@ -107,3 +107,61 @@ it('reads the pharmacy file only when a correction is about a pharmacy', async (
   await login(user)
   expect(load).not.toHaveBeenCalled()
 })
+
+// The overview (owner, 22 Nov 2026): phones that used the app each week, the city's reports by kind,
+// districts at ten or more, followers and the last map, all from totals the server already keeps.
+const OVERVIEW = {
+  ...STATE,
+  week: '2026-W47',
+  envelopes: [
+    { week: '2026-W47', n: 300 },
+    { week: '2026-W46', n: 1200 },
+    { week: '2026-W45', n: 900 },
+  ],
+  city: [
+    { week: '2026-W46', kind: 'syphilis', n: 15 },
+    { week: '2026-W46', kind: 'tested', n: 40 },
+    { week: '2026-W45', kind: 'symptoms', n: 6 },
+  ],
+  districts: [{ week: '2026-W46', zone: 'bang_rak', kind: 'syphilis', n: 12 }],
+  followers: 37,
+  lastPublished: { week: '2026-W46', publishedAt: '2026-11-16T20:00:00.000Z', shown: ['bang_rak', 'chatuchak'] },
+}
+it('opens on an overview of phones per week, the city by kind, districts at ten or more, followers and the last map', async () => {
+  const user = userEvent.setup()
+  server({ value: false }, OVERVIEW)
+  open()
+  await login(user)
+  const overview = within(screen.getByRole('region', { name: th.admin.overview }))
+  // Last week's phones lead, with the week before beside them; this week is marked as not over.
+  expect(overview.getByText(th.admin.devicesLast).parentElement).toHaveTextContent('1,200')
+  const devices = within(overview.getByRole('table', { name: th.admin.devicesTitle }))
+  expect(devices.getByRole('row', { name: /16–22 พ\.ย\./ })).toHaveTextContent(th.admin.thisWeek)
+  expect(devices.getByRole('row', { name: /9–15 พ\.ย\./ })).toHaveTextContent('1,200')
+  expect(overview.getByText(th.admin.followers).parentElement).toHaveTextContent('37')
+  expect(overview.getByText(th.admin.shownCount.replace('{n}', '2'))).toBeInTheDocument()
+  // The map is published at 03:00 Monday in Bangkok: its day is Bangkok's, whatever zone this computer is in.
+  expect(overview.getByText('17 พ.ย. 2569')).toBeInTheDocument()
+  // The city by kind: a week's row reads its counts under each kind, a kind with none reads 0.
+  const city = within(overview.getByRole('table', { name: th.admin.cityTitle }))
+  const w46 = city.getByRole('row', { name: /9–15 พ\.ย\./ })
+  expect(within(w46).getAllByRole('cell').map((c) => c.textContent)).toEqual(['9–15 พ.ย.', '40', '0', '15', '0'])
+  const districts = within(overview.getByRole('table', { name: th.admin.districtsTitle }))
+  expect(districts.getByRole('row', { name: /บางรัก/ })).toHaveTextContent('12')
+  expect(overview.getByText(th.admin.countsNote)).toBeInTheDocument()
+})
+it('says when no district has reached ten', async () => {
+  const user = userEvent.setup()
+  server({ value: false }, { ...OVERVIEW, districts: [] })
+  open()
+  await login(user)
+  expect(within(screen.getByRole('region', { name: th.admin.overview })).getByText(th.admin.districtsNone)).toBeInTheDocument()
+})
+it('still opens against a server older than the overview', async () => {
+  const user = userEvent.setup()
+  server({ value: false }, STATE)
+  open()
+  await login(user)
+  const overview = within(screen.getByRole('region', { name: th.admin.overview }))
+  expect(overview.getByText(th.admin.notPublished)).toBeInTheDocument()
+})

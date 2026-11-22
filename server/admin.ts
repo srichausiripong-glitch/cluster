@@ -1,4 +1,6 @@
 import { DISTRICT_IDS } from '../src/domain/districts.js'
+import { K } from '../src/domain/publication.js'
+import type { PublishedFile } from '../src/domain/types.js'
 import type { Db } from './db.js'
 import { serverWeek } from './week.js'
 
@@ -8,11 +10,29 @@ async function log(db: Db, now: Date, reviewer: string, action: string, detail: 
   await db.query('insert into admin_log (week, day, reviewer, action, detail) values ($1, $2, $3, $4, $5)', [serverWeek(now), day(now), reviewer, action, detail])
 }
 
-/** What a reviewer sees: totals only (v1 spec 6). */
-export async function adminState(db: Db) {
+/** The districts the last weekly file showed, or null before the first one. */
+async function lastPublished(db: Db) {
+  const [row] = await db.query<{ week: string; file: PublishedFile | string }>('select week, file from published order by week desc limit 1')
+  if (!row) return null
+  const file: PublishedFile = typeof row.file === 'string' ? JSON.parse(row.file) : row.file
+  return { week: row.week, publishedAt: file.publishedAt, shown: file.areas.filter((a) => a.state === 'shown' && a.areaId !== 'bkk').map((a) => a.areaId) }
+}
+
+/**
+ * What a reviewer sees: totals only (v1 spec 6). The overview (owner, 22 Nov 2026) sums what is already
+ * kept: the city per week and kind, a district only at K or more (the map never says whether a district
+ * below the threshold had none or a few, redesign spec 5.5), and how many phones follow a district.
+ */
+export async function adminState(db: Db, now: Date) {
   const [setting] = await db.query<{ value: string }>("select value from settings where name = 'intake'")
+  const [followers] = await db.query<{ n: number }>('select count(*)::int as n from push_subscriptions')
   return {
+    week: serverWeek(now),
     intakeOpen: setting?.value !== 'closed',
+    city: await db.query('select week, kind, sum(n)::int as n from counts group by week, kind order by week desc, kind'),
+    districts: await db.query('select week, zone, kind, n from counts where n >= $1 order by week desc, n desc, zone, kind', [K]),
+    followers: followers?.n ?? 0,
+    lastPublished: await lastPublished(db),
     envelopes: await db.query('select week, n from envelope_totals order by week desc'),
     held: await db.query('select id, zone, kind, week, n, status, first_reviewer, first_choice from held order by id desc'),
     suspensions: await db.query('select id, zone, reason, started, ended from suspensions order by id desc'),
