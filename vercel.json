@@ -31,5 +31,5 @@
   "regions": [
     "sin1"
   ],
-  "buildCommand": "npm run launch-check && npm run build"
+  "buildCommand": "npm run launch-check && npm run db:migrate && npm run build"
 }

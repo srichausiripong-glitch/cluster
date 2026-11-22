@@ -104,3 +104,10 @@ it('refuses hours whose spans are not days 0–6 with HH:MM times', () => {
   for (const open of [[{ days: [7], from: '08:00', to: '16:00' }], [{ days: [], from: '08:00', to: '16:00' }], [{ days: [1], from: '8:00', to: '16:00' }], 'Mo-Fr'])
     expect(check(open), JSON.stringify(open)).toContain('care point p')
 })
+// The database is brought up to date by every deploy, on Vercel, where DATABASE_URL lives: a
+// Sensitive variable cannot be pulled to a laptop, and the schema only adds what is missing.
+it('migrates the database on every deploy, after the launch check and before the build', async () => {
+  const { readFileSync } = await import('node:fs')
+  const steps = (JSON.parse(readFileSync('vercel.json', 'utf8')) as { buildCommand: string }).buildCommand.split('&&').map((s) => s.trim())
+  expect(steps).toEqual(['npm run launch-check', 'npm run db:migrate', 'npm run build'])
+})
