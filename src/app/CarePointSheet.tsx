@@ -1,4 +1,4 @@
-import { ExternalLink } from 'lucide-react'
+import { CalendarCheck, ExternalLink } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { formatThaiDay } from '../copy/format'
 import { th } from '../copy/th'
@@ -181,6 +181,15 @@ export function CarePointSheet({ point, onClose }: { point: CarePoint | null; on
           </dl>
           <p className="mt-2 text-[13px] text-muted">{th.care.fetched.replace('{date}', formatThaiDay(point.fetched))}</p>
         </>
+      )}
+      {/* Booking happens on the partner's own site, opened only when pressed; nothing about the person goes with it. */}
+      {point.booking && (
+        <a href={point.booking} target="_blank" rel="noreferrer" className={`mt-3 w-full ${QUIET_LINK}`}>
+          <CalendarCheck size={18} strokeWidth={2} aria-hidden="true" />
+          <span>
+            {th.care.booking} <span className="font-normal text-muted">· {host(point.booking)}</span>
+          </span>
+        </a>
       )}
       <PlaceCorrection key={point.id} place={point.id} />
       {/* Kept at the foot of the sheet, so a short screen still shows how to call first and the way there. */}

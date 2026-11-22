@@ -46,6 +46,8 @@ export interface CarePointData {
   facebook?: string
   /** A LINE URL (https://line.me/…) or a LINE id (@name). */
   line?: string
+  /** Where to book a test at this place, on a partner's own site (SWING's clinics book through testD). */
+  booking?: string
   /**
    * Who confirmed the point, when and how. Null until somebody has: such a point is still shown,
    * as a small dot that says to call first (redesign spec 5.8).

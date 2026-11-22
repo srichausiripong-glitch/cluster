@@ -2,7 +2,7 @@ import { SOURCE_HOSTS } from '../src/copy/clinical.ts'
 
 /** What the launch check reads: the deploy's settings, every care point that ships, and the clinical register. */
 export interface LaunchData {
-  carePoints: { id: string; verified: unknown; source?: unknown; fetched?: unknown; pep?: unknown; phoneSource?: unknown; phoneConfirmed?: unknown; open?: unknown; openSource?: unknown }[]
+  carePoints: { id: string; verified: unknown; source?: unknown; fetched?: unknown; pep?: unknown; phoneSource?: unknown; phoneConfirmed?: unknown; open?: unknown; openSource?: unknown; booking?: unknown }[]
   clinical: { id: string; source?: { url?: unknown } }[]
 }
 const DAY = /^\d{4}-\d{2}-\d{2}$/
@@ -23,6 +23,7 @@ function carePointReasons(p: LaunchData['carePoints'][number]): string[] {
     if (!(typeof c.date === 'string' && DAY.test(c.date) && typeof c.by === 'string' && c.by.trim() !== '')) reasons.push(`care point ${p.id} has a phone number confirmed without saying when and by whom (phoneConfirmed)`)
   }
   if (p.open !== undefined && (typeof p.openSource !== 'string' || !p.openSource.startsWith('https://'))) reasons.push(`care point ${p.id} has hours without an https page they come from (openSource)`)
+  if (p.booking !== undefined && (typeof p.booking !== 'string' || !p.booking.startsWith('https://'))) reasons.push(`care point ${p.id} has a booking link that is not https (booking)`)
   if (p.open !== undefined && !spansOk(p.open)) reasons.push(`care point ${p.id} has hours that are not spans of days 0–6 with HH:MM times (open)`)
   if (p.verified === null || p.verified === undefined) return reasons
   const v = (typeof p.verified === 'object' ? p.verified : {}) as { date?: unknown; by?: unknown; method?: unknown }
