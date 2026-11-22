@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { th } from '../copy/th'
+import { setPharmacySource } from '../data/pharmacies'
 
 afterEach(() => vi.unstubAllGlobals())
 const STATE = {
@@ -13,7 +14,7 @@ const STATE = {
   suspensions: [{ id: 1, zone: 'bang_kapi', reason: 'เรื่องร้องเรียน', started: '2026-11-15', ended: null }],
   harm: [{ week: '2026-W46', kind: 'outed', n: 2 }],
 }
-function server(loggedIn: { value: boolean }) {
+function server(loggedIn: { value: boolean }, state: object = STATE) {
   const calls: Record<string, unknown>[] = []
   vi.stubGlobal(
     'fetch',
@@ -26,7 +27,7 @@ function server(loggedIn: { value: boolean }) {
         return new Response(null, { status: loggedIn.value ? 200 : 401 })
       }
       if (!loggedIn.value) return new Response(null, { status: 401 })
-      return body.action === 'state' ? new Response(JSON.stringify(STATE)) : new Response('{"ok":true}')
+      return body.action === 'state' ? new Response(JSON.stringify(state)) : new Response('{"ok":true}')
     }),
   )
   return calls
@@ -75,4 +76,34 @@ it('offers the 50 districts for a suspension', async () => {
   const options = within(select).getAllByRole('option')
   expect(options).toHaveLength(50)
   expect(options.map((o) => o.textContent)).toContain('เขตบางรัก')
+})
+
+// A correction about a pharmacy names the shop: the pharmacies are a file of their own, so the page
+// reads it, but only when a correction is about one. The code stays beside the name for overrides.json.
+const PHARMACY = { id: 'osm-node-111', name: 'ร้านยาทดสอบ', kind: 'pharmacy' as const, layer: 'pharmacy' as const, klass: 'B' as const, lat: 13.7284867, lon: 100.5334461, address: '', free: false, community: false, source: 'https://www.openstreetmap.org/node/111', fetched: '2026-11-18', verified: null }
+const login = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.type(screen.getByLabelText(th.admin.name), 'บอล')
+  await user.type(screen.getByLabelText(th.admin.password), 'right')
+  await user.click(screen.getByRole('button', { name: th.admin.login }))
+  await screen.findByRole('button', { name: th.admin.closeIntake })
+}
+it('names the pharmacy a correction is about, with its district and its code', async () => {
+  const user = userEvent.setup()
+  setPharmacySource(() => Promise.resolve([PHARMACY]))
+  server({ value: false }, { ...STATE, places: [{ week: '2026-W47', place: 'osm-node-111', kind: 'wrong_phone', value: '021234567', n: 2 }] })
+  open()
+  await login(user)
+  const places = within(screen.getByRole('region', { name: th.admin.places }))
+  expect(await places.findByText(/ร้านยาทดสอบ/)).toBeInTheDocument()
+  expect(places.getByText(/บางรัก/)).toBeInTheDocument()
+  expect(places.getByText('osm-node-111')).toBeInTheDocument()
+})
+it('reads the pharmacy file only when a correction is about a pharmacy', async () => {
+  const user = userEvent.setup()
+  const load = vi.fn(() => Promise.resolve([PHARMACY]))
+  setPharmacySource(load)
+  server({ value: false }, { ...STATE, places: [] })
+  open()
+  await login(user)
+  expect(load).not.toHaveBeenCalled()
 })
