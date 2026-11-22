@@ -140,3 +140,16 @@ it('places SWING Udomsuk in Bang Na, with its hours from testD', () => {
   expect(udomsuk?.open).toEqual([{ days: [0, 3, 4, 5, 6], from: '13:00', to: '20:00' }])
   expect(udomsuk?.openSource).toBe('https://testd.website/booking')
 })
+// Owner, 22 Nov 2026: two SWING pins sat about a kilometre off. Saphan Khwai has moved (testD's booking
+// page and the branch's Google Maps listing agree on the new address); Phetkasem's pin is its listing's.
+it('pins SWING Saphan Khwai at its new address and Phetkasem where its listing is', () => {
+  const at = (id: string) => ALL_CARE_POINTS.find((p) => p.id === id)!
+  const khwai = at('swing-saphan-khwai')
+  expect([khwai.lat, khwai.lon, khwai.districtId]).toEqual([13.7897612, 100.5479518, 'phaya_thai'])
+  expect(khwai.address).toBe('294/20 ซอยประดิพัทธ์ แขวงสามเสนใน เขตพญาไท กรุงเทพมหานคร 10400')
+  expect(khwai.source).toBe('https://testd.website/booking')
+  // The phone still comes from SWING's own contact page.
+  expect(khwai.phoneSource).toBe('https://www.swingthailand.org/contact')
+  const phet = at('swing-phetkasem')
+  expect([phet.lat, phet.lon, phet.districtId]).toEqual([13.7151863, 100.4449989, 'phasi_charoen'])
+})
