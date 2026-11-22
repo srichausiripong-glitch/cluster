@@ -124,11 +124,19 @@ it('gives every BMA health centre an email or a website as well as a phone', () 
     expect(p.email ?? p.website, p.id).toBeTruthy()
   }
 })
-it('sends the three SWING clinics to testD to book, and no other place', async () => {
+it('sends the four Bangkok SWING clinics to testD to book, and no other place', async () => {
   const registry = (await import('./care-points.json')).default as { id: string; booking?: string }[]
   expect(registry.filter((p) => p.booking).map((p) => [p.id, p.booking])).toEqual([
     ['swing-silom', 'https://testd.website/booking'],
     ['swing-saphan-khwai', 'https://testd.website/booking'],
     ['swing-phetkasem', 'https://testd.website/booking'],
+    ['swing-udomsuk', 'https://testd.website/booking'],
   ])
+})
+// Owner, 22 Nov 2026: SWING's Udomsuk branch, listed on testD's booking page, sits in Bang Na.
+it('places SWING Udomsuk in Bang Na, with its hours from testD', () => {
+  const udomsuk = ALL_CARE_POINTS.find((p) => p.id === 'swing-udomsuk')
+  expect(udomsuk?.districtId).toBe('bang_na')
+  expect(udomsuk?.open).toEqual([{ days: [0, 3, 4, 5, 6], from: '13:00', to: '20:00' }])
+  expect(udomsuk?.openSource).toBe('https://testd.website/booking')
 })

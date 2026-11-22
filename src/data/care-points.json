@@ -195,6 +195,37 @@
     "verified": null
   },
   {
+    "id": "swing-udomsuk",
+    "name": "สวิงอุดมสุข (SWING)",
+    "kind": "clinic",
+    "layer": "sti",
+    "klass": "B",
+    "lat": 13.6815579,
+    "lon": 100.6085273,
+    "address": "98 ซอยสุขุมวิท 66/1 แขวงบางนาเหนือ เขตบางนา กรุงเทพมหานคร 10260",
+    "free": false,
+    "community": true,
+    "source": "https://testd.website/booking",
+    "booking": "https://testd.website/booking",
+    "open": [
+      {
+        "days": [
+          0,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "13:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://testd.website/booking",
+    "openKind": "service",
+    "fetched": "2026-11-22",
+    "verified": null
+  },
+  {
     "id": "rsat-ramkhamhaeng",
     "name": "คลินิกเทคนิคการแพทย์ฟ้าสีรุ้ง รามคำแหง (สมาคมฟ้าสีรุ้งแห่งประเทศไทย RSAT)",
     "kind": "clinic",
