@@ -139,5 +139,9 @@ it('names the districts the last weekly file showed, and nothing before the firs
   const area = (areaId: string, state: string) => ({ areaId, state, density: null, step: null, testing: null, symptoms: null })
   const file = { week: '2026-W46', publishedAt: '2026-11-16T20:00:00.000Z', intakeOpen: true, areas: [area('bang_rak', 'shown'), area('chatuchak', 'below_threshold'), area('bkk', 'shown')] }
   await db.query('insert into published (week, file) values ($1, $2)', ['2026-W46', JSON.stringify(file)])
-  expect((await (await call({ action: 'state' }, koi)).json()).lastPublished).toEqual({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00.000Z', shown: ['bang_rak'] })
+  // Final review (2026-11-23): reviewers watch for a red that looks like a prank, so the red districts are named apart.
+  expect((await (await call({ action: 'state' }, koi)).json()).lastPublished).toEqual({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00.000Z', shown: ['bang_rak'], red: [] })
+  const red = { ...file, week: '2026-W47', areas: [{ ...area('pathum_wan', 'shown'), density: 'thin', step: 'new' }, area('bang_rak', 'shown')] }
+  await db.query('insert into published (week, file) values ($1, $2)', ['2026-W47', JSON.stringify(red)])
+  expect((await (await call({ action: 'state' }, koi)).json()).lastPublished).toMatchObject({ shown: ['pathum_wan', 'bang_rak'], red: ['pathum_wan'] })
 })

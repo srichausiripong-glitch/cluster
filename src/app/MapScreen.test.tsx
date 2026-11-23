@@ -554,3 +554,25 @@ it('gives a district sheet most of a short screen, so the care link and 🔔 sho
   await openArea(user, 'บางรัก')
   expect(screen.getByRole('dialog').className).toMatch(/max-h-\[85dvh\]/)
 })
+
+// Final review (2026-11-23): a district is shown from one tested report, so 'shown' no longer means a signal.
+it('never says a green-only district has confirmed results or a signal', async () => {
+  const user = userEvent.setup()
+  FILE([{ areaId: 'bang_rak', state: 'shown', density: null, step: null, testing: 'low', symptoms: null }, { areaId: 'bkk', state: 'shown', density: null, step: null, testing: 'low', symptoms: null }])
+  openApp('/app')
+  expect(document.body.textContent).not.toContain('มีสัญญาณ')
+  const sheet = await openArea(user, 'บางรัก')
+  const row = sheet.getByText(th.map.sheet.confirmed).closest('div')!
+  expect(row).toHaveTextContent(th.map.state.below_threshold)
+  expect(screen.getByRole('dialog').textContent).not.toContain('มีสัญญาณ')
+})
+it('keys the colour the map draws when the symptoms layer is switched off', async () => {
+  const user = userEvent.setup()
+  FILE([{ areaId: 'bang_rak', state: 'shown', density: null, step: null, testing: 'medium', symptoms: 'dense' }])
+  openApp('/app')
+  await user.click(screen.getByRole('button', { name: new RegExp(th.layers.symptoms) }))
+  const sheet = await openArea(user, 'บางรัก')
+  await user.click(sheet.getByRole('button', { name: th.map.sheet.from }))
+  const levels = [...screen.getByRole('dialog').querySelectorAll('[data-key="levels"] [data-shade]')]
+  expect(levels.map((el) => el.getAttribute('data-tone'))).toEqual(['tested', 'tested', 'tested'])
+})

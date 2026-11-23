@@ -15,7 +15,9 @@ async function lastPublished(db: Db) {
   const [row] = await db.query<{ week: string; file: PublishedFile | string }>('select week, file from published order by week desc limit 1')
   if (!row) return null
   const file: PublishedFile = typeof row.file === 'string' ? JSON.parse(row.file) : row.file
-  return { week: row.week, publishedAt: file.publishedAt, shown: file.areas.filter((a) => a.state === 'shown' && a.areaId !== 'bkk').map((a) => a.areaId) }
+  const districts = file.areas.filter((a) => a.areaId !== 'bkk')
+  // Red apart: reviewers watch for a red that looks like a prank (2026-11-23 design, final review).
+  return { week: row.week, publishedAt: file.publishedAt, shown: districts.filter((a) => a.state === 'shown').map((a) => a.areaId), red: districts.filter((a) => a.state === 'shown' && a.density).map((a) => a.areaId) }
 }
 
 /**

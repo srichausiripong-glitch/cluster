@@ -96,7 +96,7 @@ export function MapScreen() {
         </div>
       </div>
 
-      {selected && <SignalSheet area={selected} open onClose={closeArea} />}
+      {selected && <SignalSheet area={selected} open onClose={closeArea} layers={{ confirmed: on.confirmed, symptoms: on.symptoms }} />}
       <CarePointSheet point={points.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
     </div>
   )

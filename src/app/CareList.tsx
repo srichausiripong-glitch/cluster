@@ -190,7 +190,7 @@ export function CareList() {
         </>
       )}
 
-      {signalOpen && <SignalSheet area={city} open onClose={() => setSignalOpen(false)} />}
+      {signalOpen && <SignalSheet area={city} open onClose={() => setSignalOpen(false)} layers={{ confirmed: on.confirmed, symptoms: on.symptoms }} />}
       <CarePointSheet point={all.find((p) => p.id === pointId) ?? null} onClose={() => setPointId(null)} />
       <Sheet open={picking} onClose={() => setPicking(false)} title={th.picker.legend} tall>
         <div className="space-y-3">
