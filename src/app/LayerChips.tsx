@@ -6,10 +6,10 @@ import { PRESS } from '../design/look'
 import type { MapLayer } from '../domain/types'
 import { MAP_LAYERS } from '../store/actions'
 
-/** A switch that is on takes the colour of its mark on the map: violet dots, the black hatch, pink pins. */
+/** A switch that is on takes the colour of its mark on the map: red, orange with its hatch, pink pins (2026-11-23 design). */
 const ON: Record<MapLayer, string> = {
-  confirmed: 'bg-signal text-white',
-  symptoms: 'bg-ink text-white',
+  confirmed: 'bg-red text-white',
+  symptoms: 'bg-orange text-ink',
   sti: 'bg-care text-ink',
   health_centre: 'bg-care text-ink',
   hospital: 'bg-care text-ink',

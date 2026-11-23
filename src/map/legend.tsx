@@ -4,7 +4,7 @@ import type { CareLayer, DensityBand } from '../domain/types'
 import { isVerified, type CarePoint } from '../data/carePoints'
 import { LAYER_EMOJI } from '../design/emojiCodes'
 import { emojiUrl } from '../design/emojiUrl'
-import { EDGE, HATCH, SAMPLE_PX, SHADE_GROUND, SIGNAL_SHADE, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
+import { EDGE, HATCH, SAMPLE_PX, SHADE_GROUND, TONE_SHADE, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
 
 /** A care point pin. Its point is at 0, 0 and its round head is centred 26 px above. */
 const PIN_SHAPE = 'M0 0C0 0 14 -15 14 -26A14 14 0 1 0 -14 -26C-14 -15 0 0 0 0Z'
@@ -104,7 +104,7 @@ export function ShadeSwatch({ density }: { density: DensityBand }) {
     <svg width={w + 30} height={h} viewBox={`0 0 ${w + 30} ${h}`} aria-hidden="true" className="shrink-0" data-shade={density}>
       <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-land)" />
       <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-surface)" opacity={SHADE_GROUND} />
-      <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-signal)" opacity={SIGNAL_SHADE[density]} />
+      <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-signal)" opacity={TONE_SHADE[density]} />
       <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="none" stroke="var(--color-ink)" strokeWidth="1.5" />
       <LevelMarks level={density} x={w + 6} y={h / 2} />
     </svg>

@@ -5,7 +5,8 @@
 // Zones and care points are not drawn here: they are real buttons in the SVG layer above.
 import type { AreaState, DensityBand, PublishedArea } from '../domain/types'
 import { AREAS, CITY_EDGES } from './areas'
-import { breath, EDGE, HATCH, ROADS, SHADE_GROUND, SIGNAL_SHADE, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE, type Palette } from './style'
+import { breath, EDGE, HATCH, RED_EDGE_SCALE, ROADS, SHADE_GROUND, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE, TONE_SHADE, type Palette } from './style'
+import { toneOf } from './tone'
 import type { CityData, Label, Line, RoadClass, Shape, TileData } from './types'
 import { fromScreen, toScreen, type Box, type Size, type View } from './view'
 
@@ -250,18 +251,23 @@ export function paintGround(ctx: Ctx, s: Scene): void {
  * is shaded differently. The symptoms hatch is drawn over the shade, so a district can show both.
  * `timeMs` breathes the shade of a zone that was just reported; null draws everything still.
  */
+/** The two switches a district's colour reads; green has none. */
+const layersOf = (s: Scene) => ({ confirmed: s.showSignal, symptoms: !!s.showSymptoms })
+
 export function paintSignal(ctx: Ctx, s: Scene, timeMs: number | null): void {
   screen(ctx, s)
   ctx.clearRect(0, 0, s.size.w, s.size.h)
   world(ctx, s)
   const street = s.view.level === 'street' ? STREET_SHADE : 1
+  // One colour per district (2026-11-23 design): red, orange or green, from the rows and the switches.
+  const colour = { confirmed: s.palette.red, symptoms: s.palette.orange, tested: s.palette.green } as const
   for (const { rings, area } of painted(s)) {
-    if (s.showSignal && area?.state === 'shown' && area.density) {
-      const pulse = area.step === 'new' && timeMs !== null ? breath(timeMs, false) : 1
-      fill(ctx, s, [rings], s.palette.surface, SHADE_GROUND * street)
-      fill(ctx, s, [rings], s.palette.signal, SIGNAL_SHADE[area.density] * street * pulse)
-    }
-    if (s.showSymptoms && area?.symptoms) symptomsHatch(ctx, s, rings, area.symptoms)
+    const tone = toneOf(area, layersOf(s))
+    if (!tone) continue
+    const pulse = tone.kind === 'confirmed' && area?.step === 'new' && timeMs !== null ? breath(timeMs, false) : 1
+    fill(ctx, s, [rings], s.palette.surface, SHADE_GROUND * street)
+    fill(ctx, s, [rings], colour[tone.kind], TONE_SHADE[tone.band] * street * pulse)
+    if (tone.kind === 'symptoms') symptomsHatch(ctx, s, rings, tone.band)
   }
 }
 
@@ -356,8 +362,9 @@ function areaEdges(ctx: Ctx, s: Scene) {
   for (const { rings, edges, area } of painted(s)) {
     const state = area ? drawnState(area) : 'no_data'
     let line: { width: number; dash?: number[]; cap?: CanvasLineCap; color: string; alpha?: number }
-    if (!s.showSignal) line = { width: 1, dash: [2, 4], cap: 'butt', color: p.ink, alpha: 0.35 }
-    else if (state === 'shown') line = { ...EDGE[area?.step ?? 'mixed'], color: p.signalEdge }
+    const red = toneOf(area, layersOf(s))?.kind === 'confirmed'
+    if (red) line = { ...EDGE[area?.step ?? 'mixed'], width: EDGE[area?.step ?? 'mixed'].width * RED_EDGE_SCALE, color: p.redEdge }
+    else if (!s.showSignal || state === 'shown') line = { width: 1, dash: [2, 4], cap: 'butt', color: p.ink, alpha: 0.35 }
     else if (state === 'below_threshold') line = { width: 1.8, dash: [4, 5], cap: 'butt', color: p.signalEdge, alpha: 0.75 }
     else if (state === 'suspended') line = { width: 1.4, color: p.ink, alpha: 0.6 }
     else line = { width: 1.4, dash: [0.1, 5], cap: 'round', color: p.ink, alpha: 0.5 }

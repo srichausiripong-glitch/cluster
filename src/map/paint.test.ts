@@ -4,27 +4,27 @@ import { fakeCtx } from '../test/fakeCtx'
 import { paintGround, paintLines, paintSignal, type Scene } from './paint'
 import { AREAS } from './areas'
 import { PPM } from './geo'
-import { EDGE, PALETTE, SHADE_GROUND, SIGNAL_SHADE, STREET_SHADE } from './style'
+import { EDGE, PALETTE, RED_EDGE_SCALE, SHADE_GROUND, STREET_SHADE, TONE_SHADE } from './style'
 import type { TileData } from './types'
 import { cityView, MAP_INSET, type View } from './view'
 
 const size = { w: 390, h: 714, inset: MAP_INSET }
 const area = (areaId: string, state: PublishedArea['state'], density: PublishedArea['density'] = null, step: PublishedArea['step'] = null): PublishedArea => ({ areaId, state, density, step, testing: null, symptoms: null })
 const scene = (areas: PublishedArea[], over: Partial<Scene> = {}): Scene => ({ view: cityView(size), size, dpr: 1, palette: PALETTE, city: null, tiles: [], areas: new Map(areas.map((a) => [a.areaId, a])), phase: 2, showSignal: true, ...over })
-/** The strength of every violet fill the signal layer asked for, in order. */
-const shades = (f: ReturnType<typeof fakeCtx>) => f.calls.filter((c) => c.name === 'fill' && c.at?.fillStyle === PALETTE.signal).map((c) => c.at!.globalAlpha as number)
+/** The strength of every red fill the signal layer asked for, in order. */
+const shades = (f: ReturnType<typeof fakeCtx>, colour = PALETTE.red) => f.calls.filter((c) => c.name === 'fill' && c.at?.fillStyle === colour).map((c) => c.at!.globalAlpha as number)
 const round = (n: number) => Math.round(n * 1000) / 1000
 
 // A confirmed level shades its district whole (2026-11-18 design, decision 4): the data has district totals only.
 it('fills a district whole at the strength of its level, and nothing for a district without one', () => {
   const f = fakeCtx()
   paintSignal(f.ctx, scene([area('bang_rak', 'shown', 'dense', 'followup'), area('chatuchak', 'shown', 'thin', 'expiring'), area('pathum_wan', 'shown', 'medium', 'mixed'), area('bang_kapi', 'below_threshold'), area('bangkok_yai', 'no_data'), area('bang_khae', 'suspended')]), null)
-  expect(shades(f).sort()).toEqual([SIGNAL_SHADE.thin, SIGNAL_SHADE.medium, SIGNAL_SHADE.dense])
+  expect(shades(f).sort()).toEqual([TONE_SHADE.thin, TONE_SHADE.medium, TONE_SHADE.dense])
   expect(f.calls.filter((c) => c.name === 'arc')).toHaveLength(0)
   // Under each shade the warm ground is lightened first, so violet over yellow does not turn peach.
   const fills = f.calls.filter((c) => c.name === 'fill').map((c) => c.at!)
   expect(fills.filter((a) => a.fillStyle === PALETTE.surface).map((a) => a.globalAlpha)).toEqual([SHADE_GROUND, SHADE_GROUND, SHADE_GROUND])
-  fills.forEach((a, i) => a.fillStyle === PALETTE.signal && expect(fills[i - 1].fillStyle).toBe(PALETTE.surface))
+  fills.forEach((a, i) => a.fillStyle === PALETTE.red && expect(fills[i - 1].fillStyle).toBe(PALETTE.surface))
 })
 it('draws no shade when the signal layer is off', () => {
   const off = fakeCtx()
@@ -35,25 +35,25 @@ it('lightens the shade at street level so the roads stay readable', () => {
   const bangRak = AREAS.find((a) => a.id === 'bang_rak')!.label
   const f = fakeCtx()
   paintSignal(f.ctx, scene([area('bang_rak', 'shown', 'dense', 'followup')], { view: { level: 'street', ppm: PPM.street, cx: bangRak[0], cy: bangRak[1] } }), null)
-  expect(shades(f).map(round)).toEqual([round(SIGNAL_SHADE.dense * STREET_SHADE)])
+  expect(shades(f).map(round)).toEqual([round(TONE_SHADE.dense * STREET_SHADE)])
 })
 it('breathes only the shade of a zone that was just reported', () => {
   const f = fakeCtx()
   paintSignal(f.ctx, scene([area('bang_rak', 'shown', 'dense', 'new'), area('ratchathewi', 'shown', 'medium', 'followup')]), 817)
   const drawn = shades(f)
-  expect(drawn).toContain(SIGNAL_SHADE.medium)
-  expect(drawn.some((a) => a !== SIGNAL_SHADE.dense && Math.abs(a - SIGNAL_SHADE.dense) <= SIGNAL_SHADE.dense * 0.13)).toBe(true)
+  expect(drawn).toContain(TONE_SHADE.medium)
+  expect(drawn.some((a) => a !== TONE_SHADE.dense && Math.abs(a - TONE_SHADE.dense) <= TONE_SHADE.dense * 0.13)).toBe(true)
 })
 it('uses the whole city as the one area in phase 1', () => {
   const f = fakeCtx()
   paintSignal(f.ctx, scene([area('bkk', 'shown', 'medium', 'new')], { phase: 1 }), null)
-  expect(shades(f)).toEqual([SIGNAL_SHADE.medium])
+  expect(shades(f)).toEqual([TONE_SHADE.medium])
 })
 it('keeps the shade off the ground, which stays warm under it', () => {
   const f = fakeCtx()
   paintGround(f.ctx, scene([area('bang_rak', 'shown', 'dense', 'new')]))
   const fills = f.sets.filter((s) => s.prop === 'fillStyle').map((s) => s.value)
-  expect(fills).not.toContain(PALETTE.signal)
+  expect(fills).not.toContain(PALETTE.red)
   expect(fills).toContain(PALETTE.land)
 })
 it('marks the city below the threshold with soft violet lines, and a suspended district with a plain black edge and no pattern', () => {
@@ -143,7 +143,7 @@ it('leaves district names to the name boxes at district level, and still writes 
 })
 
 // ---- round 2: the symptoms hatch --------------------------------------------------------------
-const sick = (level: PublishedArea['symptoms'], base = area('bang_rak', 'below_threshold')): PublishedArea => ({ ...base, symptoms: level })
+const sick = (level: PublishedArea['symptoms'], base = area('bang_rak', 'shown')): PublishedArea => ({ ...base, symptoms: level })
 const bangRak = AREAS.find((a) => a.id === 'bang_rak')!.label
 const onBangRak: View = { level: 'district', ppm: PPM.district, cx: bangRak[0], cy: bangRak[1] }
 const inkLines = (s: Scene) => {
@@ -161,11 +161,47 @@ it('draws no symptoms hatch when the symptoms layer is off, or for a district wi
   expect(inkLines(scene([sick('dense')], { showSymptoms: false })).inks).toBe(0)
   expect(inkLines(scene([sick(null)], { showSymptoms: true })).inks).toBe(0)
 })
-it('draws the symptoms hatch over the shade', () => {
+it('draws the symptoms hatch over the orange shade', () => {
   const f = fakeCtx()
-  paintSignal(f.ctx, scene([sick('thin', area('bang_rak', 'shown', 'medium', 'new'))], { view: onBangRak, showSymptoms: true }), null)
-  const fill = f.calls.findIndex((c) => c.name === 'fill' && c.at?.fillStyle === PALETTE.signal)
+  paintSignal(f.ctx, scene([sick('thin')], { view: onBangRak, showSymptoms: true }), null)
+  const fill = f.calls.findIndex((c) => c.name === 'fill' && c.at?.fillStyle === PALETTE.orange)
   const hatch = f.calls.findIndex((c) => c.name === 'stroke' && c.at?.strokeStyle === PALETTE.ink)
   expect(fill).toBeGreaterThanOrEqual(0)
   expect(hatch).toBeGreaterThan(fill)
+})
+
+// ---- green, orange and red (2026-11-23 design) ---------------------------------------------------
+const rows = (areaId: string, over: Partial<PublishedArea>): PublishedArea => ({ areaId, state: 'shown', density: null, step: null, testing: null, symptoms: null, ...over })
+it('fills green for tested, orange for symptoms, red for positives, one colour each', () => {
+  const f = fakeCtx()
+  paintSignal(f.ctx, scene([rows('bang_rak', { testing: 'low' }), rows('chatuchak', { symptoms: 'medium' }), rows('pathum_wan', { density: 'dense', step: 'followup', symptoms: 'dense', testing: 'high' })], { showSymptoms: true }), null)
+  expect(shades(f, PALETTE.green)).toEqual([TONE_SHADE.thin])
+  expect(shades(f, PALETTE.orange)).toEqual([TONE_SHADE.medium])
+  expect(shades(f, PALETTE.red)).toEqual([TONE_SHADE.dense])
+})
+it('hatches orange only, never over red', () => {
+  const orange = fakeCtx()
+  paintSignal(orange.ctx, scene([rows('chatuchak', { symptoms: 'medium' })], { showSymptoms: true }), null)
+  expect(orange.calls.filter((c) => c.name === 'stroke')).not.toHaveLength(0)
+  const red = fakeCtx()
+  paintSignal(red.ctx, scene([rows('pathum_wan', { density: 'dense', step: 'followup', symptoms: 'dense' })], { showSymptoms: true }), null)
+  expect(red.calls.filter((c) => c.name === 'stroke')).toHaveLength(0)
+})
+it('falls to orange when the confirmed layer is off, and keeps green with both layers off', () => {
+  const f = fakeCtx()
+  paintSignal(f.ctx, scene([rows('pathum_wan', { density: 'dense', step: 'new', symptoms: 'thin' }), rows('bang_rak', { testing: 'medium' })], { showSignal: false, showSymptoms: true }), null)
+  expect(shades(f, PALETTE.red)).toEqual([])
+  expect(shades(f, PALETTE.orange)).toEqual([TONE_SHADE.thin])
+  expect(shades(f, PALETTE.green)).toEqual([TONE_SHADE.medium])
+})
+it('edges red boldly in its age, and gives green and orange no signal edge', () => {
+  const red = fakeCtx()
+  const s = scene([rows('ratchathewi', { density: 'medium', step: 'followup' })])
+  paintLines(red.ctx, s)
+  expect(red.sets.filter((x) => x.prop === 'strokeStyle').map((x) => x.value)).toContain(PALETTE.redEdge)
+  const widths = red.sets.filter((x) => x.prop === 'lineWidth').map((x) => Math.round((x.value as number) * s.view.ppm * 100) / 100)
+  expect(widths).toContain(Math.round(EDGE.followup.width * RED_EDGE_SCALE * 2 * 100) / 100)
+  const quiet = fakeCtx()
+  paintLines(quiet.ctx, scene([rows('bang_rak', { testing: 'high' }), rows('chatuchak', { symptoms: 'thin' })], { showSymptoms: true }))
+  expect(quiet.sets.filter((x) => x.prop === 'strokeStyle').map((x) => x.value)).not.toContain(PALETTE.redEdge)
 })

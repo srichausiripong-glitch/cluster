@@ -106,6 +106,16 @@ it('writes a shaded district’s level as dots in its name box', () => {
   }
   for (const plain of boxes.filter((b) => !withLevel.includes(b))) expect(plain.querySelector('[data-level-dot]')).toBeNull()
 })
+// 2026-11-23 design: the dots follow the district's one colour, green included.
+it('writes a green district’s band as dots in its name box', () => {
+  const green = ['chatuchak', 'lat_krabang', 'nong_chok', 'bang_khun_thian', 'khlong_sam_wa', 'don_mueang']
+  setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: green.map((areaId) => ({ areaId, state: 'shown', density: null, step: null, testing: 'high', symptoms: null })) })
+  openApp('/app')
+  const names = green.map((id) => AREAS.find((a) => a.id === id)!.name)
+  const withLevel = [...document.querySelectorAll('[data-caption]')].filter((b) => names.includes(b.textContent ?? ''))
+  expect(withLevel.length).toBeGreaterThan(0)
+  for (const box of withLevel) expect(box.getAttribute('data-level')).toBe('dense')
+})
 it('asks only for its own map files and its own server, never another site', async () => {
   const asked: string[] = []
   vi.stubGlobal('fetch', (url: string) => {
