@@ -347,14 +347,18 @@ it('explains the marks, the age of a signal and what a signal is not, behind ⓘ
   expect(sheet.getByText(th.map.keyPins.unverified).closest('li')?.querySelector('[data-dot]')).not.toBeNull()
   // Most unverified places are pharmacies with no known number: the key does not promise a call.
   expect(th.map.keyPins.unverified).toBe('ยังไม่ยืนยัน · โทรหรือดูใน Google Maps ก่อนไป')
-  expect(dialog.querySelectorAll('[data-gap]')).toHaveLength(3)
-  // Confirmed results shade the district whole; each shade is keyed with its dots, never by colour alone.
+  // The three colours (2026-11-23 design), each with its own cue: red's edge, orange's hatch, green plain.
+  const tones = [...dialog.querySelectorAll('[data-tone-key]')]
+  expect(tones.map((el) => el.getAttribute('data-tone-key'))).toEqual(['confirmed', 'symptoms', 'tested'])
+  expect(tones.map((el) => [!!el.querySelector('[data-edge]'), !!el.querySelector('[data-hatch]')])).toEqual([[true, false], [false, true], [false, false]])
+  // The district's own colour at each depth, keyed with its dots, never by colour alone.
   expect(dialog.querySelectorAll('[data-dot-r]')).toHaveLength(0)
-  const shades = [...dialog.querySelectorAll('[data-shade]')]
+  const shades = [...dialog.querySelectorAll('[data-key="levels"] [data-shade]')]
   expect(shades.map((el) => el.getAttribute('data-shade'))).toEqual(['thin', 'medium', 'dense'])
+  expect(shades.map((el) => el.getAttribute('data-tone'))).toEqual(['confirmed', 'confirmed', 'confirmed'])
   shades.forEach((el, i) => expect(el.querySelectorAll('[data-level-dot][fill="var(--color-ink)"]')).toHaveLength(i + 1))
   const tags = sheet.getAllByText(th.map.current)
-  expect(tags).toHaveLength(3)
+  expect(tags).toHaveLength(2)
   for (const tag of tags) expect(tag.className).toMatch(/\bbg-yellow\b/)
   // Keyed as drawn: a district below the threshold has no mark (redesign spec 5.7), so no hatch is taught for it.
   const row = sheet.getAllByText(th.map.state.below_threshold).map((el) => el.closest('li')).find((li) => li !== null)!

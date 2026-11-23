@@ -4,7 +4,8 @@ import type { CareLayer, DensityBand } from '../domain/types'
 import { isVerified, type CarePoint } from '../data/carePoints'
 import { LAYER_EMOJI } from '../design/emojiCodes'
 import { emojiUrl } from '../design/emojiUrl'
-import { EDGE, HATCH, SAMPLE_PX, SHADE_GROUND, TONE_SHADE, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
+import { EDGE, HATCH, RED_EDGE_SCALE, SAMPLE_PX, SHADE_GROUND, TONE_SHADE, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
+import type { ToneKind } from './tone'
 
 /** A care point pin. Its point is at 0, 0 and its round head is centred 26 px above. */
 const PIN_SHAPE = 'M0 0C0 0 14 -15 14 -26A14 14 0 1 0 -14 -26C-14 -15 0 0 0 0Z'
@@ -97,16 +98,33 @@ export function LevelMarks({ level, x = 0, y = 0 }: { level: DensityBand; x?: nu
   )
 }
 
-/** A patch of signal for the key: the map's violet at the strength of a level on the map's own ground, with the level's dots beside it as the name box writes them. */
-export function ShadeSwatch({ density }: { density: DensityBand }) {
+const TONE_FILL: Record<ToneKind, string> = { confirmed: 'var(--color-red)', symptoms: 'var(--color-orange)', tested: 'var(--color-green)' }
+
+/**
+ * A district's colour for the key (2026-11-23 design), on the map's own ground at the strength of a
+ * band, with the cue the map draws: red's bold edge, orange's hatch, green plain; the band's dots
+ * beside it as the name box writes them. Never told by colour alone.
+ */
+export function ShadeSwatch({ tone, band }: { tone: ToneKind; band: DensityBand }) {
   const [w, h] = [34, 26]
+  const id = `tone-${tone}-${band}`
+  const lines: string[] = []
+  for (let x = -h; x < w; x += SYMPTOM_GAP[band]) lines.push(`M${x} ${h}L${x + h} 0`)
   return (
-    <svg width={w + 30} height={h} viewBox={`0 0 ${w + 30} ${h}`} aria-hidden="true" className="shrink-0" data-shade={density}>
+    <svg width={w + 30} height={h} viewBox={`0 0 ${w + 30} ${h}`} aria-hidden="true" className="shrink-0" data-shade={band} data-tone={tone}>
+      <clipPath id={id}>
+        <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" />
+      </clipPath>
       <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-land)" />
       <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-surface)" opacity={SHADE_GROUND} />
-      <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="var(--color-signal)" opacity={TONE_SHADE[density]} />
-      <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="none" stroke="var(--color-ink)" strokeWidth="1.5" />
-      <LevelMarks level={density} x={w + 6} y={h / 2} />
+      <rect data-fill x="2" y="2" width={w - 4} height={h - 4} rx="7" fill={TONE_FILL[tone]} opacity={TONE_SHADE[band]} />
+      {tone === 'symptoms' && <path data-hatch d={lines.join('')} clipPath={`url(#${id})`} fill="none" stroke="var(--color-ink)" strokeWidth={SYMPTOM_LINE.width} opacity={SYMPTOM_LINE.alpha} />}
+      {tone === 'confirmed' ? (
+        <rect data-edge x="3" y="3" width={w - 6} height={h - 6} rx="6" fill="none" stroke="var(--color-red-edge)" strokeWidth={EDGE.new.width * RED_EDGE_SCALE * 0.7} />
+      ) : (
+        <rect x="2" y="2" width={w - 4} height={h - 4} rx="7" fill="none" stroke="var(--color-ink)" strokeWidth="1.5" />
+      )}
+      <LevelMarks level={band} x={w + 6} y={h / 2} />
     </svg>
   )
 }
