@@ -1,13 +1,13 @@
 import { DISTRICT_IDS } from './districts.js'
 import { BANDS, stepFor } from './lifecycle.js'
-import { densityBand, K } from './publication.js'
+import { bandOf, reaches, SIGNAL_MIN, TESTED_MIN } from './publication.js'
 import type { PublishedArea, ReportKind, TestingLevel } from './types.js'
 import { weekIndex } from './weeks.js'
 
 const KINDS: ReportKind[] = ['gono_chlam', 'syphilis', 'tested', 'symptoms']
 const SIGNAL_KINDS = ['gono_chlam', 'syphilis'] as const
-/** What counts as testing: a test with no result, and a positive result. Symptoms without a test do not. */
-const TESTING_KINDS: ReportKind[] = ['gono_chlam', 'syphilis', 'tested']
+/** Green counts tests that found nothing, alone: a positive is never green (2026-11-23 design). */
+const TESTING_KINDS: ReportKind[] = ['tested']
 /** Testing is counted over the last twelve weeks (amendment 4.4). */
 const TESTING_WEEKS = 12
 
@@ -32,25 +32,29 @@ export function expectedRandom(envelopes: number, q: number): number {
   return (q * envelopes) / (DISTRICT_IDS.length * KINDS.length)
 }
 
-/** One cell of the sum: what was counted and how much of it chance alone would explain. */
+/** One cell of the sum: what was counted and how many random reports it is expected to hold. */
 interface Cell {
   n: number
   expected: number
 }
-const estimate = (cells: Cell[]) => cells.reduce((sum, c) => sum + Math.max(0, c.n - c.expected), 0)
-/** ceil(2 × √(expected random reports over the same cells)) (amendment 5). */
-const margin = (cells: Cell[]) => Math.ceil(2 * Math.sqrt(cells.reduce((sum, c) => sum + c.expected, 0)))
+const count = (cells: Cell[]) => cells.reduce((sum, c) => sum + c.n, 0)
+const lambda = (cells: Cell[]) => cells.reduce((sum, c) => sum + c.expected, 0)
+/** A row's band when its raw count reaches the bar for its minimum (2026-11-23 design), or null. */
+const row = (cells: Cell[], min: number) => (reaches(count(cells), min, lambda(cells)) ? bandOf(count(cells)) : null)
+const TESTING_BAND = { thin: 'low', medium: 'medium', dense: 'high' } as const
 
 /**
  * One area from its counts. `districts` is how many districts the counts were summed over: 1 for a
  * district, 50 for the city, whose expected random reports are those of all fifty districts.
+ * Red from three positives, orange from three symptoms, green from one tested (2026-11-23 design),
+ * each banded by its own raw count.
  */
 function entry(areaId: string, counts: CountRow[], input: DisplayInput, districts: number, isCity: boolean): PublishedArea {
-  const count = (kind: ReportKind, week: string) => counts.filter((c) => c.kind === kind && c.week === week).reduce((sum, c) => sum + c.n, 0)
-  const cell = (kind: ReportKind, week: string): Cell => ({ n: count(kind, week), expected: districts * expectedRandom(input.envelopes[week] ?? 0, input.q) })
+  const kindCount = (kind: ReportKind, week: string) => counts.filter((c) => c.kind === kind && c.week === week).reduce((sum, c) => sum + c.n, 0)
+  const cell = (kind: ReportKind, week: string): Cell => ({ n: kindCount(kind, week), expected: districts * expectedRandom(input.envelopes[week] ?? 0, input.q) })
   const weeks = [...new Set([...counts.map((c) => c.week), ...Object.keys(input.envelopes)])].filter((w) => weekIndex(w, input.nowWeek) >= 1)
 
-  // The signal: positive reports of the two mapped groups that have not expired, by step.
+  // Red: positive reports of the two mapped groups that have not expired, by step.
   const byStep = { new: [] as Cell[], followup: [] as Cell[], expiring: [] as Cell[] }
   for (const kind of SIGNAL_KINDS) {
     for (const week of weeks) {
@@ -58,27 +62,28 @@ function entry(areaId: string, counts: CountRow[], input: DisplayInput, district
       if (step !== 'expired') byStep[step].push(cell(kind, week))
     }
   }
-  const signalCells = [...byStep.new, ...byStep.followup, ...byStep.expiring]
-  const total = estimate(signalCells)
-  const need = K + margin(signalCells)
+  const density = row([...byStep.new, ...byStep.followup, ...byStep.expiring], SIGNAL_MIN)
 
-  // Testing: "tested" plus positive reports over the last twelve weeks.
+  // Green: tests that found nothing over the last twelve weeks.
   const recent = weeks.filter((w) => weekIndex(w, input.nowWeek) <= TESTING_WEEKS)
-  const testingCells = TESTING_KINDS.flatMap((kind) => recent.map((week) => cell(kind, week)))
-  const tested = estimate(testingCells)
-  const testing: TestingLevel | null = tested < K + margin(testingCells) ? null : tested < 50 ? 'low' : tested < 200 ? 'medium' : 'high'
+  const tested = row(TESTING_KINDS.flatMap((kind) => recent.map((week) => cell(kind, week))), TESTED_MIN)
+  const testing: TestingLevel | null = tested && TESTING_BAND[tested]
 
-  // Symptoms: their own estimate over the weeks they live, never added to the confirmed signal.
-  const symptomCells = weeks.filter((w) => stepFor('symptoms', weekIndex(w, input.nowWeek)) !== 'expired').map((week) => cell('symptoms', week))
-  const felt = estimate(symptomCells)
-  const symptoms = felt < K + margin(symptomCells) ? null : densityBand(felt)
+  // Orange: symptoms over the weeks they live, never added to red.
+  const symptoms = row(weeks.filter((w) => stepFor('symptoms', weekIndex(w, input.nowWeek)) !== 'expired').map((week) => cell('symptoms', week)), SIGNAL_MIN)
 
-  // A district below the threshold says only that: whether it had none or a few would show that
+  // A district with nothing to show says only that: whether it had none or a few would show that
   // someone there reported (redesign spec 5.5). The city, summed from all fifty, may say which.
-  if (total < need) return { areaId, state: isCity && total === 0 ? 'no_data' : 'below_threshold', density: null, step: null, testing, symptoms }
-  const steps = (Object.entries(byStep) as [keyof typeof byStep, Cell[]][]).map(([step, cells]) => [step, estimate(cells)] as const).sort((a, b) => b[1] - a[1])
-  const clearLeader = steps[0][1] >= K && steps[0][1] > steps[1][1]
-  return { areaId, state: 'shown', density: densityBand(total), step: clearLeader ? steps[0][0] : 'mixed', testing, symptoms }
+  if (!density && !testing && !symptoms) {
+    const any = counts.some((c) => c.n > 0 && weeks.includes(c.week))
+    return { areaId, state: isCity && !any ? 'no_data' : 'below_threshold', density: null, step: null, testing: null, symptoms: null }
+  }
+  let step: PublishedArea['step'] = null
+  if (density) {
+    const steps = (Object.entries(byStep) as [keyof typeof byStep, Cell[]][]).map(([s, cells]) => [s, count(cells)] as const).sort((a, b) => b[1] - a[1])
+    step = steps[0][1] >= SIGNAL_MIN && steps[0][1] > steps[1][1] ? steps[0][0] : 'mixed'
+  }
+  return { areaId, state: 'shown', density, step, testing, symptoms }
 }
 
 /**

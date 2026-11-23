@@ -13,52 +13,64 @@ const zone = (areas: ReturnType<typeof file>, id: string) => areas.find((a) => a
 it('expects one random report per cell from a hundred thousand envelopes', () => {
   expect(expectedRandom(100000, Q)).toBeCloseTo(1, 10)
 })
-it('shows a district with twelve fresh syphilis reports and no envelopes to discount', () => {
-  // A positive report counts as testing too (amendment 4.4).
-  expect(zone(file([row('bang_rak', 'syphilis', NOW, 12)]), 'bang_rak')).toEqual({ areaId: 'bang_rak', state: 'shown', density: 'thin', step: 'new', testing: 'low', symptoms: null })
+// Owner, 23 Nov 2026 (traffic-light map design): green from one tested report, orange and red from three,
+// each banded by its own raw count; the bar rises with the random reports expected over the row's cells.
+it('shows red from three positives, orange from three symptoms, green from one tested', () => {
+  const area = (kind: ReportKind, n: number) => zone(file([row('bang_rak', kind, NOW, n)]), 'bang_rak')
+  expect(area('syphilis', 2)).toMatchObject({ state: 'below_threshold', density: null })
+  expect(area('syphilis', 3)).toEqual({ areaId: 'bang_rak', state: 'shown', density: 'thin', step: 'new', testing: null, symptoms: null })
+  expect(area('symptoms', 2).symptoms).toBeNull()
+  expect(area('symptoms', 3)).toMatchObject({ state: 'shown', symptoms: 'thin', density: null })
+  expect(area('tested', 1)).toMatchObject({ state: 'shown', testing: 'low', density: null, step: null })
 })
-it('takes the random reports off and asks for the margin on top of ten', () => {
-  // 100000 envelopes: one random report expected in each (kind, district) cell; both signal kinds count, so the margin is ceil(2 × √2) = 3.
-  expect(zone(file([row('bang_rak', 'syphilis', NOW, 10)], { [NOW]: 100000 }), 'bang_rak').state).toBe('below_threshold')
-  expect(zone(file([row('bang_rak', 'syphilis', NOW, 13)], { [NOW]: 100000 }), 'bang_rak').state).toBe('below_threshold')
-  expect(zone(file([row('bang_rak', 'syphilis', NOW, 14)], { [NOW]: 100000 }), 'bang_rak').state).toBe('shown')
+it('never shows two positives as green or red', () => {
+  expect(zone(file([row('bang_rak', 'syphilis', NOW, 2)]), 'bang_rak')).toMatchObject({ state: 'below_threshold', density: null, testing: null, symptoms: null })
 })
-it('never lets the estimate fall below nothing', () => {
-  expect(zone(file([], { [NOW]: 100000 }), 'bkk').state).toBe('no_data')
-  expect(zone(file([row('bang_rak', 'syphilis', NOW, 1)], { [NOW]: 100000 }), 'bkk').state).toBe('no_data')
+it('bands each row by its own raw count: under 5, 5 to 14, 15 and up', () => {
+  const band = (kind: ReportKind, n: number) => zone(file([row('bang_rak', kind, NOW, n)]), 'bang_rak')
+  expect([4, 5, 14, 15].map((n) => band('syphilis', n).density)).toEqual(['thin', 'medium', 'medium', 'dense'])
+  expect([4, 5, 15].map((n) => band('tested', n).testing)).toEqual(['low', 'medium', 'high'])
+  expect([3, 5, 15].map((n) => band('symptoms', n).symptoms)).toEqual(['thin', 'medium', 'dense'])
+})
+it('raises the bar with the random reports expected, so noise alone paints nothing', () => {
+  // 100,000 envelopes in NOW: one random report expected per cell. Red counts two cells that week
+  // (gonorrhoea/chlamydia and syphilis), so λ = 2 and red needs round(3 + 2 + 2√2) = 8; green has λ = 1 and needs 4.
+  const run = (kind: ReportKind, n: number) => zone(file([row('bang_rak', kind, NOW, n)], { [NOW]: 100000 }), 'bang_rak')
+  expect(run('syphilis', 7).density).toBeNull()
+  expect(run('syphilis', 8).density).toBe('medium')
+  expect(run('tested', 3).testing).toBeNull()
+  expect(run('tested', 4).testing).toBe('low')
+})
+it('raises the city bar by fifty districts of random reports', () => {
+  // 2,000 envelopes give the city λ = 50 × 2 × 0.02 = 2 for red: it needs 8, not 3.
+  const city = (n: number) => zone(file([row('bang_rak', 'syphilis', NOW, n)], { [NOW]: 2000 }), 'bkk')
+  expect(city(7).density).toBeNull()
+  expect(city(8).density).toBe('medium')
 })
 it('drops reports that have expired', () => {
   expect(zone(file([row('chatuchak', 'gono_chlam', '2026-W41', 12)]), 'chatuchak').state).toBe('below_threshold')
   expect(zone(file([row('chatuchak', 'gono_chlam', '2026-W43', 12)]), 'chatuchak')).toMatchObject({ state: 'shown', step: 'expiring' })
 })
-it('shows the age as mixed when no single step reaches the threshold', () => {
+it('shows the age as mixed when no single step leads', () => {
   expect(zone(file([row('ratchathewi', 'gono_chlam', NOW, 6), row('ratchathewi', 'gono_chlam', '2026-W45', 6)]), 'ratchathewi')).toMatchObject({ state: 'shown', step: 'mixed' })
 })
-it('never shows a signal from tested reports, but shows how much testing there is', () => {
-  const tested = (n: number, positives = 0) => zone(file([row('bang_kapi', 'tested', NOW, n), row('bang_kapi', 'syphilis', '2026-W40', positives)]), 'bang_kapi')
-  expect(tested(300).state).toBe('below_threshold')
-  expect(tested(9).testing).toBeNull()
-  expect(tested(30, 20).testing).toBe('medium')
-  expect(tested(30).testing).toBe('low')
-  expect(tested(60).testing).toBe('medium')
-  expect(tested(250).testing).toBe('high')
+it('counts only tested reports as green, never positives', () => {
+  const area = zone(file([row('bang_kapi', 'tested', NOW, 30), row('bang_kapi', 'syphilis', '2026-W40', 20)]), 'bang_kapi')
+  expect(area.testing).toBe('high')
+  expect(zone(file([row('bang_kapi', 'syphilis', '2026-W40', 20)]), 'bang_kapi').testing).toBeNull()
 })
 it('counts testing over the last twelve weeks only', () => {
   expect(zone(file([row('bang_kapi', 'tested', '2026-W34', 40)]), 'bang_kapi').testing).toBeNull()
-  expect(zone(file([row('bang_kapi', 'tested', '2026-W35', 40)]), 'bang_kapi').testing).toBe('low')
+  expect(zone(file([row('bang_kapi', 'tested', '2026-W35', 40)]), 'bang_kapi').testing).toBe('high')
 })
 it('says a suspended district is suspended and shows nothing else for it', () => {
   expect(zone(file([row('bang_rak', 'syphilis', NOW, 40), row('bang_rak', 'tested', NOW, 90)], {}, ['bang_rak']), 'bang_rak')).toEqual({ areaId: 'bang_rak', state: 'suspended', density: null, step: null, testing: null, symptoms: null })
 })
 it('builds the city from all fifty districts with the same rule', () => {
-  const five = ['chatuchak', 'ratchathewi', 'bang_kapi', 'bang_rak', 'bangkok_yai']
-  const areas = file(five.map((d) => row(d, 'syphilis', NOW, 2)))
+  const two = ['chatuchak', 'bang_rak']
+  const areas = file(two.map((d) => row(d, 'syphilis', NOW, 2)))
   expect(zone(areas, 'bang_rak').state).toBe('below_threshold')
   expect(zone(areas, 'bkk')).toMatchObject({ state: 'shown', density: 'thin', step: 'new' })
-  // Random reports are expected in every district, so the city's margin grows with them: 50 districts × 2 kinds × 1 = 100,
-  // margin ceil(2 × √100) = 20; the syphilis cell expects 50 random reports, so 60 counted is an estimate of 10 and 80 is 30.
-  expect(zone(file(five.map((d) => row(d, 'syphilis', NOW, 12)), { [NOW]: 100000 }), 'bkk').state).toBe('below_threshold')
-  expect(zone(file(five.map((d) => row(d, 'syphilis', NOW, 16)), { [NOW]: 100000 }), 'bkk').state).toBe('shown')
 })
 it('publishes the 50 districts in list order and the city last', () => {
   expect(file([]).map((a) => a.areaId)).toEqual([...DISTRICT_IDS, 'bkk'])
@@ -66,21 +78,21 @@ it('publishes the 50 districts in list order and the city last', () => {
 it('expects q × envelopes ÷ (50 districts × 4 kinds) random reports in one cell', () => {
   expect(expectedRandom(10000, 0.002)).toBeCloseTo(0.1)
 })
-it('gives a district with no report and one with seven the same entry', () => {
-  const areas = file([row('bang_rak', 'gono_chlam', NOW, 7)], { [NOW]: 1000 })
+it('gives a district with no report and one with two positives the same entry', () => {
+  const areas = file([row('bang_rak', 'gono_chlam', NOW, 2)], { [NOW]: 1000 })
   const strip = (area: PublishedArea) => ({ ...area, areaId: '' })
   expect(strip(zone(areas, 'bang_rak'))).toEqual(strip(zone(areas, 'chatuchak')))
   expect(zone(areas, 'chatuchak')).toMatchObject({ state: 'below_threshold', density: null, symptoms: null, testing: null })
 })
 it("keeps the city's below-threshold and no-data apart", () => {
   expect(zone(file([], { [NOW]: 1000 }), 'bkk').state).toBe('no_data')
-  expect(zone(file([row('bang_rak', 'gono_chlam', NOW, 5)], { [NOW]: 1000 }), 'bkk').state).toBe('below_threshold')
+  expect(zone(file([row('bang_rak', 'gono_chlam', NOW, 1)], { [NOW]: 1000 }), 'bkk').state).toBe('below_threshold')
 })
 it('shows symptoms on their own, never in the confirmed signal or the testing level', () => {
-  expect(zone(file([row('bang_rak', 'symptoms', NOW, 30)], { [NOW]: 1000 }), 'bang_rak')).toMatchObject({ state: 'below_threshold', density: null, symptoms: 'medium', testing: null })
+  expect(zone(file([row('bang_rak', 'symptoms', NOW, 8)], { [NOW]: 1000 }), 'bang_rak')).toMatchObject({ state: 'shown', density: null, symptoms: 'medium', testing: null, step: null })
 })
 it('lets symptoms count for four weeks, not five', () => {
-  const at = (back: number) => zone(file([row('bang_rak', 'symptoms', shiftWeek(NOW, -back), 30)], { [NOW]: 1000 }), 'bang_rak').symptoms
+  const at = (back: number) => zone(file([row('bang_rak', 'symptoms', shiftWeek(NOW, -back), 8)], { [NOW]: 1000 }), 'bang_rak').symptoms
   expect(at(3)).toBe('medium')
   expect(at(4)).toBeNull()
 })
