@@ -58,7 +58,7 @@ export function nextTestState(s: PhoneState, today: string, week: string = curre
 }
 
 /** Everything this app keeps on the phone outside the phone store: the sealed envelope waiting to go, the one made ready for leaving, and the week's send claim. */
-const ENVELOPE_KEYS = ['cluster.envelope-outbox', 'cluster.envelope-ready', 'cluster.envelope-claim']
+const ENVELOPE_KEYS = ['cluster.envelope-outbox', 'cluster.envelope-ready', 'cluster.envelope-claim', 'cluster.envelope-alive']
 
 export function wipePhone(): void {
   // Any wipe stops the weekly notification too, the error screen's included (redesign spec 5.11).

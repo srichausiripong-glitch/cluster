@@ -274,3 +274,37 @@ it('remembers the week and district of a "tested" report once its envelope goes,
   expect(await sendIfDue(LATE, deps())).toBe('sent')
   expect(phone.get().counted ?? null).toBeNull()
 })
+
+// Final review fixes. A keepalive post on closing often never hears back, though the server got it.
+it('posts the very same envelope again in that week after a lost answer, even once a report is waiting', async () => {
+  const first = visitAt(T0)
+  await sendIfDue(T0, deps(), first)
+  loseAnswer = true
+  expect(await sendIfDue(T0 + 130_000, deps(), first, true)).toBe('failed')
+  loseAnswer = false
+  phone.update((s) => ({ ...s, pending: REPORT }))
+  const second = visitAt(T0 + 3_600_000)
+  expect(await sendIfDue(second.startedAt, deps(), second)).toBe('sent')
+  expect(posted).toHaveLength(2)
+  expect(posted[1]).toBe(posted[0])
+  expect(phone.get().pending).toEqual(REPORT) // it waits for next week's envelope
+})
+it('counts a report whose answer was lost as gone, not again in the next week', async () => {
+  const visit = visitAt(T0, true)
+  phone.update((s) => ({ ...s, pending: REPORT }))
+  await sendIfDue(T0, deps(), visit)
+  loseAnswer = true
+  expect(await sendIfDue(T0 + 5_000, deps(), visit, true)).toBe('failed')
+  loseAnswer = false
+  const next = visitAt(T0 + 7 * 86_400_000)
+  await sendIfDue(next.startedAt, deps(() => 0.5, '2026-W47'), next)
+  expect(await sendIfDue(next.startedAt + 130_000, deps(() => 0.5, '2026-W47'), next, true)).toBe('sent')
+  expect(await unseal(JSON.parse(posted[1]), keys.privateKey)).toMatchObject({ report: null })
+  expect(phone.get().pending).toBeNull()
+})
+it('does not send on open from a second tab or a reload while another page of the app is still open', async () => {
+  await sendIfDue(T0, deps(), visitAt(T0))
+  const other = visitAt(T0 + 30_000)
+  expect(await sendIfDue(other.startedAt, deps(), other)).toBe('not-due')
+  expect(posted).toHaveLength(0)
+})
