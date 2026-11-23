@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { mondayDate } from '../domain/weeks'
 import { phone } from '../store/stores'
 import { cancelPending, queueReport, wipePhone } from '../store/actions'
-import { sendIfDue } from './send'
+import { READY, sendIfDue, takingNow } from './send'
 import { unseal } from './seal'
 
 const WEEK = '2026-W46'
@@ -37,27 +37,97 @@ const fakeFetch = (week = WEEK) =>
   }) as typeof fetch
 const deps = (rand = () => 0.5, week = WEEK) => ({ fetch: fakeFetch(week), rand, solve: async () => '0000000042' })
 
-it('picks one moment in the server week, keeps it, and waits for it', async () => {
-  expect(await sendIfDue(weekStart, deps(() => 0.5))).toBe('not-due')
-  const at = phone.get().sendAt
-  expect(at?.week).toBe(WEEK)
-  expect(at!.at).toBeGreaterThanOrEqual(weekStart)
-  expect(at!.at).toBeLessThan(weekStart + 7 * 86_400_000)
-  expect(await sendIfDue(weekStart, deps(() => 0.9))).toBe('not-due')
-  expect(phone.get().sendAt).toEqual(at)
+// Send on leaving (2026-11-23 design): the envelope is made ready while the app is open and goes when the person leaves.
+const T0 = weekStart + 3 * 86_400_000
+const visitAt = (startedAt: number, reported = false) => ({ startedAt, reported })
+const REPORT = { kind: 'tested' as const, zone: 'bang_rak', savedAt: 's-visit' }
+
+it('on a first visit, prepares the report while open and sends it when the person leaves', async () => {
+  const visit = visitAt(T0)
+  phone.update((s) => ({ ...s, pending: REPORT }))
+  expect(await sendIfDue(T0 + 30_000, deps(), visit)).toBe('not-due')
   expect(posted).toHaveLength(0)
+  visit.reported = true
+  expect(await sendIfDue(T0 + 40_000, deps(), visit, true)).toBe('sent')
+  expect(posted).toHaveLength(1)
+  expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: { zone: 'bang_rak', kind: 'tested' } })
+  expect(phone.get().sentWeek).toBe(WEEK)
+  expect(phone.get().pending).toBeNull()
 })
-it('sends once it is due, then marks the week sent and clears the waiting report', async () => {
+it('does not send when a visit without a report is left within two minutes, and does after', async () => {
+  const visit = visitAt(T0)
+  expect(await sendIfDue(T0, deps(), visit)).toBe('not-due')
+  expect(await sendIfDue(T0 + 60_000, deps(), visit, true)).toBe('not-due')
+  expect(posted).toHaveLength(0)
+  expect(await sendIfDue(T0 + 121_000, deps(), visit, true)).toBe('sent')
+  expect(posted).toHaveLength(1)
+  expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: null })
+})
+it('sends nothing when the person leaves before the new report is sealed, and sends it on the next open', async () => {
+  const visit = visitAt(T0)
+  expect(await sendIfDue(T0, deps(), visit)).toBe('not-due')
+  phone.update((s) => ({ ...s, pending: REPORT }))
+  visit.reported = true
+  expect(await sendIfDue(T0 + 5_000, deps(), visit, true)).toBe('not-ready')
+  expect(posted).toHaveLength(0)
+  expect(phone.get().pending).toEqual(REPORT)
+  expect(await sendIfDue(T0 + 3_600_000, deps(), visitAt(T0 + 3_600_000))).toBe('sent')
+  expect(posted).toHaveLength(1)
+  expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: { zone: 'bang_rak' } })
+})
+it('sends nothing more on a second visit once the week has gone', async () => {
+  const visit = visitAt(T0, true)
+  await sendIfDue(T0, deps(), visit)
+  expect(await sendIfDue(T0 + 1_000, deps(), visit, true)).toBe('sent')
+  const second = visitAt(T0 + 3_600_000)
+  expect(await sendIfDue(second.startedAt, deps(), second)).toBe('already-sent')
+  expect(await sendIfDue(second.startedAt + 200_000, deps(), second, true)).toBe('already-sent')
+  expect(posted).toHaveLength(1)
+})
+it('carries a report waiting from last week in the new week, sent on leaving', async () => {
+  phone.update((s) => ({ ...s, sentWeek: '2026-W45', sendAt: { week: '2026-W45', at: weekStart - 86_400_000 }, pending: REPORT }))
+  const visit = visitAt(T0)
+  expect(await sendIfDue(T0, deps(), visit)).toBe('not-due')
+  expect(await sendIfDue(T0 + 130_000, deps(), visit, true)).toBe('sent')
+  expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: { zone: 'bang_rak' } })
+})
+it('still lets a prepared report be cancelled, and then seals an empty envelope', async () => {
+  const visit = visitAt(T0, true)
+  phone.update((s) => ({ ...s, pending: REPORT }))
+  await sendIfDue(T0, deps(), visit)
+  expect(takingNow(REPORT.savedAt)).toBe(false)
+  expect(cancelPending()).toBe('cancelled')
+  expect(await sendIfDue(T0 + 1_000, deps(), visit, true)).toBe('not-ready')
+  expect(posted).toHaveLength(0)
+  await sendIfDue(T0 + 2_000, deps(), visit)
+  expect(await sendIfDue(T0 + 3_000, deps(), visit, true)).toBe('sent')
+  expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: null })
+})
+it('leaves no prepared envelope behind when the phone is wiped', async () => {
+  phone.update((s) => ({ ...s, pending: REPORT }))
+  await sendIfDue(T0, deps(), visitAt(T0))
+  expect(localStorage.getItem(READY)).not.toBeNull()
+  wipePhone()
+  expect(localStorage.getItem(READY)).toBeNull()
+})
+it('does not send on open for a phone that kept a later moment from before this change', async () => {
+  phone.update((s) => ({ ...s, sendAt: { week: WEEK, at: T0 + 2 * 86_400_000 } }))
+  const visit = visitAt(T0)
+  expect(await sendIfDue(T0, deps(), visit)).toBe('not-due')
+  expect(posted).toHaveLength(0)
+  expect(await sendIfDue(T0 + 130_000, deps(), visit, true)).toBe('sent')
+  expect(posted).toHaveLength(1)
+})
+it('sends an outright call at once and marks the week sent', async () => {
   phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: '2026-11-12T00:00:00.000Z' } }))
-  await sendIfDue(weekStart, deps())
-  expect(await sendIfDue(phone.get().sendAt!.at, deps())).toBe('sent')
+  expect(await sendIfDue(weekStart, deps())).toBe('sent')
   expect(posted).toHaveLength(1)
   expect(phone.get().sentWeek).toBe(WEEK)
   expect(phone.get().pending).toBeNull()
   const body = JSON.parse(posted[0])
   expect(body.pow).toBe('0000000042')
   expect(await unseal(body, keys.privateKey)).toMatchObject({ report: { zone: 'bang_rak', kind: 'tested' } })
-  expect(await sendIfDue(phone.get().sendAt!.at + 1000, deps())).toBe('already-sent')
+  expect(await sendIfDue(weekStart + 1000, deps())).toBe('already-sent')
   expect(posted).toHaveLength(1)
 })
 it('keeps the report when sending fails, and tries again later', async () => {
