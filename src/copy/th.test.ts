@@ -117,3 +117,6 @@ it('states the new rule and names green without safety', () => {
   for (const s of [th.map.sheet.testing, th.map.sheet.tones.tested]) expect(s).not.toContain('ปลอดภัย')
   expect(th.map.stateHint.shown).toBe('มีรายงานจากผู้ใช้ในช่วงนี้: สีเขียวตั้งแต่ 1 รายงาน สีส้มและสีแดงตั้งแต่ 3 รายงาน')
 })
+it('no longer lists a send time among what the phone keeps: the envelope goes on leaving (2026-11-23 design)', () => {
+  expect(th.privacy.phone).not.toContain('เวลาส่งซอง')
+})

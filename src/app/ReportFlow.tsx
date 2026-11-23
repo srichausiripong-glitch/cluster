@@ -76,6 +76,8 @@ export function ReportFlow() {
   const [changing, setChanging] = useState(false)
   const [queued, setQueued] = useState(false)
   const [kept, setKept] = useState(false)
+  // Taken when the report is queued: once this week's envelope has gone, a report waits for next week's.
+  const [nextWeek, setNextWeek] = useState(false)
 
   const kind = mapKind(found, source)
   const remembered = myDistrict && districtName(myDistrict) ? myDistrict : null
@@ -101,6 +103,7 @@ export function ReportFlow() {
     if (!kind || !zone) return
     queueReport({ kind, zone, savedAt: new Date().toISOString() })
     setMyDistrict(zone)
+    setNextWeek(phone.get().sentWeek === currentWeek())
     setQueued(true)
     setStep('done')
   }
@@ -202,7 +205,7 @@ export function ReportFlow() {
           <Mascot />
           <h2 className="flex items-center gap-2 text-[22px] font-bold">
             {queued && <Emoji name="envelope" size={26} />}
-            {queued ? th.report.doneQueued : th.report.doneNothing}
+            {queued ? (nextWeek ? th.report.doneNextWeek : th.report.doneQueued) : th.report.doneNothing}
           </h2>
           {queued && <p className="text-muted">{th.report.doneCancel}</p>}
           <Go to="/app/list?find=test" className={PRIMARY_LINK}>

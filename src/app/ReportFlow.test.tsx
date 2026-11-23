@@ -46,6 +46,24 @@ it('sends a lab-confirmed syphilis result to the map for the chosen district, wi
   expect(screen.getByRole('heading', { name: th.report.doneQueued })).toBeInTheDocument()
 })
 
+it('says the report goes on leaving while this week\'s envelope has not gone, and with next week\'s when it has', async () => {
+  const user = userEvent.setup()
+  open()
+  await toDistrict(user)
+  await pick(user, 'บางรัก')
+  await choose(user, th.report.toMap)
+  expect(screen.getByRole('heading', { name: th.report.doneQueued })).toHaveTextContent('ส่งตอนออกจากแอป')
+})
+it('says a report made after this week\'s envelope went waits for next week\'s', async () => {
+  phone.update((s) => ({ ...s, sentWeek: currentWeek() }))
+  const user = userEvent.setup()
+  open()
+  await toDistrict(user)
+  await pick(user, 'บางรัก')
+  await choose(user, th.report.toMap)
+  expect(screen.getByRole('heading', { name: th.report.doneNextWeek })).toHaveTextContent('ไปกับซองสัปดาห์หน้า')
+})
+
 it('goes straight from 🤒 to the district, and sends symptoms on their own', async () => {
   const user = userEvent.setup()
   open()
