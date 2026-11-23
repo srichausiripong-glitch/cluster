@@ -1,3 +1,4 @@
+import { toneOf } from './tone'
 import { Minus, Plus } from 'lucide-react'
 import { useEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 import { th } from '../copy/th'
@@ -185,12 +186,15 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
   const marks = useMemo(() => markers(carePoints, shown, size), [carePoints, shown, size])
   // District names are boxes at city level (those that fit) and at district level (redesign spec 5.7).
   const byId = useMemo(() => new Map(areas.map((a) => [a.areaId, a])), [areas])
-  /** The level of every shaded district, while the confirmed layer is on: their name boxes carry it as dots. */
+  /** The band of every coloured district (2026-11-23 design): their name boxes carry it as dots. */
   const levels = useMemo(() => {
     const out: Record<string, DensityBand> = {}
-    if (showSignal) for (const a of areas) if (a.state === 'shown' && a.density && a.areaId !== 'bkk') out[a.areaId] = a.density
+    for (const a of areas) {
+      const tone = a.areaId === 'bkk' ? null : toneOf(a, { confirmed: showSignal, symptoms: showSymptoms })
+      if (tone) out[a.areaId] = tone.band
+    }
     return out
-  }, [areas, showSignal])
+  }, [areas, showSignal, showSymptoms])
   const names = useMemo(() => (phase === 2 && shown.level !== 'street' ? nameBoxes(AREAS, shown, size, marks, levels) : []), [phase, shown, size, marks, levels])
   /** Only the shade of an area that was just reported moves. */
   const breathing = !still && showSignal && areas.some((a) => a.state === 'shown' && a.step === 'new' && (phase === 2 ? a.areaId !== 'bkk' : a.areaId === 'bkk'))

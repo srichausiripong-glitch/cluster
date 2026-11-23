@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
-import { breath, EDGE, HATCH, PALETTE, ROADS, SAMPLE_PX, SHADE_GROUND, SIGNAL_SHADE, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
+import { breath, EDGE, HATCH, PALETTE, ROADS, SAMPLE_PX, SHADE_GROUND, TONE_SHADE, STREET_SHADE, SYMPTOM_GAP, SYMPTOM_LINE } from './style'
 
 it('shows a higher level as a deeper shade, never an opaque one, and lighter at street level', () => {
-  expect(SIGNAL_SHADE.thin).toBeLessThan(SIGNAL_SHADE.medium)
-  expect(SIGNAL_SHADE.medium).toBeLessThan(SIGNAL_SHADE.dense)
-  expect(SIGNAL_SHADE.dense).toBeLessThan(0.7)
+  expect(TONE_SHADE.thin).toBeLessThan(TONE_SHADE.medium)
+  expect(TONE_SHADE.medium).toBeLessThan(TONE_SHADE.dense)
+  expect(TONE_SHADE.dense).toBeLessThan(0.7)
   expect(STREET_SHADE).toBeLessThan(1)
 })
 it('draws each signal age as a line that shows at least three repeats in the legend', () => {
@@ -28,7 +28,7 @@ it('paints with the same colours as the tokens', () => {
   // The path is from the project root: under Vitest's jsdom environment import.meta.url is not a file URL.
   const tokens = readFileSync('src/design/tokens.css', 'utf8')
   const token = (name: string) => tokens.match(new RegExp(`--color-${name}:\\s*(#[0-9a-f]{6})`))?.[1]
-  expect(PALETTE).toEqual({ ink: token('ink'), surface: token('surface'), care: token('care'), yellow: token('yellow'), signal: token('signal'), signalEdge: token('signal-edge'), signalSoft: token('signal-soft'), land: token('land'), landOut: token('land-out'), water: token('water'), park: token('park') })
+  expect(PALETTE).toEqual({ ink: token('ink'), surface: token('surface'), care: token('care'), yellow: token('yellow'), signal: token('signal'), signalEdge: token('signal-edge'), signalSoft: token('signal-soft'), red: token('red'), redEdge: token('red-edge'), orange: token('orange'), green: token('green'), land: token('land'), landOut: token('land-out'), water: token('water'), park: token('park') })
 })
 const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
 const lum = (c: number[]) => {
@@ -46,11 +46,11 @@ it('marks an area below the threshold more lightly than the lightest signal', ()
   const land = lum(rgb(PALETTE.land))
   // Slanted lines one `gap` apart along the ground are gap / √2 apart across: the share of the ground they darken.
   const hatch = ((HATCH.width * Math.SQRT2) / HATCH.gap) * HATCH.alpha * (land - lum(rgb(PALETTE.signalSoft)))
-  expect(hatch).toBeLessThan(land - lum(shadeOf(SIGNAL_SHADE.thin)))
+  expect(hatch).toBeLessThan(land - lum(shadeOf(TONE_SHADE.thin)))
 })
 it('keeps the three shades apart from the ground and from each other, with the ink readable on the deepest', () => {
   const land = rgb(PALETTE.land)
-  const [thin, medium, dense] = (['thin', 'medium', 'dense'] as const).map((d) => shadeOf(SIGNAL_SHADE[d]))
+  const [thin, medium, dense] = (['thin', 'medium', 'dense'] as const).map((d) => shadeOf(TONE_SHADE[d]))
   expect(contrast(thin, land)).toBeGreaterThanOrEqual(1.3)
   expect(contrast(medium, thin)).toBeGreaterThanOrEqual(1.3)
   expect(contrast(dense, medium)).toBeGreaterThanOrEqual(1.3)

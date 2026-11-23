@@ -11,7 +11,8 @@ import { Chip } from '../design/primitives/Chip'
 import { Sheet } from '../design/primitives/Sheet'
 import { districtLabel } from '../domain/districts'
 import type { DensityBand, PublishedArea, TestingLevel } from '../domain/types'
-import { DotMark, EdgeSample, HatchSwatch, PinMark, QuietSwatch, ShadeSwatch } from '../map/legend'
+import { DotMark, EdgeSample, PinMark, QuietSwatch, ShadeSwatch } from '../map/legend'
+import { toneOf, type ToneKind } from '../map/tone'
 import { Go } from './Go'
 import { levelOf } from './level'
 import { LevelDots } from './LevelDots'
@@ -20,6 +21,7 @@ import { More } from './More'
 const DENSITIES = ['thin', 'medium', 'dense'] as const
 const STEPS = ['new', 'followup', 'expiring', 'mixed'] as const
 const QUIET_STATES = ['below_threshold', 'no_data', 'suspended'] as const
+const TONES: ToneKind[] = ['confirmed', 'symptoms', 'tested']
 
 /** The value that applies now is marked with a tick and the word "ตอนนี้", never by weight or colour alone. */
 function Value({ label, current }: { label: string; current: boolean }) {
@@ -49,20 +51,23 @@ function Without({ area }: { area: PublishedArea }) {
   return <span className="text-[14px] text-muted">{area.state === 'no_data' ? th.map.state.no_data : th.map.state.below_threshold}</span>
 }
 
-type Props = { area: PublishedArea; open: boolean; onClose: () => void }
+/** The two layer switches, so the key ticks the colour the map is drawing (final review, 2026-11-23). */
+type Props = { area: PublishedArea; open: boolean; onClose: () => void; layers?: { confirmed: boolean; symptoms: boolean } }
 
 /**
  * A district, or the city, in three rows: confirmed results, symptoms and testing, each as dots or
  * "ยังไม่ถึงเกณฑ์" (redesign spec 5.7). The marks, the age of a signal and what a signal is not wait
  * behind ⓘ. A way to care always closes the sheet (v1 spec 7.3).
  */
-export function SignalSheet({ area, open, onClose }: Props) {
+export function SignalSheet({ area, open, onClose, layers = { confirmed: true, symptoms: true } }: Props) {
   const isCity = area.areaId === 'bkk'
   const shown = area.state === 'shown'
+  /** The district's one colour, as the map draws it now (2026-11-23 design). */
+  const tone = toneOf(area, layers)
   // A pharmacy is not a place to test (redesign spec 5.1), so it does not count here.
   const hasPlace = !isCity && CARE_POINTS.some((p) => p.districtId === area.areaId && canTest(p))
   const rows: { emoji: EmojiName; label: string; value: ReactNode }[] = [
-    { emoji: 'confirmed', label: th.map.sheet.confirmed, value: shown && area.density ? <Dots band={area.density} /> : <span className="text-[14px] text-muted">{th.map.state[area.state]}</span> },
+    { emoji: 'confirmed', label: th.map.sheet.confirmed, value: area.density ? <Dots band={area.density} /> : <Without area={area} /> },
     { emoji: 'feverish', label: th.map.sheet.symptoms, value: area.symptoms ? <Dots band={area.symptoms} /> : <Without area={area} /> },
     { emoji: 'check', label: th.map.sheet.testing, value: area.testing ? <Dots band={area.testing} /> : <Without area={area} /> },
   ]
@@ -106,10 +111,19 @@ export function SignalSheet({ area, open, onClose }: Props) {
           <h3 className="pt-2 font-bold">{th.map.key}</h3>
           <p className="font-semibold">{th.map.sheet.shade}</p>
           <ul className="space-y-1.5">
+            {TONES.map((t) => (
+              <li key={t} data-tone-key={t} className="flex items-center gap-2">
+                <ShadeSwatch tone={t} band="medium" />
+                <span>{th.map.sheet.tones[t]}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="pt-1 font-semibold">{th.map.sheet.depth}</p>
+          <ul data-key="levels" className="space-y-1.5">
             {DENSITIES.map((d, i) => (
               <li key={d} className="flex items-center gap-2">
-                <ShadeSwatch density={d} />
-                <Value label={th.map.sheet.level[i]} current={shown && area.density === d} />
+                <ShadeSwatch tone={tone?.kind ?? 'confirmed'} band={d} />
+                <Value label={th.map.sheet.level[i]} current={tone?.band === d} />
               </li>
             ))}
           </ul>
@@ -119,15 +133,6 @@ export function SignalSheet({ area, open, onClose }: Props) {
               <li key={s} className="flex items-center gap-2">
                 <EdgeSample step={s} />
                 <Value label={th.map.step[s]} current={shown && area.step === s} />
-              </li>
-            ))}
-          </ul>
-          <p className="pt-1 font-semibold">{th.map.sheet.hatch}</p>
-          <ul className="space-y-1.5">
-            {DENSITIES.map((d, i) => (
-              <li key={d} className="flex items-center gap-2">
-                <HatchSwatch level={d} />
-                <Value label={th.map.sheet.level[i]} current={area.symptoms === d} />
               </li>
             ))}
           </ul>

@@ -4,18 +4,20 @@ import type { DensityBand } from '../domain/types'
 import type { RoadClass } from './types'
 
 /**
- * A confirmed level shades its district whole: the strength of the violet over the warm ground
- * (2026-11-18 design, decision 4). The level is also written as dots in the district's name box,
- * so it is never told by colour alone. A test keeps the three apart and the ink readable on them.
+ * A district's colour shades it whole, at the strength of its band over the warm ground (2026-11-23
+ * design: green, orange or red). The band is also written as dots in the district's name box, so it
+ * is never told by colour alone. A test keeps the three apart and the ink readable on them.
  */
-export const SIGNAL_SHADE: Record<DensityBand, number> = { thin: 0.25, medium: 0.42, dense: 0.62 }
+export const TONE_SHADE: Record<DensityBand, number> = { thin: 0.25, medium: 0.42, dense: 0.62 }
 /** How far the warm ground under a shade is lightened with white first: violet straight over the yellow ground turns peach. */
 export const SHADE_GROUND = 0.6
 /** At street level the shade is lighter, so the roads and buildings under it stay readable. */
 export const STREET_SHADE = 0.6
 /** Length of a legend line sample, in pixels. */
 export const SAMPLE_PX = 60
-/** The age of a signal is carried by its edge. Widths and dashes are screen pixels. */
+/** Red's edge is bolder than the old signal's, the cue that sets red apart without its colour. */
+export const RED_EDGE_SCALE = 1.4
+/** The age of a red district is carried by its edge. Widths and dashes are screen pixels. */
 export const EDGE: Record<'new' | 'followup' | 'expiring' | 'mixed', { width: number; dash?: number[]; cap?: 'round' }> = {
   new: { width: 3.5 },
   followup: { width: 3, dash: [10, 6] },
@@ -70,6 +72,10 @@ export interface Palette {
   signal: string
   signalEdge: string
   signalSoft: string
+  red: string
+  redEdge: string
+  orange: string
+  green: string
   land: string
   landOut: string
   water: string
@@ -84,6 +90,10 @@ export const PALETTE: Palette = {
   signal: '#6c3bf4',
   signalEdge: '#4a1fd0',
   signalSoft: '#9a80f2',
+  red: '#c4183a',
+  redEdge: '#8f0f28',
+  orange: '#f08a24',
+  green: '#1aa58b',
   land: '#fff0a6',
   landOut: '#f6f0dc',
   water: '#46d3e6',

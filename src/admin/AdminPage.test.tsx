@@ -125,7 +125,7 @@ const OVERVIEW = {
   ],
   districts: [{ week: '2026-W46', zone: 'bang_rak', kind: 'syphilis', n: 12 }],
   followers: 37,
-  lastPublished: { week: '2026-W46', publishedAt: '2026-11-16T20:00:00.000Z', shown: ['bang_rak', 'chatuchak'] },
+  lastPublished: { week: '2026-W46', publishedAt: '2026-11-16T20:00:00.000Z', shown: ['bang_rak', 'chatuchak'], red: ['chatuchak'] },
 }
 it('opens on an overview of phones per week, the city by kind, districts at ten or more, followers and the last map', async () => {
   const user = userEvent.setup()
@@ -140,6 +140,8 @@ it('opens on an overview of phones per week, the city by kind, districts at ten 
   expect(devices.getByRole('row', { name: /9–15 พ\.ย\./ })).toHaveTextContent('1,200')
   expect(overview.getByText(th.admin.followers).parentElement).toHaveTextContent('37')
   expect(overview.getByText(th.admin.shownCount.replace('{n}', '2'))).toBeInTheDocument()
+  // Red districts are named, so a reviewer can spot one that looks like a prank (final review, 2026-11-23).
+  expect(overview.getByText(th.admin.redNamed.replace('{names}', 'เขตจตุจักร'))).toBeInTheDocument()
   // The map is published at 03:00 Monday in Bangkok: its day is Bangkok's, whatever zone this computer is in.
   expect(overview.getByText('17 พ.ย. 2569')).toBeInTheDocument()
   // The city by kind: a week's row reads its counts under each kind, a kind with none reads 0.

@@ -1,6 +1,6 @@
 /* Cluster design tokens: the Pop-art look (plan amendment, section 15). Pink for care points and
-   primary actions, yellow and green from the logo, black outlines, violet for signals only.
-   No red, and no colour series for levels: a level is the size of a dot.
+   primary actions, yellow and green from the logo, black outlines. A district takes one of green,
+   orange or red (owner, 23 Nov 2026), never told by colour alone; violet is left for quiet marks.
    `static` keeps every token as a CSS variable, also one no class uses (the map's park green is
    only painted on the canvas, and the design gallery shows it by its variable). */
 @theme static {
@@ -28,6 +28,13 @@
   --color-signal-edge: #4a1fd0;
   --color-signal-1: #efe6ff;
   --color-signal-soft: #9a80f2;
+
+  /* A district's colour (2026-11-23 design): checked with the dataviz palette validator on the land,
+     colour-blind pairs apart (ΔE 11.5); never alone, as red has a bold edge and orange a hatch. */
+  --color-red: #c4183a;
+  --color-red-edge: #8f0f28;
+  --color-orange: #f08a24;
+  --color-green: #1aa58b;
 
   --color-veil: #efe9d8;
   --color-urgent: #1e1f1c;

@@ -1,5 +1,5 @@
 import { DISTRICT_IDS } from '../src/domain/districts.js'
-import { K } from '../src/domain/publication.js'
+import { SIGNAL_MIN } from '../src/domain/publication.js'
 import type { PublishedFile } from '../src/domain/types.js'
 import type { Db } from './db.js'
 import { serverWeek } from './week.js'
@@ -15,13 +15,15 @@ async function lastPublished(db: Db) {
   const [row] = await db.query<{ week: string; file: PublishedFile | string }>('select week, file from published order by week desc limit 1')
   if (!row) return null
   const file: PublishedFile = typeof row.file === 'string' ? JSON.parse(row.file) : row.file
-  return { week: row.week, publishedAt: file.publishedAt, shown: file.areas.filter((a) => a.state === 'shown' && a.areaId !== 'bkk').map((a) => a.areaId) }
+  const districts = file.areas.filter((a) => a.areaId !== 'bkk')
+  // Red apart: reviewers watch for a red that looks like a prank (2026-11-23 design, final review).
+  return { week: row.week, publishedAt: file.publishedAt, shown: districts.filter((a) => a.state === 'shown').map((a) => a.areaId), red: districts.filter((a) => a.state === 'shown' && a.density).map((a) => a.areaId) }
 }
 
 /**
  * What a reviewer sees: totals only (v1 spec 6). The overview (owner, 22 Nov 2026) sums what is already
- * kept: the city per week and kind, a district only at K or more (the map never says whether a district
- * below the threshold had none or a few, redesign spec 5.5), and how many phones follow a district.
+ * kept: the city per week and kind, a district only at three or more (SIGNAL_MIN, as the map's red and
+ * orange, 2026-11-23 design: a count of one or two is never sent), and how many phones follow a district.
  */
 export async function adminState(db: Db, now: Date) {
   const [setting] = await db.query<{ value: string }>("select value from settings where name = 'intake'")
@@ -30,7 +32,7 @@ export async function adminState(db: Db, now: Date) {
     week: serverWeek(now),
     intakeOpen: setting?.value !== 'closed',
     city: await db.query('select week, kind, sum(n)::int as n from counts group by week, kind order by week desc, kind'),
-    districts: await db.query('select week, zone, kind, n from counts where n >= $1 order by week desc, n desc, zone, kind', [K]),
+    districts: await db.query('select week, zone, kind, n from counts where n >= $1 order by week desc, n desc, zone, kind', [SIGNAL_MIN]),
     followers: followers?.n ?? 0,
     lastPublished: await lastPublished(db),
     envelopes: await db.query('select week, n from envelope_totals order by week desc'),

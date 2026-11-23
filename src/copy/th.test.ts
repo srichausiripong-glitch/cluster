@@ -106,3 +106,14 @@ it('says on the privacy page that contact links and guidance sources open their 
   expect(th.privacy.leaves.some((line) => line.includes('Google Maps') && line.includes('ที่มาของคำแนะนำ'))).toBe(true)
   expect(th.privacy.leaves.at(-1)).toContain(th.care.directions)
 })
+// 2026-11-23 design: the old rule is gone from every word, and green never says safe.
+it('states the new rule and names green without safety', () => {
+  for (const s of strings(th)) {
+    expect(s).not.toContain('อย่างน้อย 10')
+    expect(s).not.toContain('หักรายงานสุ่ม')
+    expect(s).not.toContain('ม่วง')
+  }
+  expect(th.map.sheet.testing).toBe('ไปตรวจแล้วไม่เจอ')
+  for (const s of [th.map.sheet.testing, th.map.sheet.tones.tested]) expect(s).not.toContain('ปลอดภัย')
+  expect(th.map.stateHint.shown).toBe('มีรายงานจากผู้ใช้ในช่วงนี้: สีเขียวตั้งแต่ 1 รายงาน สีส้มและสีแดงตั้งแต่ 3 รายงาน')
+})

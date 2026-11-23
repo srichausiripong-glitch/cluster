@@ -17,7 +17,7 @@ export interface OverviewData {
   city?: { week: string; kind: string; n: number }[]
   districts?: { week: string; zone: string; kind: string; n: number }[]
   followers?: number
-  lastPublished?: { week: string; publishedAt: string | null; shown: string[] } | null
+  lastPublished?: { week: string; publishedAt: string | null; shown: string[]; red?: string[] } | null
 }
 
 /** A kind's name in pieces kept whole, so a narrow column wraps between them and never inside a Thai word. */
@@ -74,6 +74,9 @@ export function Overview({ data }: { data: OverviewData }) {
           sub={published ? th.admin.shownCount.replace('{n}', String(published.shown.length)) : undefined}
         />
       </div>
+      {published?.red && published.red.length > 0 && (
+        <p className="rounded-md border-2 border-ink p-3 font-semibold">{th.admin.redNamed.replace('{names}', published.red.map((id) => districtLabel(id) || id).join(', '))}</p>
+      )}
 
       <div>
         <h3 className="font-semibold">{th.admin.devicesTitle}</h3>

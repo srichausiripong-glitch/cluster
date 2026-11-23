@@ -45,11 +45,14 @@ it('marks a suspended zone as suspended', async () => {
   await db.query("insert into suspensions (zone, reason, started) values ('bang_kapi', 'เรื่องร้องเรียน', '2026-11-15')")
   expect(area(await publishWeek(db, ENDED, NOW, Q), 'bang_kapi').state).toBe('suspended')
 })
-it('takes the expected random reports off using the envelopes of each week', async () => {
-  await put('bang_rak', 'syphilis', ENDED, 13)
-  // 100000 envelopes: one random report expected in each of the 50 × 4 cells, so 13 counted is an estimate of 12, under 10 + 3.
+it('raises the bar by the random reports expected from the envelopes of each week', async () => {
+  await put('bang_rak', 'syphilis', ENDED, 7)
+  // 100000 envelopes: one random report expected in each of the 50 × 4 cells; red counts two cells that
+  // week, so λ = 2 and it needs round(3 + 2 + 2√2) = 8 (2026-11-23 design).
   await db.query('insert into envelope_totals (week, n) values ($1, 100000)', [ENDED])
   expect(area(await publishWeek(db, ENDED, NOW, Q), 'bang_rak').state).toBe('below_threshold')
+  await db.query("update counts set n = 8 where zone = 'bang_rak' and kind = 'syphilis'")
+  expect(area(await publishWeek(db, ENDED, NOW, Q), 'bang_rak')).toMatchObject({ state: 'shown', density: 'medium' })
 })
 it('deletes totals older than twelve weeks, and the keys, nonces and network counts', async () => {
   const old = shiftWeek(ENDED, -12)
