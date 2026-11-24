@@ -1,25 +1,56 @@
 import { useEffect } from 'react'
+import { phone } from '../store/stores'
 import { solveInBackground } from './pow'
-import { sendIfDue } from './send'
+import { sendIfDue, type SendDeps, type Visit } from './send'
 
 const EVERY_MS = 60_000
 const random = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32
 
-/** While the app is open and in view, checks every minute whether this phone's weekly envelope is due. */
+/**
+ * The weekly envelope over one visit (2026-11-23 design): while the app is open and in view it is made
+ * ready on opening, every minute and whenever the waiting report changes; it goes when the person
+ * leaves, as the page is hidden or closed.
+ */
 export function useEnvelope(): void {
   useEffect(() => {
+    const deps: SendDeps = { fetch: (...args) => fetch(...args), rand: random, solve: solveInBackground }
+    const visit: Visit = { startedAt: Date.now() }
+    let seen = phone.get().pending?.savedAt ?? null
     let busy = false
-    const check = () => {
-      if (busy || document.visibilityState === 'hidden') return
+    let again = false
+    const prepare = () => {
+      if (document.visibilityState === 'hidden') return
+      if (busy) {
+        // A report changed mid-solve: prepare again once this one ends, for the report waiting then.
+        again = true
+        return
+      }
       busy = true
-      void sendIfDue(Date.now(), { fetch: (...args) => fetch(...args), rand: random, solve: solveInBackground }).finally(() => (busy = false))
+      void sendIfDue(Date.now(), deps, visit).finally(() => {
+        busy = false
+        if (again) {
+          again = false
+          prepare()
+        }
+      })
     }
-    check()
-    const timer = setInterval(check, EVERY_MS)
-    document.addEventListener('visibilitychange', check)
+    const leave = () => void sendIfDue(Date.now(), deps, visit, true)
+    const onVisibility = () => (document.visibilityState === 'hidden' ? leave() : prepare())
+    const unsubscribe = phone.subscribe(() => {
+      const savedAt = phone.get().pending?.savedAt ?? null
+      if (savedAt === seen) return
+      seen = savedAt
+      prepare()
+    })
+    prepare()
+    const timer = setInterval(prepare, EVERY_MS)
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pagehide', leave)
     return () => {
+      unsubscribe()
       clearInterval(timer)
-      document.removeEventListener('visibilitychange', check)
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pagehide', leave)
     }
   }, [])
 }
