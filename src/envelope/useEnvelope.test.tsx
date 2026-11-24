@@ -24,11 +24,10 @@ afterEach(() => vi.restoreAllMocks())
 const settle = () => act(async () => {})
 const leaves = () => send.mock.calls.filter((c) => c[3] === true)
 
-it('prepares on open and again when a report is made, then sends on leaving with the report marked', async () => {
+it('prepares on open and again when a report is made, then sends on leaving', async () => {
   render(<Probe />)
   await settle()
   expect(send).toHaveBeenCalledTimes(1)
-  expect(send.mock.calls[0][2]).toMatchObject({ reported: false })
   act(() => phone.update((s) => ({ ...s, pending: { kind: 'tested', zone: 'bang_rak', savedAt: 's1' } })))
   await settle()
   expect(send).toHaveBeenCalledTimes(2)
@@ -36,7 +35,7 @@ it('prepares on open and again when a report is made, then sends on leaving with
   act(() => void document.dispatchEvent(new Event('visibilitychange')))
   await settle()
   expect(leaves()).toHaveLength(1)
-  expect(leaves()[0][2]).toMatchObject({ reported: true })
+  expect(send.mock.calls[2][2]).toBe(send.mock.calls[0][2]) // the same visit throughout
 })
 it('sends on pagehide too', async () => {
   render(<Probe />)
@@ -44,14 +43,11 @@ it('sends on pagehide too', async () => {
   act(() => void window.dispatchEvent(new Event('pagehide')))
   await settle()
   expect(leaves()).toHaveLength(1)
-  expect(leaves()[0][2]).toMatchObject({ reported: false })
 })
-it('does not count a write that leaves the waiting report as it was as a report', async () => {
+it('does not prepare again for a write that leaves the waiting report as it was', async () => {
   render(<Probe />)
   await settle()
   act(() => phone.update((s) => ({ ...s, sendAt: { week: '2026-W48', at: 1 } })))
   await settle()
-  act(() => void window.dispatchEvent(new Event('pagehide')))
-  await settle()
-  expect(leaves()[0][2]).toMatchObject({ reported: false })
+  expect(send).toHaveBeenCalledTimes(1)
 })

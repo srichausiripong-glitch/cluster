@@ -39,7 +39,7 @@ const deps = (rand = () => 0.5, week = WEEK) => ({ fetch: fakeFetch(week), rand,
 
 // Send on leaving (2026-11-23 design): the envelope is made ready while the app is open and goes when the person leaves.
 const T0 = weekStart + 3 * 86_400_000
-const visitAt = (startedAt: number, reported = false) => ({ startedAt, reported })
+const visitAt = (startedAt: number) => ({ startedAt })
 const REPORT = { kind: 'tested' as const, zone: 'bang_rak', savedAt: 's-visit' }
 
 it('on a first visit, prepares the report while open and sends it when the person leaves', async () => {
@@ -47,19 +47,16 @@ it('on a first visit, prepares the report while open and sends it when the perso
   phone.update((s) => ({ ...s, pending: REPORT }))
   expect(await sendIfDue(T0 + 30_000, deps(), visit)).toBe('not-due')
   expect(posted).toHaveLength(0)
-  visit.reported = true
   expect(await sendIfDue(T0 + 40_000, deps(), visit, true)).toBe('sent')
   expect(posted).toHaveLength(1)
   expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: { zone: 'bang_rak', kind: 'tested' } })
   expect(phone.get().sentWeek).toBe(WEEK)
   expect(phone.get().pending).toBeNull()
 })
-it('does not send when a visit without a report is left within two minutes, and does after', async () => {
+it('sends on the first leave however early, with or without a report, so when it goes says nothing of what it carries', async () => {
   const visit = visitAt(T0)
   expect(await sendIfDue(T0, deps(), visit)).toBe('not-due')
-  expect(await sendIfDue(T0 + 60_000, deps(), visit, true)).toBe('not-due')
-  expect(posted).toHaveLength(0)
-  expect(await sendIfDue(T0 + 121_000, deps(), visit, true)).toBe('sent')
+  expect(await sendIfDue(T0 + 20_000, deps(), visit, true)).toBe('sent')
   expect(posted).toHaveLength(1)
   expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: null })
 })
@@ -67,7 +64,6 @@ it('sends nothing when the person leaves before the new report is sealed, and se
   const visit = visitAt(T0)
   expect(await sendIfDue(T0, deps(), visit)).toBe('not-due')
   phone.update((s) => ({ ...s, pending: REPORT }))
-  visit.reported = true
   expect(await sendIfDue(T0 + 5_000, deps(), visit, true)).toBe('not-ready')
   expect(posted).toHaveLength(0)
   expect(phone.get().pending).toEqual(REPORT)
@@ -76,7 +72,7 @@ it('sends nothing when the person leaves before the new report is sealed, and se
   expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: { zone: 'bang_rak' } })
 })
 it('sends nothing more on a second visit once the week has gone', async () => {
-  const visit = visitAt(T0, true)
+  const visit = visitAt(T0)
   await sendIfDue(T0, deps(), visit)
   expect(await sendIfDue(T0 + 1_000, deps(), visit, true)).toBe('sent')
   const second = visitAt(T0 + 3_600_000)
@@ -92,7 +88,7 @@ it('carries a report waiting from last week in the new week, sent on leaving', a
   expect(await unseal(JSON.parse(posted[0]), keys.privateKey)).toMatchObject({ report: { zone: 'bang_rak' } })
 })
 it('still lets a prepared report be cancelled, and then seals an empty envelope', async () => {
-  const visit = visitAt(T0, true)
+  const visit = visitAt(T0)
   phone.update((s) => ({ ...s, pending: REPORT }))
   await sendIfDue(T0, deps(), visit)
   expect(takingNow(REPORT.savedAt)).toBe(false)
@@ -290,7 +286,7 @@ it('posts the very same envelope again in that week after a lost answer, even on
   expect(phone.get().pending).toEqual(REPORT) // it waits for next week's envelope
 })
 it('counts a report whose answer was lost as gone, not again in the next week', async () => {
-  const visit = visitAt(T0, true)
+  const visit = visitAt(T0)
   phone.update((s) => ({ ...s, pending: REPORT }))
   await sendIfDue(T0, deps(), visit)
   loseAnswer = true

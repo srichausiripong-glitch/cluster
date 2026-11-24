@@ -14,7 +14,7 @@ const random = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32
 export function useEnvelope(): void {
   useEffect(() => {
     const deps: SendDeps = { fetch: (...args) => fetch(...args), rand: random, solve: solveInBackground }
-    const visit: Visit = { startedAt: Date.now(), reported: false }
+    const visit: Visit = { startedAt: Date.now() }
     let seen = phone.get().pending?.savedAt ?? null
     let busy = false
     let again = false
@@ -40,7 +40,6 @@ export function useEnvelope(): void {
       const savedAt = phone.get().pending?.savedAt ?? null
       if (savedAt === seen) return
       seen = savedAt
-      visit.reported = true
       prepare()
     })
     prepare()

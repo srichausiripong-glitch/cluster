@@ -21,13 +21,10 @@ export interface SendDeps {
 }
 export type SendResult = 'sent' | 'not-due' | 'already-sent' | 'not-ready' | 'failed'
 
-/** One time the app is open: when it began, and whether a report was made, changed or cancelled in it. */
+/** One time the app is open, by when it began. */
 export interface Visit {
   startedAt: number
-  reported: boolean
 }
-/** A switch-away this early in a visit without a report does not send: the person may be coming back to report. */
-export const EARLY_MS = 120_000
 
 const CLAIM = 'cluster.envelope-claim'
 /** A claim younger than this belongs to a send still in progress, maybe in another tab. */
@@ -196,15 +193,15 @@ async function post(key: KeyInfo, now: number, deps: SendDeps, keepalive: boolea
  * - With no `visit`, it is sent outright: prepared, then posted.
  * - While open, it is prepared. It goes at once only when an earlier visit this week ended without it
  *   and no other page of the app is open now, or when its answer was lost (the same bytes go again).
- * - On leaving, a prepared envelope matching the report now waiting is posted with `keepalive`, unless
- *   the visit is under two minutes old with no report made in it. Nothing is sealed or solved then.
+ * - On leaving, however early, a prepared envelope matching the report now waiting is posted with
+ *   `keepalive`, so when it goes says nothing of what it carries (owner, 24 Nov 2026). Nothing is
+ *   sealed or solved then.
  */
 export async function sendIfDue(now: number, deps: SendDeps, visit?: Visit, leaving = false): Promise<SendResult> {
   if (leaving) {
     const key = lastKey
     if (!key) return 'not-ready'
     if (phone.get().sentWeek === key.week) return 'already-sent'
-    if (visit && !visit.reported && now - visit.startedAt < EARLY_MS) return 'not-due'
     settleStale(key)
     if (!spent(key) && !matches(readBox(READY), key)) {
       writeBox(READY, null) // sealed for a report no longer waiting: it never leaves the phone
