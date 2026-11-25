@@ -81,16 +81,27 @@ it('credits OpenStreetMap on the map', () => {
   openApp('/app')
   expect(screen.getByText(th.map.credit)).toBeInTheDocument()
 })
-it('writes the district names that fit in white boxes with a black edge', () => {
+// Owner, 25 Nov 2026: the name boxes covered the map. Names are now written like a street map's.
+it('writes the names of uncoloured districts as text with a light halo, with no box over the map', () => {
   openApp('/app')
   const boxes = [...document.querySelectorAll('[data-caption]')]
   expect(boxes.length).toBeGreaterThan(0)
   for (const b of boxes) expect(DISTRICTS.map((d) => d.name)).toContain(b.textContent)
   for (const b of boxes) {
-    expect(b.querySelector('rect[data-face]')).toHaveAttribute('fill', 'var(--color-surface)')
-    expect(b.querySelector('rect[data-face]')).toHaveAttribute('stroke', 'var(--color-ink)')
-    expect(b.querySelector('text')).toHaveAttribute('fill', 'var(--color-ink)')
+    expect(b.querySelector('rect')).toBeNull()
+    const text = b.querySelector('text')!
+    expect(text).toHaveAttribute('fill', 'var(--color-ink)')
+    expect(text).toHaveAttribute('stroke', 'var(--color-surface)')
+    expect(text).toHaveAttribute('paint-order', 'stroke')
   }
+})
+it('keeps a light face, with no black edge or shadow, behind a coloured district’s name and dots', () => {
+  setPublishedForTest({ week: '2026-W46', publishedAt: '2026-11-16T20:00:00Z', intakeOpen: true, areas: [{ areaId: 'chatuchak', state: 'shown', density: null, step: null, testing: null, symptoms: 'thin' }] })
+  openApp('/app')
+  const box = [...document.querySelectorAll('[data-caption]')].find((b) => b.getAttribute('data-level'))!
+  expect(box.querySelectorAll('rect')).toHaveLength(1)
+  expect(box.querySelector('rect[data-face]')).toHaveAttribute('fill', 'var(--color-surface)')
+  expect(box.querySelector('rect[data-face]')).not.toHaveAttribute('stroke', 'var(--color-ink)')
 })
 it('writes a shaded district’s level as dots in its name box', () => {
   const shaded = ['chatuchak', 'lat_krabang', 'nong_chok', 'bang_khun_thian', 'khlong_sam_wa', 'don_mueang']
@@ -463,7 +474,7 @@ it('goes to district level over an outer district, outside the detailed centre, 
   expect(map()).toHaveAttribute('data-level', 'district')
   expect(screen.getByRole('button', { name: th.map.openSignal })).toHaveTextContent('บางแค')
 })
-it('writes the names of the districts in view at district level, in the same white boxes', async () => {
+it('writes the names of the districts in view at district level, the same way', async () => {
   const user = userEvent.setup()
   openApp('/app')
   await user.click(zoomIn())

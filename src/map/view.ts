@@ -183,7 +183,7 @@ export const advances = (name: string) => [...name].filter((ch) => !/[ัิ-ฺ
 const touch = (a: Box, b: Box, pad: number) => a[0] < b[2] + pad && a[2] > b[0] - pad && a[1] < b[3] + pad && a[3] > b[1] - pad
 
 /**
- * District name boxes, centred on each district's label point. A box that would touch a marker,
+ * District names, centred on each district's label point: plain text, or a light box for a coloured one. A name that would touch a marker,
  * another box or a side of the map is left out, and so is one under the controls at the top or the
  * status card at the bottom (plan decision 13). A shaded district, one with a level in `levels`, is
  * placed first and its box carries the level, so as many levels as can be shown in words-and-dots are.
@@ -196,10 +196,12 @@ export function nameBoxes(zones: Area[], view: View, size: Size, taken: Marker[]
     const [x, y] = toScreen(view, size, zone.label)
     const level = levels[zone.id]
     const w = advances(zone.name) * 7.2 + 14 + (level ? LEVEL_ROOM : 0)
-    const box: NameBox = level ? { id: zone.id, name: zone.name, x, y, w, h: 23, level } : { id: zone.id, name: zone.name, x, y, w, h: 23 }
+    const box: NameBox = level ? { id: zone.id, name: zone.name, x, y, w, h: 23, level } : { id: zone.id, name: zone.name, x, y, w, h: 18 }
     const b = boxOf(box)
+    // A plain name keeps more room round it, so the names never crowd one part of the map (owner, 25 Nov 2026).
+    const room = level ? 2 : 10
     if (b[0] < 2 || b[2] > size.w - 2 || b[1] < size.inset.top || b[3] > size.h - size.inset.bottom) continue
-    if (taken.some((m) => touch(b, markerBox(m), 2)) || placed.some((p) => touch(b, boxOf(p), 2))) continue
+    if (taken.some((m) => touch(b, markerBox(m), room)) || placed.some((p) => touch(b, boxOf(p), room))) continue
     placed.push(box)
   }
   return placed

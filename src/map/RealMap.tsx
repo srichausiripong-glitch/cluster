@@ -432,10 +432,24 @@ export function RealMap({ areas, cityState, carePoints, phase, showSignal, showS
             )}
           </g>
           {names.map((b) => (
+            // Written like a street map's labels (owner, 25 Nov 2026: the boxes covered the map): plain text
+            // with a light halo, so roads and colours show round it. A coloured district keeps a light face
+            // behind its name and dots, which tell its level without colour.
             <g key={b.id} data-caption data-level={b.level} transform={`translate(${round(b.x)} ${round(b.y)})`} aria-hidden="true" style={{ pointerEvents: 'none' }}>
-              <rect x={-b.w / 2 + 2.5} y={-b.h / 2 + 2.5} width={b.w} height={b.h} rx="6" fill="var(--color-ink)" />
-              <rect data-face x={-b.w / 2} y={-b.h / 2} width={b.w} height={b.h} rx="6" fill="var(--color-surface)" stroke="var(--color-ink)" strokeWidth="1.8" />
-              <text x={b.level ? -LEVEL_ROOM / 2 : 0} y="4.5" textAnchor="middle" fontSize="12.5" fontWeight="700" fill="var(--color-ink)">
+              {b.level && <rect data-face x={-b.w / 2} y={-b.h / 2} width={b.w} height={b.h} rx="6" fill="var(--color-surface)" opacity="0.92" />}
+              <text
+                x={b.level ? -LEVEL_ROOM / 2 : 0}
+                y="4"
+                textAnchor="middle"
+                fontSize={b.level ? 12.5 : 11.5}
+                fontWeight={b.level ? 700 : 600}
+                fill="var(--color-ink)"
+                stroke="var(--color-surface)"
+                strokeWidth={b.level ? 0 : 3}
+                strokeLinejoin="round"
+                paintOrder="stroke"
+                opacity={b.level ? 1 : 0.82}
+              >
                 {b.name}
               </text>
               {/* A shaded district's level as dots, so the shade is never read by colour alone (2026-11-18 design, decision 4). */}
