@@ -46,8 +46,8 @@ const TESTING_BAND = { thin: 'low', medium: 'medium', dense: 'high' } as const
 /**
  * One area from its counts. `districts` is how many districts the counts were summed over: 1 for a
  * district, 50 for the city, whose expected random reports are those of all fifty districts.
- * Red from three positives, orange from three symptoms, green from one tested (2026-11-23 design),
- * each banded by its own raw count.
+ * Red from one positive, orange from one symptom, green from one tested (owner, 25 Nov 2026), each
+ * banded by its own raw count.
  */
 function entry(areaId: string, counts: CountRow[], input: DisplayInput, districts: number, isCity: boolean): PublishedArea {
   const kindCount = (kind: ReportKind, week: string) => counts.filter((c) => c.kind === kind && c.week === week).reduce((sum, c) => sum + c.n, 0)

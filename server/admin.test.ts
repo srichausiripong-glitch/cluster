@@ -112,7 +112,7 @@ it('shows corrections to reviewers, newest week first', async () => {
 
 // The overview (owner, 22 Nov 2026): what the server already keeps, summed. A district is sent only at
 // ten or more, as the map never says whether a district below the threshold had none or a few.
-it('sums the city per week and kind, sends a district only at three or more, and counts followers', async () => {
+it('sums the city per week and kind, sends every district with a report, and counts followers', async () => {
   await db.query(
     "insert into counts (zone, kind, week, n) values ('bang_rak', 'syphilis', '2026-W46', 12), ('chatuchak', 'syphilis', '2026-W46', 2), ('bang_rak', 'tested', '2026-W45', 4), ('chatuchak', 'tested', '2026-W45', 9)",
   )
@@ -123,9 +123,10 @@ it('sums the city per week and kind, sends a district only at three or more, and
     { week: '2026-W46', kind: 'syphilis', n: 14 },
     { week: '2026-W45', kind: 'tested', n: 13 },
   ])
-  // 2026-11-23 design: from three, as the map's red and orange; a district with two is never sent.
+  // Owner, 25 Nov 2026: from one, as the map's colours.
   expect(state.districts).toEqual([
     { week: '2026-W46', zone: 'bang_rak', kind: 'syphilis', n: 12 },
+    { week: '2026-W46', zone: 'chatuchak', kind: 'syphilis', n: 2 },
     { week: '2026-W45', zone: 'chatuchak', kind: 'tested', n: 9 },
     { week: '2026-W45', zone: 'bang_rak', kind: 'tested', n: 4 },
   ])
