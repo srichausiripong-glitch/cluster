@@ -1,0 +1,206 @@
+import { Check as Tick } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { th } from '../copy/th'
+import { buildLink } from '../domain/link'
+import { composeNotice } from '../domain/notify'
+import type { DiseaseGroup, ExposureBand } from '../domain/types'
+import { ALERT, NOTE, PRESS, PRIMARY_LINK, TEXT_LINK } from '../design/look'
+import { Button } from '../design/primitives/Button'
+import { currentWeek } from '../store/actions'
+import { Check, Choice, FlowHeader } from './FlowHeader'
+import { Go } from './Go'
+
+const GROUPS: DiseaseGroup[] = ['gono_chlam', 'syphilis', 'mpox', 'hiv']
+const BANDS: ExposureBand[] = ['h72', 'w2', 'w4', 'm3', 'older']
+type View = 'safety' | 'channel' | 'link' | 'slip' | 'later'
+
+/** The report step hands over the group in router state, so no disease name reaches the address bar or a server log. */
+function fromReport(state: unknown): { group: DiseaseGroup | null; hasLabResult: boolean } {
+  const s = (state ?? {}) as { group?: unknown; hasLabResult?: unknown }
+  const group = GROUPS.find((g) => g === s.group) ?? null
+  return { group, hasLabResult: group !== null && s.hasLabResult === true }
+}
+
+export function NotifyFlow() {
+  const handed = fromReport(useLocation().state)
+  const [group, setGroup] = useState<DiseaseGroup | null>(handed.group)
+  const [view, setView] = useState<View>('safety')
+  // No time is preselected: the answer changes what the recipient is told to do.
+  const [band, setBand] = useState<ExposureBand | null>(null)
+  const [nameDisease, setNameDisease] = useState(false)
+  const [link, setLink] = useState<string | null>(null)
+  const [copied, setCopied] = useState<'no' | 'done' | 'failed'>('no')
+  const linkCard = useRef<HTMLDivElement>(null)
+  const linkField = useRef<HTMLInputElement>(null)
+  const copyButton = useRef<HTMLButtonElement>(null)
+
+  // A new link lands below the button that made it, so it is brought into view and the keyboard is put on what to do next.
+  useEffect(() => {
+    if (!link) return
+    const still = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    linkCard.current?.scrollIntoView?.({ block: 'nearest', behavior: still ? 'auto' : 'smooth' })
+    copyButton.current?.focus({ preventScroll: true })
+  }, [link])
+
+  const mayName = group !== 'hiv' || band === 'h72'
+  const named = nameDisease && mayName
+  const back = view === 'safety' ? undefined : () => setView(view === 'channel' || view === 'later' ? 'safety' : 'channel')
+
+  const makeLink = () => {
+    if (!group || !band) return
+    const notice = composeNotice({ group, hasLabResult: handed.hasLabResult, nameDisease: named, band, week: currentWeek() })
+    setLink(buildLink(window.location.origin, notice))
+    setCopied('no')
+  }
+  /** Copying can be refused, and on a page without https there is no way to copy at all: the person is told, and the link is selected for copying by hand. */
+  const copyLink = async () => {
+    if (!link) return
+    try {
+      if (!navigator.clipboard) throw new Error('no clipboard')
+      await navigator.clipboard.writeText(link)
+      setCopied('done')
+    } catch {
+      setCopied('failed')
+      linkField.current?.select()
+    }
+  }
+  const recipientPath = link ? '/r' + link.slice(link.indexOf('#')) : ''
+  const note = `${NOTE} p-3 text-[13px] text-muted`
+
+  return (
+    <main className="p-4">
+      <FlowHeader title={th.notify.title} backTo={'/app'} onBack={back} />
+
+      {!group && (
+        <section className="space-y-2">
+          <h2 className="text-[17px] font-bold">{th.report.askGroup}</h2>
+          {GROUPS.map((g) => (
+            <Choice key={g} label={th.group[g]} hint={th.groupHint[g]} onClick={() => setGroup(g)} />
+          ))}
+        </section>
+      )}
+
+      {group && view === 'safety' && (
+        <section className="step-in space-y-3">
+          <h2 className="text-[20px] font-bold">{th.notify.safetyQ}</h2>
+          <Choice label={th.notify.safeYes} onClick={() => setView('channel')} />
+          <Choice label={th.notify.safeClinic} hint={th.notify.clinicWho} onClick={() => setView('slip')} />
+          <Choice label={th.notify.safeLater} onClick={() => setView('later')} />
+        </section>
+      )}
+
+      {group && view === 'later' && (
+        <section className="step-in space-y-3">
+          <p className="box p-4">{th.notify.laterDone}</p>
+          <Go to={'/app'} className={PRIMARY_LINK}>
+            {th.report.backToMap}
+          </Go>
+        </section>
+      )}
+
+      {group && view === 'channel' && (
+        <section className="step-in space-y-3">
+          <h2 className="text-[17px] font-bold">{th.notify.chooseChannel}</h2>
+          <Choice label={th.notify.linkTitle} hint={th.notify.linkWho} onClick={() => setView('link')} />
+          <Choice label={th.notify.clinicTitle} hint={th.notify.clinicWho} onClick={() => setView('slip')} />
+        </section>
+      )}
+
+      {group && view === 'link' && (
+        <section className="step-in space-y-4">
+          <div className={note}>
+            <p>{th.notify.linkWho}</p>
+            <p className="mt-1">{th.notify.truthLink}</p>
+          </div>
+          <fieldset>
+            <legend className="mb-2 font-bold">{th.notify.band}</legend>
+            <div className="grid grid-cols-2 gap-2">
+              {BANDS.map((b) => (
+                <label
+                  key={b}
+                  className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-md border-2 border-ink px-2 text-center text-[13px] font-semibold has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink ${PRESS} ${b === 'older' ? 'col-span-2' : ''} ${band === b ? 'bg-care-soft' : 'bg-surface'}`}
+                >
+                  <input
+                    type="radio"
+                    name="band"
+                    className="sr-only"
+                    checked={band === b}
+                    onChange={() => {
+                      setBand(b)
+                      setLink(null)
+                    }}
+                  />
+                  {band === b && <Tick size={16} strokeWidth={3} className="shrink-0" aria-hidden="true" />}
+                  {th.notify.bands[b]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <Check
+            id="name-disease"
+            label={th.notify.nameDisease}
+            hint={group === 'hiv' ? th.notify.hivNameRule : th.notify.nameDiseaseHint}
+            checked={named}
+            disabled={!mayName}
+            onChange={(v) => {
+              setNameDisease(v)
+              setLink(null)
+            }}
+          />
+          <div className="box p-3 text-[13px]">
+            <p className="font-bold">{th.notify.see}</p>
+            <p className="text-muted">
+              {named ? th.notify.seeNamed : th.notify.seeUnnamed}
+              {band === 'h72' ? ` ${th.notify.seeUrgent}` : ''}
+            </p>
+          </div>
+          <Button size="lg" className="w-full" onClick={makeLink} disabled={band === null} aria-describedby={band === null ? 'band-first' : undefined}>
+            {th.notify.makeLink}
+          </Button>
+          {band === null && (
+            <p id="band-first" className="text-center text-[13px] text-muted">
+              {th.notify.bandFirst}
+            </p>
+          )}
+          {link && (
+            <div ref={linkCard} className="box scroll-mb-4 space-y-2 p-4">
+              <label htmlFor="notice-link" className="block text-[13px] font-semibold">
+                {th.notify.linkLabel}
+              </label>
+              <input ref={linkField} id="notice-link" readOnly value={link} onFocus={(e) => e.target.select()} className="min-h-11 w-full rounded-md border-2 border-ink bg-bg px-3 text-[13px]" />
+              <p className="text-[13px] text-muted">{th.notify.linkNote}</p>
+              {copied === 'failed' && (
+                <p role="status" className={`px-3 py-2 text-[13px] font-semibold ${ALERT}`}>
+                  {th.notify.copyFailed}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button ref={copyButton} variant="secondary" onClick={() => void copyLink()}>
+                  {copied === 'done' ? th.common.copied : th.notify.copyLink}
+                </Button>
+                {/* A new tab, so the link just made stays here when the preview is closed. */}
+                <a href={recipientPath} target="_blank" rel="noreferrer" className={`inline-flex min-h-11 items-center px-2 ${TEXT_LINK}`}>
+                  {th.notify.openRecipient}
+                </a>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {group && view === 'slip' && (
+        <section className="step-in space-y-4">
+          <div className={note}>
+            <p>{th.notify.clinicWho}</p>
+            <p className="mt-1">{th.notify.truthClinic}</p>
+          </div>
+          <p className="box p-4">{th.notify.clinicAdvice}</p>
+          <Go to="/app/list" className={PRIMARY_LINK}>
+            {th.common.openList}
+          </Go>
+        </section>
+      )}
+    </main>
+  )
+}

@@ -1,0 +1,208 @@
+import type { DensityBand } from '../domain/types'
+import { isVerified, type CarePoint } from '../data/carePoints'
+import { CITY_BOX, type Area } from './areas'
+import { CITY_FRAME, LEVELS, PPM, toXY, type Level, type XY } from './geo'
+import type { Manifest } from './types'
+
+export interface Inset {
+  top: number
+  right: number
+  bottom: number
+  left: number
+}
+/** Space the map screen's own controls take: the layer chips and the state box at the top; the status card and the map credit at the bottom. */
+export const MAP_INSET: Inset = { top: 108, right: 10, bottom: 200, left: 10 }
+/**
+ * The space the controls take on a map `height` px tall. On a short phone they still cover what they
+ * cover, but the city is fitted into at least a quarter of the map rather than a sliver (round 2 review).
+ */
+export function insetFor(height: number): Inset {
+  return { ...MAP_INSET, top: Math.min(MAP_INSET.top, Math.round(height * 0.3)), bottom: Math.min(MAP_INSET.bottom, Math.round(height * 0.42)) }
+}
+export interface Size {
+  w: number
+  h: number
+  inset: Inset
+}
+/** The point `cx, cy` (metres) is drawn at the centre of the free window. */
+export interface View {
+  level: Level
+  ppm: number
+  cx: number
+  cy: number
+}
+/** west, north, east, south: x0, y0, x1, y1. */
+export type Box = [number, number, number, number]
+/** Two markers nearer than this on screen become one. */
+export const MARKER_GAP = 34
+
+const free = (size: Size) => ({ w: Math.max(1, size.w - size.inset.left - size.inset.right), h: Math.max(1, size.h - size.inset.top - size.inset.bottom) })
+const anchor = (size: Size): XY => [size.inset.left + free(size).w / 2, size.inset.top + free(size).h / 2]
+
+/** The city level: the city frame fitted into the free window. */
+export function cityView(size: Size): View {
+  const [x0, y0] = toXY(CITY_FRAME.north, CITY_FRAME.west)
+  const [x1, y1] = toXY(CITY_FRAME.south, CITY_FRAME.east)
+  const { w, h } = free(size)
+  return { level: 'city', ppm: Math.min(w / (x1 - x0), h / (y1 - y0)), cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 }
+}
+
+export function toScreen(view: View, size: Size, p: XY): XY {
+  const [ax, ay] = anchor(size)
+  return [ax + (p[0] - view.cx) * view.ppm, ay + (p[1] - view.cy) * view.ppm]
+}
+export function fromScreen(view: View, size: Size, s: XY): XY {
+  const [ax, ay] = anchor(size)
+  return [view.cx + (s[0] - ax) / view.ppm, view.cy + (s[1] - ay) / view.ppm]
+}
+
+export function step(level: Level, by: 1 | -1): Level {
+  return LEVELS[Math.max(0, Math.min(LEVELS.length - 1, LEVELS.indexOf(level) + by))]
+}
+
+/**
+ * Where a level can be shown. The city level covers everything; the district level the whole city,
+ * drawn from the city map's roads and water where no detailed file exists (redesign spec 5.7); the
+ * street level only where street files exist.
+ */
+export function coverage(manifest: Manifest, level: Level): Box[] {
+  if (level === 'city') return [[-Infinity, -Infinity, Infinity, Infinity]]
+  const files = manifest[level].map((ref) => ref.box)
+  return level === 'district' ? [CITY_BOX, ...files] : files
+}
+const inBox = ([x, y]: XY, [x0, y0, x1, y1]: Box) => x >= x0 && x <= x1 && y >= y0 && y <= y1
+export function deepestAt(manifest: Manifest, p: XY): Level {
+  if (coverage(manifest, 'street').some((box) => inBox(p, box))) return 'street'
+  if (coverage(manifest, 'district').some((box) => inBox(p, box))) return 'district'
+  return 'city'
+}
+/** How far the screen reaches from the point drawn at the view's centre, in metres: left, top, right, bottom. */
+function reach(ppm: number, size: Size): Box {
+  const [ax, ay] = anchor(size)
+  return [ax / ppm, ay / ppm, (size.w - ax) / ppm, (size.h - ay) / ppm]
+}
+/** The data of a level as one box: its map files sit side by side. */
+function dataBox(manifest: Manifest, level: Level): Box | null {
+  const boxes = coverage(manifest, level)
+  if (!boxes.length) return null
+  return [Math.min(...boxes.map((b) => b[0])), Math.min(...boxes.map((b) => b[1])), Math.max(...boxes.map((b) => b[2])), Math.max(...boxes.map((b) => b[3]))]
+}
+/** The centre nearest to `p` that keeps the whole screen on the level's data. Where the data is narrower than the screen, the screen is centred on it. */
+function onData(manifest: Manifest, size: Size, level: 'district' | 'street', p: XY): XY {
+  const box = dataBox(manifest, level)
+  if (!box) return p
+  const [left, top, right, bottom] = reach(PPM[level], size)
+  const axis = (v: number, lo: number, hi: number, before: number, after: number) => (hi - lo <= before + after ? (lo + hi) / 2 + (before - after) / 2 : Math.min(hi - after, Math.max(lo + before, v)))
+  return [axis(p[0], box[0], box[2], left, right), axis(p[1], box[1], box[3], top, bottom)]
+}
+
+/** The view at `level` centred as near `focus` as the data allows, with the whole screen on the data. The city level is always the fitted view. */
+export function viewAt(manifest: Manifest, size: Size, level: Level, focus: XY): View {
+  if (level === 'city') return cityView(size)
+  const [cx, cy] = onData(manifest, size, level, focus)
+  return { level, ppm: PPM[level], cx, cy }
+}
+
+/** At city level the map can be dragged a little, to look behind a control, but never away: 35% of the screen from the fitted view. */
+export function clampCity(size: Size, view: View): View {
+  const fit = cityView(size)
+  const slackX = (size.w * 0.35) / fit.ppm
+  const slackY = (size.h * 0.35) / fit.ppm
+  return { ...fit, cx: Math.min(fit.cx + slackX, Math.max(fit.cx - slackX, view.cx)), cy: Math.min(fit.cy + slackY, Math.max(fit.cy - slackY, view.cy)) }
+}
+/** Dragging: below city level the whole screen stays on the data of the level. */
+export function clampView(manifest: Manifest, size: Size, view: View): View {
+  return view.level === 'city' ? clampCity(size, view) : viewAt(manifest, size, view.level, [view.cx, view.cy])
+}
+
+/** Whether a level has any map on the screen at this view. */
+export function inView(manifest: Manifest, level: Level, view: View, size: Size): boolean {
+  const [left, top, right, bottom] = reach(view.ppm, size)
+  const screen: Box = [view.cx - left, view.cy - top, view.cx + right, view.cy + bottom]
+  return coverage(manifest, level).some((b) => b[0] < screen[2] && b[2] > screen[0] && b[1] < screen[3] && b[3] > screen[1])
+}
+
+export type Marker = { kind: 'one'; point: CarePoint; x: number; y: number } | { kind: 'many'; points: CarePoint[]; x: number; y: number }
+
+/**
+ * Care points nearer than `gap` pixels on screen share one marker, placed at their mean. Only the
+ * points on screen, or within `gap` of its edge, are grouped: at district level the pharmacies
+ * alone are hundreds (plan decision 12).
+ */
+export function markers(points: CarePoint[], view: View, size: Size, gap = MARKER_GAP): Marker[] {
+  const groups = points
+    .map((point) => {
+      const [x, y] = toScreen(view, size, toXY(point.lat, point.lon))
+      return { points: [point], spots: [[x, y]] as XY[], x, y }
+    })
+    .filter((g) => g.x >= -gap && g.x <= size.w + gap && g.y >= -gap && g.y <= size.h + gap)
+    .sort((a, b) => a.points[0].id.localeCompare(b.points[0].id))
+  // Merging moves a marker, which can bring it within reach of another: repeat until nothing moves.
+  for (let merged = true; merged; ) {
+    merged = false
+    search: for (let i = 0; i < groups.length; i++) {
+      for (let j = i + 1; j < groups.length; j++) {
+        if (Math.hypot(groups[i].x - groups[j].x, groups[i].y - groups[j].y) >= gap) continue
+        const a = groups[i]
+        a.points.push(...groups[j].points)
+        a.spots.push(...groups[j].spots)
+        a.x = a.spots.reduce((sum, s) => sum + s[0], 0) / a.spots.length
+        a.y = a.spots.reduce((sum, s) => sum + s[1], 0) / a.spots.length
+        groups.splice(j, 1)
+        merged = true
+        break search
+      }
+    }
+  }
+  return groups.map((g) => (g.points.length === 1 ? { kind: 'one', point: g.points[0], x: g.x, y: g.y } : { kind: 'many', points: g.points.sort((a, b) => a.id.localeCompare(b.id)), x: g.x, y: g.y }))
+}
+
+/**
+ * A marker's space on screen: a confirmed place's pin stands 46 px above its point and is 38 px
+ * wide; a dot is 22 px round its point; a grouped marker is a 38 px disc centred on its point.
+ */
+export function markerBox(m: Marker): Box {
+  if (m.kind === 'many') return [m.x - 19, m.y - 19, m.x + 19, m.y + 19]
+  return isVerified(m.point) ? [m.x - 19, m.y - 46, m.x + 19, m.y] : [m.x - 11, m.y - 11, m.x + 11, m.y + 11]
+}
+
+export interface NameBox {
+  id: string
+  name: string
+  x: number
+  y: number
+  w: number
+  h: number
+  /** A shaded district's level, written as three dots after its name (2026-11-18 design, decision 4). */
+  level?: DensityBand
+}
+/** The room the three level dots take at the end of a name box, in screen pixels. */
+export const LEVEL_ROOM = 34
+/** Thai vowels and tone marks above or below a letter take no width. */
+export const advances = (name: string) => [...name].filter((ch) => !/[ัิ-ฺ็-๎]/.test(ch)).length
+const touch = (a: Box, b: Box, pad: number) => a[0] < b[2] + pad && a[2] > b[0] - pad && a[1] < b[3] + pad && a[3] > b[1] - pad
+
+/**
+ * District names, centred on each district's label point: plain text, or a light box for a coloured one. A name that would touch a marker,
+ * another box or a side of the map is left out, and so is one under the controls at the top or the
+ * status card at the bottom (plan decision 13). A shaded district, one with a level in `levels`, is
+ * placed first and its box carries the level, so as many levels as can be shown in words-and-dots are.
+ */
+export function nameBoxes(zones: Area[], view: View, size: Size, taken: Marker[], levels: Record<string, DensityBand> = {}): NameBox[] {
+  const placed: NameBox[] = []
+  const boxOf = (b: NameBox): Box => [b.x - b.w / 2, b.y - b.h / 2, b.x + b.w / 2, b.y + b.h / 2]
+  const ordered = [...zones.filter((z) => levels[z.id]), ...zones.filter((z) => !levels[z.id])]
+  for (const zone of ordered) {
+    const [x, y] = toScreen(view, size, zone.label)
+    const level = levels[zone.id]
+    const w = advances(zone.name) * 7.2 + 14 + (level ? LEVEL_ROOM : 0)
+    const box: NameBox = level ? { id: zone.id, name: zone.name, x, y, w, h: 23, level } : { id: zone.id, name: zone.name, x, y, w, h: 18 }
+    const b = boxOf(box)
+    // A plain name keeps more room round it, so the names never crowd one part of the map (owner, 25 Nov 2026).
+    const room = level ? 2 : 10
+    if (b[0] < 2 || b[2] > size.w - 2 || b[1] < size.inset.top || b[3] > size.h - size.inset.bottom) continue
+    if (taken.some((m) => touch(b, markerBox(m), room)) || placed.some((p) => touch(b, boxOf(p), room))) continue
+    placed.push(box)
+  }
+  return placed
+}

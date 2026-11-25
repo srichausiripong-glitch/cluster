@@ -1,0 +1,203 @@
+import { cleanup, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
+import { afterEach, expect, it, vi } from 'vitest'
+import { formatThaiDay } from '../copy/format'
+import { th } from '../copy/th'
+import { withDistrict } from '../data/carePoints'
+import { FIXTURE_POINTS, FIXTURE_UNVERIFIED } from '../test/carePoints'
+import { emojiUrl } from '../design/emojiUrl'
+import { CarePointRow } from './CarePointRow'
+import { CarePointSheet } from './CarePointSheet'
+
+// A place's sheet at two levels of trust (redesign spec 5.8): a place nobody has confirmed says to
+// call first, where its data came from and when, and shows none of the detail it cannot vouch for.
+const open = (id: string) => {
+  const point = [...FIXTURE_POINTS, ...FIXTURE_UNVERIFIED].map(withDistrict).find((p) => p.id === id)!
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={point} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  return within(screen.getByRole('dialog'))
+}
+
+it('shows an unverified place’s source and date and the call-first label, and none of the detail it cannot vouch for', () => {
+  const sheet = open('cu1')
+  expect(sheet.getByText(th.care.unverified)).toBeInTheDocument()
+  const source = sheet.getByRole('link', { name: 'example.org' })
+  expect(source).toHaveAttribute('href', 'https://example.org/care')
+  expect(source).toHaveAttribute('target', '_blank')
+  expect(sheet.getByText(th.care.fetched.replace('{date}', formatThaiDay('2026-11-17')))).toBeInTheDocument()
+  for (const word of ['ตรวจเอชไอวี', 'จันทร์-ศุกร์', th.care.pep, th.care.klassBNote]) expect(sheet.queryByText(word), word).toBeNull()
+})
+it('offers a call and the way there, the way there in a new tab', () => {
+  const sheet = open('cu1')
+  expect(sheet.getByRole('link', { name: th.care.call })).toHaveAttribute('href', 'tel:020000000')
+  const way = sheet.getByRole('link', { name: th.care.directions })
+  expect(way).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=13.62,100.44')
+  expect(way).toHaveAttribute('target', '_blank')
+})
+it('keeps the call and the way there at the foot of the sheet, in view on a short screen too', () => {
+  const sheet = open('cu1')
+  expect(sheet.getByRole('link', { name: th.care.call }).closest('.sticky')).not.toBeNull()
+  expect(sheet.getByRole('link', { name: th.care.directions }).closest('.sticky')).not.toBeNull()
+})
+it('offers no call button and no empty rows for a place without a phone or an address', () => {
+  const sheet = open('cu2')
+  expect(sheet.queryByRole('link', { name: th.care.call })).toBeNull()
+  expect(sheet.getByRole('link', { name: th.care.directions })).toBeInTheDocument()
+  for (const dd of screen.getByRole('dialog').querySelectorAll('dd')) expect(dd.textContent?.trim(), dd.outerHTML).not.toBe('')
+})
+it('keeps a verified place’s full detail, and adds the way there', () => {
+  const sheet = open('cp1')
+  for (const words of ['ตรวจเอชไอวี · ตรวจซิฟิลิส · ถุงยางอนามัย', 'จันทร์-ศุกร์ 08:00-16:00', 'ฟรีตามสิทธิ']) expect(sheet.getByText(words)).toBeInTheDocument()
+  expect(sheet.getByRole('link', { name: th.care.directions })).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=13.766536,100.538162')
+  expect(sheet.queryByText(th.care.unverified)).toBeNull()
+})
+
+// ---- contacts (2026-11-18 design, decision 1) -------------------------------------------------------
+it('lists a place’s email, website, Facebook and LINE, each opening on its own', () => {
+  const point = withDistrict({ ...FIXTURE_UNVERIFIED[0], email: 'a@clinic.example.org', website: 'https://clinic.example.org/', facebook: 'https://www.facebook.com/clinic', line: '@clinic' })
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={point} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  const sheet = within(screen.getByRole('dialog'))
+  expect(sheet.getByText(th.care.contact)).toBeInTheDocument()
+  expect(sheet.getByRole('link', { name: th.care.email })).toHaveAttribute('href', 'mailto:a@clinic.example.org')
+  for (const [name, href] of [[th.care.website, 'https://clinic.example.org/'], [th.care.facebook, 'https://www.facebook.com/clinic'], [th.care.line, 'https://line.me/R/ti/p/@clinic']]) {
+    const link = sheet.getByRole('link', { name })
+    expect(link).toHaveAttribute('href', href)
+    expect(link).toHaveAttribute('target', '_blank')
+  }
+})
+it('offers the Google Maps listing in place of a call, and no empty contact row, for a place with no phone', () => {
+  const sheet = open('cu2')
+  const maps = sheet.getByRole('link', { name: th.care.googleMaps })
+  expect(maps).toHaveAttribute('href', 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('โรงพยาบาลทดสอบตัวอย่าง 13.88,100.72'))
+  expect(maps).toHaveAttribute('target', '_blank')
+  expect(sheet.queryByRole('link', { name: th.care.call })).toBeNull()
+  expect(sheet.queryByText(th.care.contact)).toBeNull()
+  cleanup()
+  expect(open('cu1').queryByRole('link', { name: th.care.googleMaps })).toBeNull()
+})
+// A place with no known number never says "call first": it points to its Google Maps listing instead.
+it('tells a person to check Google Maps first, not to call, at an unverified place with no phone', () => {
+  const sheet = open('cu2')
+  expect(sheet.getByText(th.care.unverifiedMaps)).toBeInTheDocument()
+  expect(sheet.queryByText(th.care.unverified)).toBeNull()
+  expect(document.body.textContent).not.toMatch(/โทรถาม/)
+  cleanup()
+  expect(open('cu1').getByText(th.care.unverified)).toBeInTheDocument()
+})
+it('marks an unverified row with a phone only when there is a number to call', () => {
+  const row = (id: string) => {
+    cleanup()
+    const point = FIXTURE_UNVERIFIED.map(withDistrict).find((p) => p.id === id)!
+    const { container } = render(<CarePointRow point={point} />)
+    const tag = within(container).getByText(th.care.unverifiedTag)
+    return tag.querySelector('img')?.getAttribute('src')
+  }
+  expect(row('cu1')).toBe(emojiUrl('phone'))
+  expect(row('cu2')).toBe(emojiUrl('search'))
+})
+// A number found on another page than the place's own source says where it came from (owner, 18 Nov 2026).
+it('names the page a phone number was found on, when it is not the place’s own source', () => {
+  const point = withDistrict({ ...FIXTURE_UNVERIFIED[1], phone: '024197380', phoneSource: 'https://www2.si.mahidol.ac.th/department/dermatology/' })
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={point} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  const sheet = within(screen.getByRole('dialog'))
+  expect(sheet.getByText(th.care.phoneFrom)).toBeInTheDocument()
+  const link = sheet.getByRole('link', { name: 'www2.si.mahidol.ac.th' })
+  expect(link).toHaveAttribute('href', 'https://www2.si.mahidol.ac.th/department/dermatology/')
+  expect(link).toHaveAttribute('target', '_blank')
+  expect(sheet.getByRole('link', { name: th.care.call })).toHaveAttribute('href', 'tel:024197380')
+  cleanup()
+  expect(open('cu1').queryByText(th.care.phoneFrom)).toBeNull()
+})
+
+// ---- opening hours (2026-11-18 design, decision 3) -------------------------------------------------
+afterEach(() => vi.useRealTimers())
+const withHours = withDistrict({ ...FIXTURE_UNVERIFIED[0], open: [{ days: [1, 2, 3, 4, 5], from: '08:00', to: '16:00' }], openSource: 'https://example.go.th/hours', openKind: 'service' })
+const atBangkokWednesday10 = () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-11-18T03:00:00Z'))
+}
+it('shows whether a place is open, which hours they are, and where they come from, with the holiday note', () => {
+  atBangkokWednesday10()
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={withHours} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  const sheet = within(screen.getByRole('dialog'))
+  expect(sheet.getByText(th.hours.service)).toBeInTheDocument()
+  expect(sheet.getByText(th.hours.open.replace('{time}', '16:00'))).toBeInTheDocument()
+  const from = sheet.getByRole('link', { name: 'example.go.th' })
+  expect(from).toHaveAttribute('href', 'https://example.go.th/hours')
+  expect(from).toHaveAttribute('target', '_blank')
+  expect(sheet.getByText(th.hours.holidays)).toBeInTheDocument()
+  cleanup()
+  expect(open('cu2').getByText(th.hours.unknown)).toBeInTheDocument()
+})
+it('marks an unconfirmed place\'s hours with its unconfirmed tag', () => {
+  atBangkokWednesday10()
+  render(<CarePointRow point={withHours} />)
+  expect(screen.getByText(th.hours.open.replace('{time}', '16:00'))).toBeInTheDocument()
+  expect(screen.getByText(th.care.unverifiedTag)).toBeInTheDocument()
+})
+
+// ---- corrections (2026-11-18 design, decision 4) -------------------------------------------------
+it('sends a correction from a place\'s sheet: a fixed kind, a number only when asked, and thanks', async () => {
+  const sent: unknown[] = []
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+    sent.push({ url, body: JSON.parse(String(init?.body)) })
+    return new Response(null, { status: 202 })
+  }))
+  const user = userEvent.setup()
+  const sheet = open('cu2')
+  await user.click(sheet.getByRole('button', { name: th.placeReport.open }))
+  expect(sheet.queryByLabelText(th.placeReport.phone)).toBeNull()
+  await user.click(sheet.getByRole('radio', { name: th.placeReport.kinds.add_phone }))
+  const send = sheet.getByRole('button', { name: th.placeReport.send })
+  await user.type(sheet.getByLabelText(th.placeReport.phone), '12')
+  expect(send).toBeDisabled()
+  await user.clear(sheet.getByLabelText(th.placeReport.phone))
+  await user.type(sheet.getByLabelText(th.placeReport.phone), '02 123 4567')
+  await user.click(send)
+  expect(sent).toEqual([{ url: '/api/place', body: { place: 'cu2', kind: 'add_phone', phone: '021234567' } }])
+  expect(await sheet.findByText(th.placeReport.thanks)).toBeInTheDocument()
+  vi.unstubAllGlobals()
+})
+it('says a number was confirmed by the team, with the day, when no page backs it', () => {
+  const point = withDistrict({ ...FIXTURE_UNVERIFIED[1], phone: '021234567', phoneConfirmed: { date: '2026-11-20', by: 'ทีม' } })
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={point} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  const sheet = within(screen.getByRole('dialog'))
+  expect(sheet.getByText(th.care.phoneFrom)).toBeInTheDocument()
+  expect(sheet.getByText(th.care.phoneConfirmed.replace('{date}', formatThaiDay('2026-11-20')))).toBeInTheDocument()
+})
+
+// ---- booking at a partner's site (owner, 22 Nov 2026: SWING clinics book through testD) ---------------
+it('offers to book at the place\'s own booking page, opening on its own, and nothing for a place without one', () => {
+  const point = withDistrict({ ...FIXTURE_UNVERIFIED[0], booking: 'https://testd.website/booking' })
+  render(
+    <MemoryRouter>
+      <CarePointSheet point={point} onClose={() => {}} />
+    </MemoryRouter>,
+  )
+  const link = within(screen.getByRole('dialog')).getByRole('link', { name: new RegExp(th.care.booking) })
+  expect(link).toHaveAttribute('href', 'https://testd.website/booking')
+  expect(link).toHaveAttribute('target', '_blank')
+  expect(link).toHaveAttribute('rel', 'noreferrer')
+  cleanup()
+  expect(open('cu2').queryByRole('link', { name: new RegExp(th.care.booking) })).toBeNull()
+})

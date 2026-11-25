@@ -1,0 +1,35 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/((?!map/|care/|assets/|api/|sw\\.js).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/publish",
+      "schedule": "0 20 * * *"
+    },
+    {
+      "path": "/api/cron/notify",
+      "schedule": "0 5 * * 1"
+    }
+  ],
+  "regions": [
+    "sin1"
+  ],
+  "buildCommand": "npm run launch-check && npm run db:migrate && npm run build"
+}

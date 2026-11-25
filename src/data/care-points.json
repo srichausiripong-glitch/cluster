@@ -1,0 +1,738 @@
+[
+  {
+    "id": "trc-anonymous-clinic",
+    "name": "คลินิกนิรนาม ศูนย์วิจัยโรคเอดส์และโรคติดเชื้อ สภากาชาดไทย",
+    "kind": "clinic",
+    "layer": "sti",
+    "klass": "A",
+    "lat": 13.7348132,
+    "lon": 100.5381377,
+    "address": "เลขที่ 104 ถนนราชดำริ แขวงปทุมวัน เขตปทุมวัน กรุงเทพมหานคร 10330",
+    "phone": "022516711",
+    "free": false,
+    "community": false,
+    "services": [
+      "ตรวจหาการติดเชื้อเอชไอวี",
+      "ตรวจรักษาโรคติดต่อทางเพศสัมพันธ์",
+      "ให้บริการยาต้านฉุกเฉิน (PEP)",
+      "ให้บริการยาป้องกันก่อนสัมผัสเชื้อเอชไอวี (PrEP)",
+      "ตรวจไวรัสตับอักเสบ",
+      "ตรวจหาเชื้อฝีดาษวานร(ฝีดาษลิง)"
+    ],
+    "hours": "คลินิกในเวลา: ตรวจหาเชื้อเอชไอวี วันจันทร์–วันศุกร์ เวลา 07.30–16.30 น. (ปิดรับบัตรคิว 15.00 น.); ตรวจโรคติดต่อทางเพศสัมพันธ์ วันจันทร์–วันศุกร์ เวลา 08.30–14.00 น. | คลินิกนอกเวลา: ตรวจหาเชื้อเอชไอวีและโรคติดต่อทางเพศสัมพันธ์ วันจันทร์, วันพุธ, วันศุกร์ เวลา 16.30–20.00 น. และวันเสาร์ เวลา 08.30–12.00 น. (หยุดวันหยุดนักขัตฤกษ์)",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "07:30",
+        "to": "16:30"
+      },
+      {
+        "days": [
+          1,
+          3,
+          5
+        ],
+        "from": "16:30",
+        "to": "20:00"
+      },
+      {
+        "days": [
+          6
+        ],
+        "from": "08:30",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://th.aidsid.or.th/anonymous-clinic/",
+    "openKind": "service",
+    "cost": "ตรวจเลือดหาการติดเชื้อเอชไอวี 160 บาท (คลินิกพิเศษนอกเวลา 192 บาท); ตรวจซิฟิลิสวิธี RPR 60 บาท; ตรวจคัดกรอง STI-4 (โรคติดต่อทางเพศสัมพันธ์ 4 ชนิด) 1,200 บาท; อัตราค่าบริการอาจมีเปลี่ยนแปลงได้",
+    "pep": true,
+    "source": "https://th.aidsid.or.th/anonymous-clinic/",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "ihri-pribta-clinic",
+    "name": "Pribta Clinic (Institute of HIV Research and Innovation)",
+    "kind": "clinic",
+    "layer": "sti",
+    "klass": "B",
+    "lat": 13.7329424,
+    "lon": 100.5307116,
+    "address": "Pribta Clinic Chamchuri Square, Office Zone, 11th Floor MRT Samyan, Exit 2 (IHRI office: Chamchuri Square Building 11th Floor, Unit 1109-1116, 319 Phayathai Road, Pathumwan, Bangkok 10330, Thailand)",
+    "phone": "021605372",
+    "free": false,
+    "community": true,
+    "pep": true,
+    "source": "https://ihri.org/pribta/",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "ihri-tangerine-clinic",
+    "name": "Tangerine Clinic (Tangerine Community Health Clinic)",
+    "kind": "clinic",
+    "layer": "sti",
+    "klass": "B",
+    "lat": 13.7329424,
+    "lon": 100.5307116,
+    "address": "Tangerine Clinic Chamchuri Square, Office Zone, 11th Floor MRT Samyan, Exit 2 (IHRI office: Chamchuri Square Building 11th Floor, Unit 1109-1116, 319 Phayathai Road, Pathumwan, Bangkok 10330, Thailand)",
+    "phone": "021605372",
+    "free": false,
+    "community": true,
+    "pep": true,
+    "source": "https://ihri.org/?p=10825",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "silom-community-clinic-tropmed",
+    "name": "คลินิกชุมชนสีลม @ทรอปเมด",
+    "kind": "clinic",
+    "layer": "sti",
+    "klass": "A",
+    "lat": 13.7655931,
+    "lon": 100.5337777,
+    "address": "BTS อนุสาวรีย์ชัยสมรภูมิ",
+    "phone": "026446290",
+    "free": false,
+    "community": false,
+    "source": "https://ddc.moph.go.th/das/news.php?news=33805&deptcode=das",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "siriraj-std-hiv-clinic",
+    "name": "Siriraj STD and HIV clinic (Faculty of Medicine Siriraj Hospital)",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.7578222,
+    "lon": 100.4853833,
+    "address": "2 Wanglang Road Bangkoknoi, Bangkok 10700, Thailand",
+    "free": false,
+    "community": false,
+    "services": [
+      "รักษาโรคติดต่อทางเพศสัมพันธ์ในผู้ชาย เช่น ซิฟิลิส หนองใน หูดหงอนไก่ เริม",
+      "ตรวจเลือดโรคติดต่อทางเพศสัมพันธ์ (HIV, ไวรัสตับอักเสบบี, ซี)",
+      "ตรวจรักษาโรคผิวหนังในผู้ติดเชื้อเอชไอวี",
+      "ให้คำปรึกษาเรื่องเพศสัมพันธ์ที่ปลอดภัย"
+    ],
+    "hours": "Tuesdays and Wednesdays during 9.00 – 12.00",
+    "open": [
+      {
+        "days": [
+          2,
+          3
+        ],
+        "from": "09:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://www2.si.mahidol.ac.th/en/dermatology/siriraj-std-and-hiv-clinic",
+    "openKind": "service",
+    "phone": "024197380",
+    "phoneSource": "https://www2.si.mahidol.ac.th/department/dermatology/",
+    "source": "https://www2.si.mahidol.ac.th/en/dermatology/siriraj-std-and-hiv-clinic",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "swing-silom",
+    "name": "สวิงสีลม คลินิกเทคนิคการแพทย์ (มูลนิธิเพื่อนพนักงานบริการ SWING)",
+    "kind": "clinic",
+    "layer": "sti",
+    "klass": "B",
+    "lat": 13.7284867,
+    "lon": 100.5334461,
+    "address": "64 ชั้น 6 ห้อง 601 ถนนสีลม แขวงสุริยวงศ์ เขตบางรัก กรุงเทพมหานคร 10500",
+    "phone": "026329501",
+    "free": false,
+    "community": true,
+    "source": "https://www.swingthailand.org/contact",
+    "booking": "https://testd.website/booking",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "swing-saphan-khwai",
+    "name": "สวิงสะพานควาย คลินิกเทคนิคการแพทย์ (SWING)",
+    "kind": "clinic",
+    "layer": "sti",
+    "klass": "B",
+    "lat": 13.7897612,
+    "lon": 100.5479518,
+    "address": "294/20 ซอยประดิพัทธ์ แขวงสามเสนใน เขตพญาไท กรุงเทพมหานคร 10400",
+    "phone": "021150251",
+    "phoneSource": "https://www.swingthailand.org/contact",
+    "free": false,
+    "community": true,
+    "source": "https://testd.website/booking",
+    "booking": "https://testd.website/booking",
+    "fetched": "2026-11-22",
+    "verified": null
+  },
+  {
+    "id": "swing-phetkasem",
+    "name": "สวิงเพชรเกษม คลินิกเทคนิคการแพทย์ (SWING)",
+    "kind": "clinic",
+    "layer": "sti",
+    "klass": "B",
+    "lat": 13.7151863,
+    "lon": 100.4449989,
+    "address": "327 ถนนเพชรเกษม แขวงบางหว้า เขตภาษีเจริญ กรุงเทพมหานคร 10160",
+    "phone": "024577299",
+    "free": false,
+    "community": true,
+    "source": "https://www.swingthailand.org/contact",
+    "booking": "https://testd.website/booking",
+    "fetched": "2026-11-22",
+    "verified": null
+  },
+  {
+    "id": "swing-udomsuk",
+    "name": "สวิงอุดมสุข (SWING)",
+    "kind": "clinic",
+    "layer": "sti",
+    "klass": "B",
+    "lat": 13.6815579,
+    "lon": 100.6085273,
+    "address": "98 ซอยสุขุมวิท 66/1 แขวงบางนาเหนือ เขตบางนา กรุงเทพมหานคร 10260",
+    "free": false,
+    "community": true,
+    "source": "https://testd.website/booking",
+    "booking": "https://testd.website/booking",
+    "open": [
+      {
+        "days": [
+          0,
+          3,
+          4,
+          5,
+          6
+        ],
+        "from": "13:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://testd.website/booking",
+    "openKind": "service",
+    "fetched": "2026-11-22",
+    "verified": null
+  },
+  {
+    "id": "rsat-ramkhamhaeng",
+    "name": "คลินิกเทคนิคการแพทย์ฟ้าสีรุ้ง รามคำแหง (สมาคมฟ้าสีรุ้งแห่งประเทศไทย RSAT)",
+    "kind": "clinic",
+    "layer": "sti",
+    "klass": "B",
+    "lat": 13.7636923,
+    "lon": 100.6475465,
+    "address": "1 และ 3 ซอยรามคำแหง 97/2 ถนนรามคำแหง แขวงหัวหมาก เขตบางกะปิ กรุงเทพฯ 10240",
+    "phone": "027316532",
+    "free": false,
+    "community": true,
+    "source": "https://rsat.info/",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-hc23-siphraya",
+    "name": "ศูนย์บริการสาธารณสุข 23 สี่พระยา (คลินิกรักปลอดภัย)",
+    "kind": "clinic",
+    "layer": "health_centre",
+    "klass": "A",
+    "lat": 13.730706,
+    "lon": 100.5203304,
+    "address": "383/4 ถ.สี่พระยา แขวงสี่พระยา เขตบางรัก กรุงเทพมหานคร 10500",
+    "phone": "022336329",
+    "free": false,
+    "community": false,
+    "services": [
+      "ตรวจหาเชื้อ HIV และซิฟิลิส",
+      "ตรวจและรักษาโรคติดต่อทางเพศสัมพันธ์",
+      "ให้บริการยา PrEP",
+      "ให้บริการยา PEP (ผู้ที่สัมผัสเชื้อไม่เกิน 72 ชั่วโมง)",
+      "ถุงยางอนามัยและสารหล่อลื่น ฟรี!"
+    ],
+    "hours": "เปิดให้บริการทุกวันในเวลาราชการเวลา 08.00 - 16.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "16:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter23/page/sub/19780",
+    "openKind": "service",
+    "pep": true,
+    "source": "https://webportal.bangkok.go.th/healthcenter23/page/sub/19780",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-hc3-bangsue",
+    "name": "ศูนย์บริการสาธารณสุข 3 บางซื่อ (คลินิกรักปลอดภัย)",
+    "kind": "clinic",
+    "layer": "health_centre",
+    "klass": "A",
+    "lat": 13.8024555,
+    "lon": 100.5339661,
+    "address": "596 ถ.เตชะวณิช แขวงบางซื่อ เขตบางซื่อ กรุงเทพมหานคร 10800",
+    "phone": "025870873",
+    "free": false,
+    "community": false,
+    "services": [
+      "ตรวจหาเชื้อ HIV และซิฟิลิส",
+      "ตรวจและรักษาโรคติดต่อทางเพศสัมพันธ์",
+      "ให้บริการยา PrEP",
+      "ให้บริการยา PEP (ผู้ที่สัมผัสเชื้อไม่เกิน 72 ชั่วโมง)",
+      "ถุงยางอนามัยและสารหล่อลื่น ฟรี!"
+    ],
+    "hours": "ให้บริการในทุกวัน เวลา 08.00 - 15.30 น. ยกเว้นวันหยุดราชการและวันหยุดนักขัตฤกษ์ (คลินิกรักปลอดภัย ชั้น 3 อาคารใหม่ 5 ชั้น)",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "15:30"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter3/page/sub/12508",
+    "openKind": "service",
+    "pep": true,
+    "source": "https://webportal.bangkok.go.th/healthcenter3/page/sub/12508",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-hc9-prachathipatai",
+    "name": "ศูนย์บริการสาธารณสุข 9 ประชาธิปไตย (คลินิกกามโรค)",
+    "kind": "clinic",
+    "layer": "health_centre",
+    "klass": "A",
+    "lat": 13.7611791,
+    "lon": 100.5036559,
+    "address": "64 ถ.ประชาธิปไตย ซ.สุขุมวิท30 แขวงบ้านพานถม เขตพระนคร กรุงเทพมหานคร 10200",
+    "phone": "022811907",
+    "free": false,
+    "community": false,
+    "services": [
+      "ตรวจรักษาโรคติดต่อทางเพศสัมพันธ์",
+      "ตรวจคัดกรองการติดเชื้อ HIV",
+      "บริการป้องกันการติดเชื้อ HIV ในกลุ่มเสี่ยงสูง"
+    ],
+    "hours": "วันจันทร์ - วันศุกร์ เวลา 08.00 น. - 12.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter9/page/sub/5596",
+    "openKind": "service",
+    "source": "https://webportal.bangkok.go.th/healthcenter9/page/sub/5596",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-hc25-huaikhwang",
+    "name": "ศูนย์บริการสาธารณสุข 25 ห้วยขวาง (คลินิกรักปลอดภัย / BKK Pride Clinic)",
+    "kind": "clinic",
+    "layer": "health_centre",
+    "klass": "A",
+    "lat": 13.77714885,
+    "lon": 100.5799268,
+    "address": "2 ถ.ประชาอุทิศ แขวงห้วยขวาง เขตห้วยขวาง กรุงเทพมหานคร 10310",
+    "phone": "022772660",
+    "free": true,
+    "community": false,
+    "services": [
+      "ตรวจรักษาโรคติดต่อทางเพศสัมพันธ์",
+      "เจาะเลือดตรวจหาเชื้อ HIV และซิฟิลิส",
+      "ให้คำปรึกษา",
+      "ถุงยางอนามัย ครั้งละ 10 ชิ้น"
+    ],
+    "hours": "จันทร์-ศุกร์ ช่วงเวลา 8.00-12.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "from": "08:00",
+        "to": "12:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/healthcenter25/page/sub/31862",
+    "openKind": "service",
+    "cost": "ตรวจรักษาโรคติดต่อทางเพศสัมพันธ์ฟรี เจาะเลือด HIV คนไทยฟรีปีละ 2 ครั้ง (ชาวต่างชาติ ครั้งละ 270 บาท)",
+    "source": "https://webportal.bangkok.go.th/healthcenter25/page/sub/31862",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-hc43-minburi",
+    "name": "ศูนย์บริการสาธารณสุข 43 มีนบุรี",
+    "kind": "clinic",
+    "layer": "health_centre",
+    "klass": "A",
+    "lat": 13.8133,
+    "lon": 100.73072,
+    "address": "319 หมู่ 1 ถ.สีหบุรานุกิจ แขวงมีนบุรี เขตมีนบุรี กรุงเทพมหานคร 10510",
+    "phone": "025405615",
+    "free": false,
+    "community": false,
+    "services": [
+      "คลินิกรักปลอดภัย",
+      "คลินิกสุขภาพเพศหลากหลาย (BKK PRIDE CLINIC)",
+      "คลินิก ARV"
+    ],
+    "source": "https://webportal.bangkok.go.th/health/page/sub/13938/%E0%B8%84%E0%B8%A5%E0%B8%B4%E0%B8%99%E0%B8%B4%E0%B8%81%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AD%E0%B8%B7%E0%B9%88%E0%B8%99-%E0%B9%86",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-hc61-saimai",
+    "name": "ศูนย์บริการสาธารณสุข 61 สังวาลย์ ทัสนารมย์",
+    "kind": "clinic",
+    "layer": "health_centre",
+    "klass": "A",
+    "lat": 13.92873,
+    "lon": 100.65929,
+    "address": "19/5 หมู่ 3 ซ.สายไหม 43 ถ.สายไหม แขวงสายไหม เขตสายไหม กรุงเทพมหานคร 10220",
+    "phone": "025360163",
+    "free": false,
+    "community": false,
+    "services": [
+      "คลินิกสุขภาพเพศหลากหลาย (BKK PRIDE CLINIC)",
+      "คลินิก ARV"
+    ],
+    "source": "https://webportal.bangkok.go.th/health/page/sub/13938/%E0%B8%84%E0%B8%A5%E0%B8%B4%E0%B8%99%E0%B8%B4%E0%B8%81%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AD%E0%B8%B7%E0%B9%88%E0%B8%99-%E0%B9%86",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-klang-hospital",
+    "name": "คลินิกรักษ์เพื่อน โรงพยาบาลกลาง",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.746512,
+    "lon": 100.5091637,
+    "address": "ตึกผู้ป่วยนอก ชั้น 2 ห้อง 25 514 ถนนหลวง แขวงป้อมปราบฯ เขตป้อมปราบฯ กรุงเทพมหานคร 10100",
+    "phone": "0923428942",
+    "free": true,
+    "community": false,
+    "services": [
+      "ตรวจเอชไอวี แบบรู้ผลภายในวันที่มาตรวจ",
+      "ตรวจคัดกรองซิฟิลิส",
+      "แจกถุงยางอนามัยพร้อมสารหล่อลื่นฟรี",
+      "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
+    ],
+    "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277040",
+    "openKind": "service",
+    "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
+    "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277040",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-taksin-hospital",
+    "name": "คลินิกรักษ์เพื่อน โรงพยาบาลตากสิน",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.7308551,
+    "lon": 100.507863,
+    "address": "ตึกผู้ป่วยนอก ชั้น 1 543 ถนนสมเด็จเจ้าพระยา แขวงคลองสาน เขตคลองสาน กรุงเทพมหานคร 10600",
+    "phone": "0892215161",
+    "free": true,
+    "community": false,
+    "services": [
+      "ตรวจเอชไอวี แบบรู้ผลภายในวันที่มาตรวจ",
+      "ตรวจคัดกรองซิฟิลิส",
+      "แจกถุงยางอนามัยพร้อมสารหล่อลื่นฟรี",
+      "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
+    ],
+    "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277041",
+    "openKind": "service",
+    "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
+    "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277041",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-charoenkrung-hospital",
+    "name": "คลินิกรักษ์เพื่อน โรงพยาบาลเจริญกรุงประชารักษ์",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.6935765,
+    "lon": 100.4945241,
+    "address": "ตึกอาคารอนุสรณ์ 20 ปี ชั้น 1 18 ถนนเจริญกรุง เเขวงบางคอเเหลม เขตบางคอเเหลม กรุงเทพมหานคร 10120",
+    "phone": "022897890",
+    "free": true,
+    "community": false,
+    "services": [
+      "ตรวจเอชไอวี แบบรู้ผลภายในวันที่มาตรวจ",
+      "ตรวจคัดกรองซิฟิลิส",
+      "แจกถุงยางอนามัยพร้อมสารหล่อลื่นฟรี",
+      "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
+    ],
+    "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277044",
+    "openKind": "service",
+    "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
+    "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277044",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-luangphothawisak-hospital",
+    "name": "คลินิกรักษ์เพื่อน โรงพยาบาลหลวงพ่อทวีศักดิ์ ชุตินฺธโร อุทิศ",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.6565633,
+    "lon": 100.3451021,
+    "address": "โรงพยาบาลหลวงพ่อทวีศักดิ์ ชุตินฺธโร อุทิศ ตึกผู้ป่วยนอก ชั้น 1 6 ซอยหนองเเขม เขตหนองเเขม กรุงเทพมหานคร 10160",
+    "phone": "024293578",
+    "free": true,
+    "community": false,
+    "services": [
+      "ตรวจเอชไอวี แบบรู้ผลภายในวันที่มาตรวจ",
+      "ตรวจคัดกรองซิฟิลิส",
+      "แจกถุงยางอนามัยพร้อมสารหล่อลื่นฟรี",
+      "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
+    ],
+    "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277047",
+    "openKind": "service",
+    "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
+    "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277047",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-vejakarunrasmi-hospital",
+    "name": "คลินิกรักษ์เพื่อน โรงพยาบาลเวชการุณย์รัศมิ์",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.8570094,
+    "lon": 100.8590104,
+    "address": "ตึกผู้ป่วยนอก ชั้น 2 ห้องให้การปรึกษา (ห้อง211) 48 หมู่ 2 ถนนเลียบวารี เเขวงกระทุ่มราย เขตหนองจอก กรุงเทพมหานคร 10530",
+    "phone": "0811723968",
+    "free": true,
+    "community": false,
+    "services": [
+      "ตรวจเอชไอวี แบบรู้ผลภายในวันที่มาตรวจ",
+      "ตรวจคัดกรองซิฟิลิส",
+      "แจกถุงยางอนามัยพร้อมสารหล่อลื่นฟรี",
+      "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
+    ],
+    "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277049",
+    "openKind": "service",
+    "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
+    "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277049",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-latkrabang-hospital",
+    "name": "คลินิกรักษ์เพื่อน โรงพยาบาลลาดกระบังกรุงเทพมหานคร",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.7222822,
+    "lon": 100.7848808,
+    "address": "ตึกคลินิกพิเศษ ชั้น 1 ซอยลาดกระบัง 15 ถนนอ่อนนุช-ลาดกระบัง เขตลาดกระบัง กรุงเทพมหานคร 10520",
+    "phone": "0869956364",
+    "free": true,
+    "community": false,
+    "services": [
+      "ตรวจเอชไอวี แบบรู้ผลภายในวันที่มาตรวจ",
+      "ตรวจคัดกรองซิฟิลิส",
+      "แจกถุงยางอนามัยพร้อมสารหล่อลื่นฟรี",
+      "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
+    ],
+    "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277050",
+    "openKind": "service",
+    "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
+    "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277050",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-ratchaphiphat-hospital",
+    "name": "คลินิกรักษ์เพื่อน โรงพยาบาลราชพิพัฒน์",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.7305379,
+    "lon": 100.3667377,
+    "address": "ตึกผู้ป่วยนอก ชั้น 1 18 ซอยพุทธมณฑลสาย 3 ซอย 10 เเขวงบางไผ่ เขตบางเเค กรุงเทพมหานคร",
+    "phone": "0943653669",
+    "free": true,
+    "community": false,
+    "services": [
+      "ตรวจเอชไอวี แบบรู้ผลภายในวันที่มาตรวจ",
+      "ตรวจคัดกรองซิฟิลิส",
+      "แจกถุงยางอนามัยพร้อมสารหล่อลื่นฟรี",
+      "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
+    ],
+    "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277051",
+    "openKind": "service",
+    "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
+    "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/277051",
+    "fetched": "2026-11-12",
+    "verified": null
+  },
+  {
+    "id": "bma-sirindhorn-hospital",
+    "name": "คลินิกรักษ์เพื่อน โรงพยาบาลสิรินธร",
+    "kind": "hospital",
+    "layer": "hospital",
+    "klass": "A",
+    "lat": 13.7175041,
+    "lon": 100.7068423,
+    "address": "ตึกผู้ป่วยนอก ชั้น 2 ห้องบริการสุขภาพ 20 ซอยอ่อนนุช 90 เเขวงประเวศ เขตประเวศ กรุงเทพมหานคร 10250",
+    "phone": "023286900",
+    "free": true,
+    "community": false,
+    "services": [
+      "ตรวจเอชไอวี แบบรู้ผลภายในวันที่มาตรวจ",
+      "ตรวจคัดกรองซิฟิลิส",
+      "แจกถุงยางอนามัยพร้อมสารหล่อลื่นฟรี",
+      "คลินิกพิเศษนอกเวลาสำหรับชายรักชาย (MSM) และสาวประเภทสอง (TG)"
+    ],
+    "hours": "จันทร์ พุธ พฤหัสบดี (ยกเว้นวันหยุดราชการ) เวลา 16.00 - 20.00 น.",
+    "open": [
+      {
+        "days": [
+          1,
+          3,
+          4
+        ],
+        "from": "16:00",
+        "to": "20:00"
+      }
+    ],
+    "openSource": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/538308",
+    "openKind": "service",
+    "cost": "ให้บริการตรวจเอชไอวีและซิฟิลิสทุกสิทธิ์การรักษา ไม่เสียค่าบริการ",
+    "source": "https://webportal.bangkok.go.th/msdbangkok/page/sub/31991/-/0/info/538308",
+    "fetched": "2026-11-12",
+    "verified": null
+  }
+]
