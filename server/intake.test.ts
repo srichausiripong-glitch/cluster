@@ -8,7 +8,7 @@ import { createHmac } from 'node:crypto'
 import { migrate, type Db } from './db'
 import { setEnvForTest } from './env'
 import { networkGroup } from './keys'
-import { intake } from './intake'
+import { ENVELOPE_CAP, intake, NETWORK_CAP } from './intake'
 import { testDb } from './testDb'
 import { serverWeek } from './week'
 
@@ -134,4 +134,11 @@ it('counts a symptoms report for a district', async () => {
 it('refuses a report for an old zone id', async () => {
   expect(await intake(await envelope(report('tested', 'central')), deps())).toEqual({ status: 400 })
   expect(await count('central', 'tested')).toBe(0)
+})
+
+// The live map (owner, 25 Nov 2026): a phone sends up to one envelope a day, so a network may send seven
+// times the old weekly cap; the report cap stays.
+it('allows seven envelopes a day per phone on a network, and still at most thirty reports a week', () => {
+  expect(ENVELOPE_CAP).toBe(3500)
+  expect(NETWORK_CAP).toBe(30)
 })

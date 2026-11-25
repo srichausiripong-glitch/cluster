@@ -105,3 +105,13 @@ it('counts only the 50 districts in the city', () => {
 it('suspends a district by its id', () => {
   expect(zone(file([], { [NOW]: 1000 }, ['bang_rak']), 'bang_rak')).toMatchObject({ state: 'suspended', symptoms: null })
 })
+
+// Deferred minors fixed with the live map (owner, 25 Nov 2026).
+it('says the city has no data when its only reports have expired', () => {
+  expect(zone(file([row('chatuchak', 'gono_chlam', '2026-W41', 1)]), 'bkk').state).toBe('no_data')
+})
+it('leaves a suspended district out of the city, as it is out of the map', () => {
+  const areas = file([row('bang_kapi', 'syphilis', NOW, 30)], {}, ['bang_kapi'])
+  expect(zone(areas, 'bang_kapi').state).toBe('suspended')
+  expect(zone(areas, 'bkk')).toMatchObject({ state: 'no_data', density: null })
+})

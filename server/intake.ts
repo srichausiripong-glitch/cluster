@@ -9,10 +9,11 @@ import { serverWeek } from './week.js'
 /** Reports counted from one network group in one week (amendment 6). */
 export const NETWORK_CAP = 30
 /**
- * Envelopes counted from one network group in one week. Without it, a flood of empty envelopes
- * would raise the expected random count and wash every real signal off the map.
+ * Envelopes counted from one network group in one week: 500 phones' worth at one a day each (live map,
+ * owner 25 Nov 2026). Without it, a flood of empty envelopes would raise the expected random count and
+ * wash every real signal off the map.
  */
-export const ENVELOPE_CAP = 500
+export const ENVELOPE_CAP = 3500
 /** Base64url lengths of a P-256 coordinate, a 12-byte IV, and 256 padded bytes plus the 16-byte tag. */
 const LENGTHS = { coord: 43, iv: 16, ct: 363 }
 

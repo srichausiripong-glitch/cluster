@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { afterEach, beforeEach, expect, it } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { formatThaiDate } from '../copy/format'
 import { BANNED_WORDS, th } from '../copy/th'
@@ -26,7 +26,10 @@ async function toDistrict(user: UserEvent, found: 'gono_chlam' | 'syphilis' = 's
 }
 const pick = (user: UserEvent, name: string) => user.click(screen.getByRole('radio', { name }))
 beforeEach(() => wipePhone())
-afterEach(() => setPublishedForTest(null))
+afterEach(() => {
+  setPublishedForTest(null)
+  vi.unstubAllGlobals()
+})
 
 it('asks what was found, with five answers, and marks HIV and mpox as not going on the map', () => {
   open()
@@ -43,25 +46,41 @@ it('sends a lab-confirmed syphilis result to the map for the chosen district, wi
   await choose(user, th.report.toMap)
   expect(phone.get().pending).toMatchObject({ kind: 'syphilis', zone: 'bang_rak' })
   expect(phone.get().myDistrict).toBe('bang_rak')
-  expect(screen.getByRole('heading', { name: th.report.doneQueued })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: th.report.doneSending })).toBeInTheDocument()
 })
 
-it('says the report goes on leaving while this week\'s envelope has not gone, and with next week\'s when it has', async () => {
-  const user = userEvent.setup()
-  open()
+// The live map (owner, 25 Nov 2026), and deferred minors M1 and M4: the line says what really happens.
+const server = (answer: { day: string; intakeOpen?: boolean }) =>
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => (String(url).endsWith('/api/key') ? new Response(JSON.stringify({ week: currentWeek(), bits: 8, jwk: { kty: 'EC', crv: 'P-256', x: 'x', y: 'y' }, ...answer })) : Promise.reject(new Error('offline')))),
+  )
+async function sendSyphilis(user: UserEvent) {
   await toDistrict(user)
   await pick(user, 'บางรัก')
   await choose(user, th.report.toMap)
-  expect(screen.getByRole('heading', { name: th.report.doneQueued })).toHaveTextContent('ส่งตอนออกจากแอป')
+}
+it('says the report is on its way as it goes at once', async () => {
+  const user = userEvent.setup()
+  open()
+  await sendSyphilis(user)
+  expect(screen.getByRole('heading', { name: th.report.doneSending })).toHaveTextContent('กำลังส่ง')
 })
-it('says a report made after this week\'s envelope went waits for next week\'s', async () => {
-  phone.update((s) => ({ ...s, sentWeek: currentWeek() }))
+it('says a report made after today\'s envelope went goes with tomorrow\'s', async () => {
+  server({ day: '2026-11-25' })
+  phone.update((s) => ({ ...s, sentDay: '2026-11-25' }))
   const user = userEvent.setup()
   open()
-  await toDistrict(user)
-  await pick(user, 'บางรัก')
-  await choose(user, th.report.toMap)
-  expect(screen.getByRole('heading', { name: th.report.doneNextWeek })).toHaveTextContent('ไปกับซองสัปดาห์หน้า')
+  await sendSyphilis(user)
+  expect(await screen.findByRole('heading', { name: th.report.doneTomorrow })).toHaveTextContent('ไปกับซองพรุ่งนี้')
+  expect(screen.getByText(th.report.doneCancel)).toBeInTheDocument()
+})
+it('says the report stays on the phone while intake is closed, not that it is going', async () => {
+  server({ day: '2026-11-25', intakeOpen: false })
+  const user = userEvent.setup()
+  open()
+  await sendSyphilis(user)
+  expect(await screen.findByRole('heading', { name: th.report.doneHeld })).toHaveTextContent('เก็บไว้ในเครื่อง')
 })
 
 it('goes straight from 🤒 to the district, and sends symptoms on their own', async () => {

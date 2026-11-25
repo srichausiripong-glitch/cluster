@@ -19,7 +19,9 @@ export interface PhoneState {
   testedNextWeek: string | null
   /** The server week this phone last sent its envelope in. */
   sentWeek: string | null
-  /** When the first visit of the server week began, in ms (2026-11-23 design; once a random moment in the week). The name stays so stored phones load. */
+  /** The server day this phone last sent its envelope on: one a day (live map, owner 25 Nov 2026). Optional for older stores. */
+  sentDay?: string | null
+  /** When the first visit of the server day began, in ms, with that day in `week` (live map; once the week, once a random moment in it). The names stay so stored phones load. */
   sendAt: { week: string; at: number } | null
   /** The first week "symptoms" may go to the map again: four weeks after the last one. Optional so stores kept before it stay valid. */
   symptomsNextWeek?: string | null

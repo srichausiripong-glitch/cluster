@@ -12,7 +12,8 @@ import { ReportFlow } from './ReportFlow'
 import { SelfCare } from './SelfCare'
 import { GoNav, useGo } from './Go'
 import { useEnvelope } from '../envelope/useEnvelope'
-import { loadPublished } from '../map/published'
+import { startLiveMap } from '../map/live'
+import { reloadIfNewVersion } from './version'
 import { useEffect } from 'react'
 
 const NAV = [
@@ -24,8 +25,14 @@ const NAV = [
 
 export function AppShell() {
   useEnvelope()
+  useEffect(() => startLiveMap(), [])
+  // An old tab reloads into the new version when it comes back into view.
   useEffect(() => {
-    void loadPublished()
+    const check = () => {
+      if (document.visibilityState === 'visible') void reloadIfNewVersion()
+    }
+    document.addEventListener('visibilitychange', check)
+    return () => document.removeEventListener('visibilitychange', check)
   }, [])
   // The weekly notification, tapped while the app is open: the followed district's sheet, in place of this page (redesign spec 5.11).
   const go = useGo()

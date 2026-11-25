@@ -12,6 +12,7 @@ import { buildIcs } from '../domain/ics'
 import type { DiseaseGroup, ReportKind, ReportSource } from '../domain/types'
 import { mondayDate } from '../domain/weeks'
 import { takingNow } from '../envelope/send'
+import { useReportState } from '../envelope/useReportState'
 import { useIntakeOpen } from '../map/published'
 import { currentWeek, queueReport, saveCard, setMyDistrict } from '../store/actions'
 import { usePartyStore } from '../store/partyStore'
@@ -66,6 +67,8 @@ function downloadReminder() {
  * 🩺 เจอ / มีอาการ (redesign spec 5.3): what was found, how it is known, the district, done. 🤒 skips
  * "how it is known"; a kind that never goes on the map skips the district. No medical advice here.
  */
+const DONE_LINE = { sending: th.report.doneSending, sent: th.report.doneSent, tomorrow: th.report.doneTomorrow, held: th.report.doneHeld } as const
+
 export function ReportFlow() {
   const { pending, symptomsNextWeek, myDistrict } = usePartyStore(phone)
   const intakeOpen = useIntakeOpen()
@@ -74,10 +77,11 @@ export function ReportFlow() {
   const [source, setSource] = useState<ReportSource | null>(null)
   const [district, setDistrict] = useState<string | null>(null)
   const [changing, setChanging] = useState(false)
-  const [queued, setQueued] = useState(false)
   const [kept, setKept] = useState(false)
-  // Taken when the report is queued: once this week's envelope has gone, a report waits for next week's.
-  const [nextWeek, setNextWeek] = useState(false)
+  // The report sent from this screen, by its time; the done line follows how it stands (live map, owner 25 Nov 2026).
+  const [sentAt, setSentAt] = useState<string | null>(null)
+  const queued = sentAt !== null
+  const standing = useReportState(sentAt)
 
   const kind = mapKind(found, source)
   const remembered = myDistrict && districtName(myDistrict) ? myDistrict : null
@@ -91,7 +95,7 @@ export function ReportFlow() {
     setSource(f === 'symptoms' ? 'symptoms' : null)
     setDistrict(null)
     setChanging(false)
-    setQueued(false)
+    setSentAt(null)
     setKept(false)
     setStep(f === 'symptoms' ? 'district' : 'source')
   }
@@ -101,10 +105,10 @@ export function ReportFlow() {
   }
   const send = () => {
     if (!kind || !zone) return
-    queueReport({ kind, zone, savedAt: new Date().toISOString() })
+    const savedAt = new Date().toISOString()
+    queueReport({ kind, zone, savedAt })
     setMyDistrict(zone)
-    setNextWeek(phone.get().sentWeek === currentWeek())
-    setQueued(true)
+    setSentAt(savedAt)
     setStep('done')
   }
   const keepCard = () => {
@@ -205,9 +209,9 @@ export function ReportFlow() {
           <Mascot />
           <h2 className="flex items-center gap-2 text-[22px] font-bold">
             {queued && <Emoji name="envelope" size={26} />}
-            {queued ? (nextWeek ? th.report.doneNextWeek : th.report.doneQueued) : th.report.doneNothing}
+            {standing ? DONE_LINE[standing] : th.report.doneNothing}
           </h2>
-          {queued && <p className="text-muted">{th.report.doneCancel}</p>}
+          {(standing === 'tomorrow' || standing === 'held') && <p className="text-muted">{th.report.doneCancel}</p>}
           <Go to="/app/list?find=test" className={PRIMARY_LINK}>
             <Emoji name="pin" />
             {th.report.findCare}

@@ -1,7 +1,7 @@
 import { syncNextTest, unfollow } from '../push/follow'
 import type { DiseaseGroup, MapLayer, PendingReport, PublishedFile, TestingLevel } from '../domain/types'
 import { DISTRICT_IDS } from '../domain/districts'
-import { takingNow } from '../envelope/send'
+import { forgetEnvelope, takingNow } from '../envelope/send'
 import { isoWeek, shiftWeek, weekIndex } from '../domain/weeks'
 import type { PhoneState, SignalCard } from './stores'
 import { phone } from './stores'
@@ -63,6 +63,7 @@ const ENVELOPE_KEYS = ['cluster.envelope-outbox', 'cluster.envelope-ready', 'clu
 export function wipePhone(): void {
   // Any wipe stops the weekly notification too, the error screen's included (redesign spec 5.11).
   void unfollow()
+  forgetEnvelope()
   phone.reset()
   try {
     for (const key of ENVELOPE_KEYS) localStorage.removeItem(key)

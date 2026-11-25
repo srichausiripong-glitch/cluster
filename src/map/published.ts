@@ -2,7 +2,7 @@ import { useMemo, useSyncExternalStore } from 'react'
 import type { PublishedArea, PublishedFile } from '../domain/types'
 import { DISTRICT_IDS } from '../domain/districts'
 
-// The latest weekly file the server published, read from /api/published when the app opens. The
+// The live file the server works out from the counts (owner, 25 Nov 2026), read from /api/published. The
 // last good file is kept on the phone for when the server cannot be reached; with neither, every
 // area reads "ยังไม่มีข้อมูล".
 let current: PublishedFile | null = null
@@ -40,10 +40,13 @@ export function useAreas(): Areas {
 
 const CACHE = 'cluster.published'
 
-/** Reads the weekly file. On failure keeps what is shown, or falls back to the last good file on this phone. */
-export async function loadPublished(): Promise<void> {
+/**
+ * Reads the live file. `fresh` asks past the server's few seconds of cache, right after this phone's own
+ * envelope went. On failure keeps what is shown, or falls back to the last good file on this phone.
+ */
+export async function loadPublished(fresh = false): Promise<void> {
   try {
-    const res = await fetch('/api/published')
+    const res = await fetch(fresh ? `/api/published?fresh=${Date.now()}` : '/api/published')
     if (!res.ok) throw new Error(String(res.status))
     const file = (await res.json()) as PublishedFile
     if (!Array.isArray(file.areas)) throw new Error('not a published file')

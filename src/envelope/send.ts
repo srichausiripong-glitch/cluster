@@ -4,6 +4,8 @@ import { b64url, seal } from './seal'
 
 export interface KeyInfo {
   week: string
+  /** The date in Bangkok (live map, owner 25 Nov 2026): one envelope a day. A server without it leaves the week. */
+  day?: string
   bits: number
   jwk: JsonWebKey
   /** Live from the server: while a reviewer has intake closed, the report waits on the phone. */
@@ -21,6 +23,34 @@ export interface SendDeps {
 }
 export type SendResult = 'sent' | 'not-due' | 'already-sent' | 'not-ready' | 'failed'
 
+/** The span one envelope covers: the server's day, or its week from a server that gives no day. */
+const periodOf = (key: KeyInfo) => key.day ?? key.week
+const sentThisPeriod = (key: KeyInfo) => phone.get().sentDay === periodOf(key)
+
+/**
+ * Counts wipes, so a solve or a post that was under way when the phone was wiped writes nothing back
+ * afterwards: no envelope sealed for a phone that no longer exists, no "sent" note on a wiped one.
+ */
+let generation = 0
+const changes = new Set<() => void>()
+const delivered = new Set<() => void>()
+const tell = (set: Set<() => void>) => set.forEach((fn) => fn())
+/** Hears when what reportState says may have changed. */
+export function onSendChange(fn: () => void): () => void {
+  changes.add(fn)
+  return () => changes.delete(fn)
+}
+/** Hears when the server accepted an envelope, so the live map can be fetched again at once. */
+export function onDelivered(fn: () => void): () => void {
+  delivered.add(fn)
+  return () => delivered.delete(fn)
+}
+/** Called by a wipe: anything under way is dropped, and the next send asks the server afresh. */
+export function forgetEnvelope(): void {
+  generation++
+  lastKey = null
+  tell(changes)
+}
 /** One time the app is open, by when it began. */
 export interface Visit {
   startedAt: number
@@ -138,12 +168,14 @@ async function fetchKey(deps: SendDeps): Promise<KeyInfo | null> {
  */
 async function prepare(key: KeyInfo, deps: SendDeps): Promise<'ready' | 'changed' | 'already-sent'> {
   if (matches(readBox(READY), key)) return 'ready'
+  const gen = generation
   const pending = waiting(key)
   const savedAt = pending?.savedAt ?? null
   const plain = makePlain(pending, deps.rand, b64url(crypto.getRandomValues(new Uint8Array(16))))
   const sealed = await seal(plain, key.jwk)
   const pow = (await deps.solve(powInput(sealed.ct, key.week), key.bits)).padStart(POW_DIGITS, '0')
-  if (phone.get().sentWeek === key.week) return 'already-sent'
+  if (gen !== generation) return 'changed'
+  if (sentThisPeriod(key)) return 'already-sent'
   if ((waiting(key)?.savedAt ?? null) !== savedAt) return 'changed'
   writeBox(READY, { week: key.week, savedAt, body: JSON.stringify({ ...sealed, pow }) })
   return 'ready'
@@ -155,53 +187,59 @@ async function prepare(key: KeyInfo, deps: SendDeps): Promise<'ready' | 'changed
  * No await before the claim is written, so another tab cannot slip in between.
  */
 async function post(key: KeyInfo, now: number, deps: SendDeps, keepalive: boolean): Promise<SendResult> {
-  if (phone.get().sentWeek === key.week) return 'already-sent'
+  if (sentThisPeriod(key)) return 'already-sent'
   let box = readBox(OUTBOX)
   if (box?.week !== key.week) {
     box = readBox(READY)
     if (!matches(box, key)) return 'not-ready'
   }
   const claim = readClaim()
-  if (claim && claim.week === key.week && now - claim.at < CLAIM_MS) return 'already-sent'
-  writeClaim({ week: key.week, at: now })
+  if (claim && claim.week === periodOf(key) && now - claim.at < CLAIM_MS) return 'already-sent'
+  writeClaim({ week: periodOf(key), at: now })
   writeBox(OUTBOX, box)
   writeBox(READY, null)
   const savedAt = box.savedAt
   const pending = waiting(key)
+  const gen = generation
+  tell(changes)
   try {
     const res = await deps.fetch('/api/envelope', { method: 'POST', headers: { 'content-type': 'application/json' }, body: box.body, keepalive })
     if (!res.ok) {
       writeBox(OUTBOX, null) // refused, not lost: the next try seals afresh
       throw new Error(`envelope refused: ${res.status}`)
     }
+    if (gen !== generation) return 'sent' // wiped meanwhile: nothing is written back
     writeBox(OUTBOX, null)
     // A "tested" report that went is remembered by week and district only, for the one-time "sent" note.
     const counted = savedAt !== null && pending?.savedAt === savedAt && pending.kind === 'tested' ? { week: key.week, zone: pending.zone } : undefined
-    phone.update((s) => ({ ...s, sentWeek: key.week, pending: savedAt !== null && s.pending?.savedAt === savedAt ? null : s.pending, ...(counted ? { counted } : {}) }))
+    phone.update((s) => ({ ...s, sentWeek: key.week, sentDay: periodOf(key), pending: savedAt !== null && s.pending?.savedAt === savedAt ? null : s.pending, ...(counted ? { counted } : {}) }))
+    tell(changes)
+    tell(delivered)
     return 'sent'
   } catch {
     writeClaim(null)
+    tell(changes)
     return 'failed'
   }
 }
 
 /**
- * This phone's one envelope for the server week (amendment 5, as changed by the 2026-11-23 design):
- * made ready while the app is open and sent when the person leaves it. The week comes from the server,
- * so a wrong phone clock cannot make a second envelope.
+ * This phone's one envelope for the server day (amendment 5, as changed by the 2026-11-23 design and
+ * the live map, owner 25 Nov 2026). The day comes from the server, so a wrong phone clock cannot make a
+ * second envelope; the proof of work and the counts stay by week.
  *
  * - With no `visit`, it is sent outright: prepared, then posted.
- * - While open, it is prepared. It goes at once only when an earlier visit this week ended without it
- *   and no other page of the app is open now, or when its answer was lost (the same bytes go again).
+ * - While open, it is prepared. It goes at once when a report is waiting (the live map: the colour
+ *   changes as the person presses send), when an earlier visit today ended without it and no other page
+ *   of the app is open now, or when its answer was lost (the same bytes go again).
  * - On leaving, however early, a prepared envelope matching the report now waiting is posted with
- *   `keepalive`, so when it goes says nothing of what it carries (owner, 24 Nov 2026). Nothing is
- *   sealed or solved then.
+ *   `keepalive`. Nothing is sealed or solved then.
  */
 export async function sendIfDue(now: number, deps: SendDeps, visit?: Visit, leaving = false): Promise<SendResult> {
   if (leaving) {
     const key = lastKey
     if (!key) return 'not-ready'
-    if (phone.get().sentWeek === key.week) return 'already-sent'
+    if (sentThisPeriod(key)) return 'already-sent'
     settleStale(key)
     if (!spent(key) && !matches(readBox(READY), key)) {
       writeBox(READY, null) // sealed for a report no longer waiting: it never leaves the phone
@@ -213,17 +251,18 @@ export async function sendIfDue(now: number, deps: SendDeps, visit?: Visit, leav
   const key = await fetchKey(deps)
   if (!key) return 'failed'
   lastKey = key
+  tell(changes)
   const state = phone.get()
-  if (state.sentWeek === key.week) return 'already-sent'
+  if (sentThisPeriod(key)) return 'already-sent'
   settleStale(key)
   // An envelope whose answer was lost goes again as it is, without sealing a new one.
   if (spent(key)) return post(key, now, deps, false)
-  let due = !visit
+  let due = !visit || waiting(key) !== null
   if (visit) {
     const alive = readAlive()
-    // sendAt keeps its old name and shape: the moment the first visit of this week began.
-    if (state.sendAt?.week !== key.week) phone.update((s) => ({ ...s, sendAt: { week: key.week, at: visit.startedAt } }))
-    else due = state.sendAt.at < visit.startedAt && !(alive !== null && now - alive < ALIVE_MS)
+    // sendAt keeps its old name and shape: the moment the first visit of this day began.
+    if (state.sendAt?.week !== periodOf(key)) phone.update((s) => ({ ...s, sendAt: { week: periodOf(key), at: visit.startedAt } }))
+    else due ||= state.sendAt.at < visit.startedAt && !(alive !== null && now - alive < ALIVE_MS)
     writeAlive(now)
   }
   const ready = await prepare(key, deps)
@@ -240,4 +279,17 @@ export async function sendIfDue(now: number, deps: SendDeps, visit?: Visit, leav
  */
 export function takingNow(savedAt: string): boolean {
   return readBox(OUTBOX)?.savedAt === savedAt
+}
+
+export type ReportState = 'sending' | 'sent' | 'tomorrow' | 'held'
+/**
+ * How the waiting report saved at `savedAt` stands, for the line after "ส่ง": going now, gone, waiting
+ * for tomorrow's envelope as today's has gone, or kept on the phone while a reviewer has intake closed.
+ */
+export function reportState(savedAt: string): ReportState {
+  if (phone.get().pending?.savedAt !== savedAt) return 'sent'
+  if (takingNow(savedAt)) return 'sending'
+  if (lastKey?.intakeOpen === false) return 'held'
+  if (lastKey && sentThisPeriod(lastKey)) return 'tomorrow'
+  return 'sending'
 }
