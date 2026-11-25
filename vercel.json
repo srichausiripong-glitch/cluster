@@ -21,7 +21,7 @@
   "crons": [
     {
       "path": "/api/cron/publish",
-      "schedule": "0 20 * * 0"
+      "schedule": "0 20 * * *"
     },
     {
       "path": "/api/cron/notify",

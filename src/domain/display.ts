@@ -21,7 +21,7 @@ export interface DisplayInput {
   counts: CountRow[]
   /** Envelopes received per week. */
   envelopes: Record<string, number>
-  /** The week being published: the one that just ended. */
+  /** Week 1 of the file: this week for the live map and the daily snapshot (owner, 25 Nov 2026). */
   nowWeek: string
   q: number
   suspended: string[]
@@ -75,7 +75,12 @@ function entry(areaId: string, counts: CountRow[], input: DisplayInput, district
   // A district with nothing to show says only that: whether it had none or a few would show that
   // someone there reported (redesign spec 5.5). The city, summed from all fifty, may say which.
   if (!density && !testing && !symptoms) {
-    const any = counts.some((c) => c.n > 0 && weeks.includes(c.week))
+    // Only reports still counted: an expired one says nothing of now.
+    const live = (c: CountRow) => {
+      const age = weekIndex(c.week, input.nowWeek)
+      return c.kind === 'tested' ? age <= TESTING_WEEKS : stepFor(c.kind as Exclude<ReportKind, 'tested'>, age) !== 'expired'
+    }
+    const any = counts.some((c) => c.n > 0 && weeks.includes(c.week) && live(c))
     return { areaId, state: isCity && !any ? 'no_data' : 'below_threshold', density: null, step: null, testing: null, symptoms: null }
   }
   let step: PublishedArea['step'] = null
@@ -97,7 +102,8 @@ export function displayFile(input: DisplayInput): PublishedArea[] {
     if (input.suspended.includes(id)) return { areaId: id, state: 'suspended', density: null, step: null, testing: null, symptoms: null }
     return entry(id, known.filter((c) => c.zone === id), input, 1, false)
   })
-  return [...districts, entry('bkk', known, input, DISTRICT_IDS.length, true)]
+  // A suspended district is out of the city too, or the city would show what its map hides.
+  return [...districts, entry('bkk', known.filter((c) => !input.suspended.includes(c.zone)), input, DISTRICT_IDS.length, true)]
 }
 
 // Kept in one place with the lifecycle so a reader sees how long each kind counts.

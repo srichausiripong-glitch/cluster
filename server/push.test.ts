@@ -161,3 +161,12 @@ it('takes no new address once the list is full, but still takes one it already h
   const [{ n }] = await db.query<{ n: number }>('select count(*)::int as n from push_subscriptions')
   expect(n).toBe(MAX_SUBSCRIPTIONS)
 }, 30_000)
+
+// Final review of the live map (25 Nov 2026): the daily job stores this week's snapshot, so by Monday noon
+// the latest row is this week's; the weekly push still goes.
+it('sends the weekly push when the daily job has already stored this week’s snapshot', async () => {
+  await publishedWeek(shiftWeek(serverWeek(NOON), -1))
+  await publishedWeek(serverWeek(NOON))
+  await subscribe(db, FCM, '2026-11-20')
+  expect(await sendWeekly({ db, jwk, subject: 'mailto:ops@example.org', now: NOON, post: answering(() => 201, []) })).toMatchObject({ sent: 1, skipped: false })
+})

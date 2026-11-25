@@ -1,7 +1,7 @@
 import { displayFile, type CountRow } from '../src/domain/display.js'
 import { heldCells } from '../src/domain/held.js'
 import type { PublishedFile, ReportKind } from '../src/domain/types.js'
-import { weekIndex } from '../src/domain/weeks.js'
+import { shiftWeek, weekIndex } from '../src/domain/weeks.js'
 import type { Db } from './db.js'
 import { serverWeek } from './week.js'
 
@@ -9,8 +9,9 @@ import { serverWeek } from './week.js'
 const KEEP_WEEKS = 12
 
 /**
- * The weekly job (v1 spec 4.3): holds sudden jumps, builds the file from the counts that are not
- * held or discarded, stores it, and deletes what the rules say must not be kept.
+ * The daily job (v1 spec 4.3; daily since the live map, owner 25 Nov 2026, called with this week):
+ * holds sudden jumps, builds the file from the counts that are not held or discarded, stores it as the
+ * week's snapshot, and deletes what the rules say must not be kept.
  */
 export async function publishWeek(db: Db, endedWeek: string, now: Date, q: number): Promise<PublishedFile> {
   const counts = await db.query<CountRow>('select zone, kind, week, n from counts')
@@ -23,7 +24,8 @@ export async function publishWeek(db: Db, endedWeek: string, now: Date, q: numbe
   // (Vercel does not retry a cron) is still held-checked before its counts reach a file.
   const [last] = await db.query<{ week: string }>('select max(week) as week from published')
   const toCheck = [...new Set(counts.map((c) => c.week))]
-    .filter((w) => w === endedWeek || (weekIndex(w, endedWeek) > 1 && (!last?.week || weekIndex(last.week, w) > 1)))
+    // Last week too: the daily run that holds its last evening's jump is the first one of this week.
+    .filter((w) => w === endedWeek || w === shiftWeek(endedWeek, -1) || (weekIndex(w, endedWeek) > 1 && (!last?.week || weekIndex(last.week, w) > 1)))
     .sort((a, b) => 1 - weekIndex(a, b))
   for (const week of toCheck) {
     const rejected = isIn(await heldNow())
@@ -34,17 +36,7 @@ export async function publishWeek(db: Db, endedWeek: string, now: Date, q: numbe
     }
   }
   const isHeld = isIn(await heldNow())
-
-  const envelopes = Object.fromEntries((await db.query<{ week: string; n: number }>('select week, n from envelope_totals')).map((r) => [r.week, r.n]))
-  const suspended = (await db.query<{ zone: string }>('select zone from suspensions where ended is null')).map((r) => r.zone)
-  const [setting] = await db.query<{ value: string }>("select value from settings where name = 'intake'")
-
-  const file: PublishedFile = {
-    week: endedWeek,
-    publishedAt: now.toISOString(),
-    intakeOpen: setting?.value !== 'closed',
-    areas: displayFile({ counts: counts.filter((c) => !isHeld(c)), envelopes, nowWeek: endedWeek, q, suspended }),
-  }
+  const file = await fileFrom(db, counts.filter((c) => !isHeld(c)), endedWeek, now, q)
   await db.query('insert into published (week, file) values ($1, $2) on conflict (week) do update set file = excluded.file', [endedWeek, JSON.stringify(file)])
 
   for (const table of ['counts', 'envelope_totals', 'harm_reports', 'place_reports']) {
@@ -55,6 +47,35 @@ export async function publishWeek(db: Db, endedWeek: string, now: Date, q: numbe
   const current = serverWeek(now)
   for (const table of ['seen_nonces', 'network_caps', 'week_keys']) await db.query(`delete from ${table} where week <> $1`, [current])
   return file
+}
+
+/** The file from counts already cleared of held cells: the rules of display.ts, with `week` as week 1. */
+async function fileFrom(db: Db, counts: CountRow[], week: string, now: Date, q: number): Promise<PublishedFile> {
+  const envelopes = Object.fromEntries((await db.query<{ week: string; n: number }>('select week, n from envelope_totals')).map((r) => [r.week, r.n]))
+  const suspended = (await db.query<{ zone: string }>('select zone from suspensions where ended is null')).map((r) => r.zone)
+  const [setting] = await db.query<{ value: string }>("select value from settings where name = 'intake'")
+  return { week, publishedAt: now.toISOString(), intakeOpen: setting?.value !== 'closed', areas: displayFile({ counts, envelopes, nowWeek: week, q, suspended }) }
+}
+
+/**
+ * The live map (owner, 25 Nov 2026): the file as the counts stand now, with this week as week 1, so a
+ * report accepted a moment ago shows. Cells a reviewer holds or discarded are left out, and so is a jump
+ * this week that the daily job has not held yet. Writes nothing.
+ */
+export async function liveFile(db: Db, now: Date, q: number): Promise<PublishedFile> {
+  const week = serverWeek(now)
+  const counts = await db.query<CountRow>('select zone, kind, week, n from counts')
+  const held = await db.query<{ zone: string; kind: ReportKind; week: string; status: string }>('select zone, kind, week, status from held')
+  const rowOf = (zone: string, kind: string, w: string) => held.find((h) => h.zone === zone && h.kind === kind && h.week === w)
+  let shown = counts.filter((c) => (rowOf(c.zone, c.kind, c.week)?.status ?? 'released') === 'released')
+  // Last week, then this week, as the daily job does: a jump on last week's final evening waits for the
+  // next run to be held, and is taken out before it can serve as this week's baseline. A cell reviewers
+  // already decided is never judged again: released shows, pending and discarded stay out above.
+  for (const w of [shiftWeek(week, -1), week]) {
+    const jumps = heldCells(shown, w).filter((j) => !rowOf(j.zone, j.kind, w))
+    shown = shown.filter((c) => !(c.week === w && jumps.some((j) => j.zone === c.zone && j.kind === c.kind)))
+  }
+  return fileFrom(db, shown, week, now, q)
 }
 
 export async function latestPublished(db: Db): Promise<PublishedFile | null> {

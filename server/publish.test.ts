@@ -3,7 +3,7 @@ import { beforeEach, expect, it } from 'vitest'
 import type { PublishedFile } from '../src/domain/types'
 import { shiftWeek } from '../src/domain/weeks'
 import { migrate, type Db } from './db'
-import { latestPublished, publishWeek } from './publish'
+import { latestPublished, liveFile, publishWeek } from './publish'
 import { testDb } from './testDb'
 import { serverWeek } from './week'
 
@@ -100,4 +100,52 @@ it('forgets corrections older than twelve weeks', async () => {
   await db.query("insert into place_reports (week, place, kind, value, n) values ($1, 'osm-node-1', 'closed', '', 1), ($2, 'osm-node-2', 'closed', '', 1)", [shiftWeek(ENDED, -12), shiftWeek(ENDED, -11)])
   await publishWeek(db, ENDED, NOW, Q)
   expect((await db.query<{ place: string }>('select place from place_reports')).map((r) => r.place)).toEqual(['osm-node-2'])
+})
+
+// ---- the live map (owner, 25 Nov 2026) -------------------------------------------------------------
+const WEEK = serverWeek(NOW)
+it('works the file out from the counts as they stand, with this week as the first', async () => {
+  await put('bang_rak', 'syphilis', WEEK, 1)
+  const file = await liveFile(db, NOW, Q)
+  expect(file.week).toBe(WEEK)
+  expect(area(file, 'bang_rak')).toMatchObject({ state: 'shown', density: 'thin', step: 'new' })
+  expect(await db.query('select * from published')).toHaveLength(0)
+})
+it('leaves a jump this week off the live map before the daily job has held it, and stores nothing', async () => {
+  await put('chatuchak', 'syphilis', shiftWeek(WEEK, -1), 2)
+  await put('chatuchak', 'syphilis', WEEK, 40)
+  const file = await liveFile(db, NOW, Q)
+  expect(area(file, 'chatuchak')).toMatchObject({ state: 'shown', density: 'thin' })
+  expect(await db.query('select * from held')).toHaveLength(0)
+})
+it('leaves held and discarded cells off the live map, and shows them once released', async () => {
+  await put('bang_kapi', 'syphilis', WEEK, 3)
+  await db.query("insert into held (zone, kind, week, n, status) values ('bang_kapi', 'syphilis', $1, 3, 'pending')", [WEEK])
+  expect(area(await liveFile(db, NOW, Q), 'bang_kapi').state).toBe('below_threshold')
+  await db.query("update held set status = 'released'")
+  expect(area(await liveFile(db, NOW, Q), 'bang_kapi').state).toBe('shown')
+})
+it('says live whether intake is open', async () => {
+  await db.query("insert into settings (name, value) values ('intake', 'closed')")
+  expect((await liveFile(db, NOW, Q)).intakeOpen).toBe(false)
+})
+it('checks last week again on the first run of a new week, so a jump on its last evening is held', async () => {
+  const last = shiftWeek(WEEK, -1)
+  await publishWeek(db, last, NOW, Q)
+  await put('chatuchak', 'syphilis', last, 40)
+  expect(area(await liveFile(db, NOW, Q), 'chatuchak').state).toBe('below_threshold')
+  await publishWeek(db, WEEK, NOW, Q)
+  expect(await db.query('select zone, week, status from held')).toEqual([{ zone: 'chatuchak', week: last, status: 'pending' }])
+})
+// Final review of the live map (25 Nov 2026).
+it('shows a jump on the live map once two reviewers released it', async () => {
+  await put('chatuchak', 'syphilis', shiftWeek(WEEK, -1), 2)
+  await put('chatuchak', 'syphilis', WEEK, 40)
+  await db.query("insert into held (zone, kind, week, n, status) values ('chatuchak', 'syphilis', $1, 40, 'released')", [WEEK])
+  expect(area(await liveFile(db, NOW, Q), 'chatuchak')).toMatchObject({ state: 'shown', density: 'dense' })
+})
+it('does not take last week’s unheld jump as the baseline for this week', async () => {
+  await put('chatuchak', 'syphilis', shiftWeek(WEEK, -1), 25)
+  await put('chatuchak', 'syphilis', WEEK, 30)
+  expect(area(await liveFile(db, NOW, Q), 'chatuchak').state).toBe('below_threshold')
 })

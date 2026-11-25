@@ -77,7 +77,10 @@ type Post = (url: string, init: RequestInit) => Promise<Response>
 export async function sendWeekly(deps: { db: Db; jwk: JsonWebKey; subject: string; now: Date; post?: Post }): Promise<{ sent: number; gone: number; failed: number; skipped: boolean }> {
   const { db, jwk, subject, now, post = fetch } = deps
   const result = { sent: 0, gone: 0, failed: 0, skipped: false }
-  if ((await latestPublished(db))?.week !== shiftWeek(serverWeek(now), -1)) return { ...result, skipped: true }
+  // The daily job (live map, 25 Nov 2026) stores this week's snapshot from Monday 03:00, so either week counts;
+  // nothing stored for two weeks means the job is failing, and the push would claim an update that is not there.
+  const latest = (await latestPublished(db))?.week
+  if (latest !== serverWeek(now) && latest !== shiftWeek(serverWeek(now), -1)) return { ...result, skipped: true }
   // The oldest followers first, so a flood of new addresses never pushes them out of a run cut short.
   const rows = await db.query<{ endpoint: string }>('select endpoint from push_subscriptions order by created_on, endpoint')
   for (let i = 0; i < rows.length; i += BATCH) {

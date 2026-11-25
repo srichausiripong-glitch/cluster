@@ -7,9 +7,10 @@ const EVERY_MS = 60_000
 const random = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32
 
 /**
- * The weekly envelope over one visit (2026-11-23 design): while the app is open and in view it is made
- * ready on opening, every minute and whenever the waiting report changes; it goes when the person
- * leaves, as the page is hidden or closed.
+ * The day's envelope over one visit (2026-11-23 design, daily since the live map, owner 25 Nov 2026):
+ * while the app is open and in view it is made ready on opening, every minute and whenever the waiting
+ * report changes. A waiting report goes as soon as it is sealed; otherwise the envelope goes when the
+ * person leaves, as the page is hidden or closed.
  */
 export function useEnvelope(): void {
   useEffect(() => {
@@ -18,8 +19,10 @@ export function useEnvelope(): void {
     let seen = phone.get().pending?.savedAt ?? null
     let busy = false
     let again = false
+    // Set on unmount: a solve still running then must not start another prepare after the page is gone.
+    let stopped = false
     const prepare = () => {
-      if (document.visibilityState === 'hidden') return
+      if (stopped || document.visibilityState === 'hidden') return
       if (busy) {
         // A report changed mid-solve: prepare again once this one ends, for the report waiting then.
         again = true
@@ -47,6 +50,7 @@ export function useEnvelope(): void {
     document.addEventListener('visibilitychange', onVisibility)
     window.addEventListener('pagehide', leave)
     return () => {
+      stopped = true
       unsubscribe()
       clearInterval(timer)
       document.removeEventListener('visibilitychange', onVisibility)
