@@ -3,8 +3,12 @@ import type { DensityBand } from './types.js'
 /** Minimum number of reports behind every displayed attribute (spec 7.2). */
 export const K = 10
 
-/** Red and orange show from three reports: one phone, one week, can never colour a district (2026-11-23 design). */
-export const SIGNAL_MIN = 3
+/**
+ * Red and orange show from one report, as green does (owner, 25 Nov 2026, changing the 23 Nov design so the
+ * map fills from the first reports). One phone in one week can colour a district; the bar still rises with
+ * the random reports expected once many phones send (`reaches`).
+ */
+export const SIGNAL_MIN = 1
 /** Green, tested and found nothing, shows from the first report. */
 export const TESTED_MIN = 1
 

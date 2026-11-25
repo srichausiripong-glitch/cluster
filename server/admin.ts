@@ -22,8 +22,8 @@ async function lastPublished(db: Db) {
 
 /**
  * What a reviewer sees: totals only (v1 spec 6). The overview (owner, 22 Nov 2026) sums what is already
- * kept: the city per week and kind, a district only at three or more (SIGNAL_MIN, as the map's red and
- * orange, 2026-11-23 design: a count of one or two is never sent), and how many phones follow a district.
+ * kept: the city per week and kind, a district from SIGNAL_MIN (one, as the map's colours, owner 25 Nov
+ * 2026), and how many phones follow a district.
  */
 export async function adminState(db: Db, now: Date) {
   const [setting] = await db.query<{ value: string }>("select value from settings where name = 'intake'")

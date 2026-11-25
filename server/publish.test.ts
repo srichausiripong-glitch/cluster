@@ -32,12 +32,12 @@ it('holds a sudden jump out of the file until two reviewers release it', async (
   await put('chatuchak', 'syphilis', shiftWeek(ENDED, -1), 2)
   await put('chatuchak', 'syphilis', ENDED, 40)
   const held = await publishWeek(db, ENDED, NOW, Q)
-  // Only the week before (2 reports) remains while the jump is held.
-  expect(area(held, 'chatuchak').state).toBe('below_threshold')
+  // Only the week before (2 reports, thin) remains while the jump is held.
+  expect(area(held, 'chatuchak')).toMatchObject({ state: 'shown', density: 'thin' })
   const rows = await db.query<{ id: number; status: string }>('select id, status from held')
   expect(rows).toEqual([{ id: expect.any(Number), status: 'pending' }])
   await db.query("update held set status = 'released'")
-  expect(area(await publishWeek(db, ENDED, NOW, Q), 'chatuchak').state).toBe('shown')
+  expect(area(await publishWeek(db, ENDED, NOW, Q), 'chatuchak')).toMatchObject({ state: 'shown', density: 'dense' })
   expect(await db.query('select * from held')).toHaveLength(1)
 })
 it('marks a suspended zone as suspended', async () => {
@@ -46,12 +46,12 @@ it('marks a suspended zone as suspended', async () => {
   expect(area(await publishWeek(db, ENDED, NOW, Q), 'bang_kapi').state).toBe('suspended')
 })
 it('raises the bar by the random reports expected from the envelopes of each week', async () => {
-  await put('bang_rak', 'syphilis', ENDED, 7)
+  await put('bang_rak', 'syphilis', ENDED, 5)
   // 100000 envelopes: one random report expected in each of the 50 × 4 cells; red counts two cells that
-  // week, so λ = 2 and it needs round(3 + 2 + 2√2) = 8 (2026-11-23 design).
+  // week, so λ = 2 and it needs round(1 + 2 + 2√2) = 6 (owner, 25 Nov 2026).
   await db.query('insert into envelope_totals (week, n) values ($1, 100000)', [ENDED])
   expect(area(await publishWeek(db, ENDED, NOW, Q), 'bang_rak').state).toBe('below_threshold')
-  await db.query("update counts set n = 8 where zone = 'bang_rak' and kind = 'syphilis'")
+  await db.query("update counts set n = 6 where zone = 'bang_rak' and kind = 'syphilis'")
   expect(area(await publishWeek(db, ENDED, NOW, Q), 'bang_rak')).toMatchObject({ state: 'shown', density: 'medium' })
 })
 it('deletes totals older than twelve weeks, and the keys, nonces and network counts', async () => {
@@ -85,7 +85,8 @@ it('does not let a held or discarded jump become the baseline for the next week'
   await put('chatuchak', 'syphilis', ENDED, 90)
   const file = await publishWeek(db, ENDED, NOW, Q)
   expect(await db.query("select week, status from held where week = $1", [ENDED])).toEqual([{ week: ENDED, status: 'pending' }])
-  expect(area(file, 'chatuchak').state).not.toBe('shown')
+  // Only the 2 from two weeks back count: neither the discarded 30 nor the held 90.
+  expect(area(file, 'chatuchak')).toMatchObject({ state: 'shown', density: 'thin' })
 })
 it('checks a week the job missed for jumps before publishing the next one', async () => {
   const missed = shiftWeek(ENDED, -1)
