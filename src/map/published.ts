@@ -40,13 +40,10 @@ export function useAreas(): Areas {
 
 const CACHE = 'cluster.published'
 
-/**
- * Reads the live file. `fresh` asks past the server's few seconds of cache, right after this phone's own
- * envelope went. On failure keeps what is shown, or falls back to the last good file on this phone.
- */
-export async function loadPublished(fresh = false): Promise<void> {
+/** Reads the live file. On failure keeps what is shown, or falls back to the last good file on this phone. */
+export async function loadPublished(): Promise<void> {
   try {
-    const res = await fetch(fresh ? `/api/published?fresh=${Date.now()}` : '/api/published')
+    const res = await fetch('/api/published')
     if (!res.ok) throw new Error(String(res.status))
     const file = (await res.json()) as PublishedFile
     if (!Array.isArray(file.areas)) throw new Error('not a published file')
@@ -67,7 +64,7 @@ export async function loadPublished(fresh = false): Promise<void> {
   }
 }
 
-/** The weekly file as last read, or null before one arrived. */
+/** The live file as last read, or null before one arrived. */
 export function usePublishedFile(): PublishedFile | null {
   return useSyncExternalStore(
     (fn) => {

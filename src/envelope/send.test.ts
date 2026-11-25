@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { mondayDate } from '../domain/weeks'
 import { phone } from '../store/stores'
 import { cancelPending, queueReport, wipePhone } from '../store/actions'
-import { onDelivered, READY, reportState, sendIfDue } from './send'
+import { READY, reportState, sendIfDue } from './send'
 import { unseal } from './seal'
 
 const WEEK = '2026-W46'
@@ -313,23 +313,15 @@ it('sends an empty envelope on leaving once a day, again the next day', async ()
   expect(await sendIfDue(next.startedAt + 1_000, daily(DAY2), next, true)).toBe('sent')
   expect(posted).toHaveLength(2)
 })
-it('says how a report stands: sending, sent, or kept while intake is closed', async () => {
+it('says how a report stands: waiting, sent, or kept while intake is closed', async () => {
   phone.update((s) => ({ ...s, pending: REPORT }))
-  expect(reportState(REPORT.savedAt)).toBe('sending')
+  expect(reportState(REPORT.savedAt)).toBe('waiting')
   intakeOpen = false
   await sendIfDue(T0, daily(DAY1), visitAt(T0))
   expect(reportState(REPORT.savedAt)).toBe('held')
   intakeOpen = undefined
   await sendIfDue(T0 + 1_000, daily(DAY2), visitAt(T0 + 1_000))
   expect(reportState(REPORT.savedAt)).toBe('sent')
-})
-it('tells listeners when an envelope was accepted, so the map is fetched again', async () => {
-  let heard = 0
-  const stop = onDelivered(() => heard++)
-  phone.update((s) => ({ ...s, pending: REPORT }))
-  await sendIfDue(T0, daily(DAY1), visitAt(T0))
-  stop()
-  expect(heard).toBe(1)
 })
 it('writes nothing back when the phone is wiped while an envelope is being solved', async () => {
   const solve = async () => {
@@ -341,4 +333,9 @@ it('writes nothing back when the phone is wiped while an envelope is being solve
   expect(posted).toHaveLength(0)
   expect(phone.get()).toMatchObject({ pending: null, sentWeek: null })
   expect(phone.get().sentDay ?? null).toBeNull()
+})
+it('never calls a cancelled report sent', async () => {
+  phone.update((s) => ({ ...s, pending: REPORT }))
+  expect(cancelPending()).toBe('cancelled')
+  expect(reportState(REPORT.savedAt)).toBe('gone')
 })

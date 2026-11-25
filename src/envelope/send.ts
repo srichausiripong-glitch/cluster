@@ -33,22 +33,19 @@ const sentThisPeriod = (key: KeyInfo) => phone.get().sentDay === periodOf(key)
  */
 let generation = 0
 const changes = new Set<() => void>()
-const delivered = new Set<() => void>()
+/** The waiting reports this page saw go, by their time: only these are called sent. Not stored. */
+const wentNow = new Set<string>()
 const tell = (set: Set<() => void>) => set.forEach((fn) => fn())
 /** Hears when what reportState says may have changed. */
 export function onSendChange(fn: () => void): () => void {
   changes.add(fn)
   return () => changes.delete(fn)
 }
-/** Hears when the server accepted an envelope, so the live map can be fetched again at once. */
-export function onDelivered(fn: () => void): () => void {
-  delivered.add(fn)
-  return () => delivered.delete(fn)
-}
 /** Called by a wipe: anything under way is dropped, and the next send asks the server afresh. */
 export function forgetEnvelope(): void {
   generation++
   lastKey = null
+  wentNow.clear()
   tell(changes)
 }
 /** One time the app is open, by when it began. */
@@ -210,11 +207,11 @@ async function post(key: KeyInfo, now: number, deps: SendDeps, keepalive: boolea
     }
     if (gen !== generation) return 'sent' // wiped meanwhile: nothing is written back
     writeBox(OUTBOX, null)
+    if (savedAt !== null) wentNow.add(savedAt)
     // A "tested" report that went is remembered by week and district only, for the one-time "sent" note.
     const counted = savedAt !== null && pending?.savedAt === savedAt && pending.kind === 'tested' ? { week: key.week, zone: pending.zone } : undefined
     phone.update((s) => ({ ...s, sentWeek: key.week, sentDay: periodOf(key), pending: savedAt !== null && s.pending?.savedAt === savedAt ? null : s.pending, ...(counted ? { counted } : {}) }))
     tell(changes)
-    tell(delivered)
     return 'sent'
   } catch {
     writeClaim(null)
@@ -281,15 +278,18 @@ export function takingNow(savedAt: string): boolean {
   return readBox(OUTBOX)?.savedAt === savedAt
 }
 
-export type ReportState = 'sending' | 'sent' | 'tomorrow' | 'held'
+export type ReportState = 'waiting' | 'sending' | 'sent' | 'gone' | 'tomorrow' | 'held'
 /**
- * How the waiting report saved at `savedAt` stands, for the line after "ส่ง": going now, gone, waiting
- * for tomorrow's envelope as today's has gone, or kept on the phone while a reviewer has intake closed.
+ * How the waiting report saved at `savedAt` stands, for the line after "ส่ง": waiting while the server
+ * has not answered yet, going now, gone with its envelope, no longer waiting without going (cancelled,
+ * replaced or wiped), waiting for tomorrow's envelope as today's has gone, or kept on the phone while a
+ * reviewer has intake closed.
  */
 export function reportState(savedAt: string): ReportState {
-  if (phone.get().pending?.savedAt !== savedAt) return 'sent'
+  if (phone.get().pending?.savedAt !== savedAt) return wentNow.has(savedAt) ? 'sent' : 'gone'
   if (takingNow(savedAt)) return 'sending'
-  if (lastKey?.intakeOpen === false) return 'held'
-  if (lastKey && sentThisPeriod(lastKey)) return 'tomorrow'
+  if (!lastKey) return 'waiting'
+  if (lastKey.intakeOpen === false) return 'held'
+  if (sentThisPeriod(lastKey)) return 'tomorrow'
   return 'sending'
 }

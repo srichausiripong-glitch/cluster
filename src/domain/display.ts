@@ -21,7 +21,7 @@ export interface DisplayInput {
   counts: CountRow[]
   /** Envelopes received per week. */
   envelopes: Record<string, number>
-  /** The week being published: the one that just ended. */
+  /** Week 1 of the file: this week for the live map and the daily snapshot (owner, 25 Nov 2026). */
   nowWeek: string
   q: number
   suspended: string[]

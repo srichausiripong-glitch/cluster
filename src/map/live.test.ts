@@ -2,14 +2,6 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { LIVE_MS, startLiveMap } from './live'
 import { setPublishedForTest } from './published'
 
-const delivered = new Set<() => void>()
-vi.mock('../envelope/send', () => ({
-  onDelivered: (fn: () => void) => {
-    delivered.add(fn)
-    return () => delivered.delete(fn)
-  },
-}))
-
 const FILE = { week: '2026-W48', publishedAt: 'x', intakeOpen: true, areas: [] }
 let urls: string[]
 let visibility: DocumentVisibilityState
@@ -43,10 +35,10 @@ it('fetches the map at once and every half minute while in view, and not while h
   await vi.advanceTimersByTimeAsync(LIVE_MS * 3)
   expect(urls).toHaveLength(3)
 })
-it('fetches past the cache right after this phone’s envelope was accepted', () => {
+// Final review (25 Nov 2026): a fetch right after a send would tell the server's logs which phone reported.
+it('never asks past the cache, so a phone that reported asks the same as any other', async () => {
   const stop = startLiveMap()
-  delivered.forEach((fn) => fn())
-  expect(urls[1]).toMatch(/^\/api\/published\?fresh=\d+$/)
+  await vi.advanceTimersByTimeAsync(LIVE_MS * 2)
+  expect(urls.every((u) => u === '/api/published')).toBe(true)
   stop()
-  expect(delivered.size).toBe(0)
 })

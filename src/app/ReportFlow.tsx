@@ -67,7 +67,16 @@ function downloadReminder() {
  * 🩺 เจอ / มีอาการ (redesign spec 5.3): what was found, how it is known, the district, done. 🤒 skips
  * "how it is known"; a kind that never goes on the map skips the district. No medical advice here.
  */
-const DONE_LINE = { sending: th.report.doneSending, sent: th.report.doneSent, tomorrow: th.report.doneTomorrow, held: th.report.doneHeld } as const
+const DONE_LINE = {
+  waiting: th.report.doneWaiting,
+  sending: th.report.doneSending,
+  sent: th.report.doneSent,
+  gone: th.report.doneNothing,
+  tomorrow: th.report.doneTomorrow,
+  held: th.report.doneHeld,
+} as const
+/** While the report has not started to go, it can still be cancelled. */
+const CANCELLABLE = new Set(['waiting', 'tomorrow', 'held'])
 
 export function ReportFlow() {
   const { pending, symptomsNextWeek, myDistrict } = usePartyStore(phone)
@@ -208,10 +217,10 @@ export function ReportFlow() {
         <section aria-label={th.report.summary} className="step-in mt-6 space-y-3">
           <Mascot />
           <h2 className="flex items-center gap-2 text-[22px] font-bold">
-            {queued && <Emoji name="envelope" size={26} />}
+            {queued && standing !== 'gone' && <Emoji name="envelope" size={26} />}
             {standing ? DONE_LINE[standing] : th.report.doneNothing}
           </h2>
-          {(standing === 'tomorrow' || standing === 'held') && <p className="text-muted">{th.report.doneCancel}</p>}
+          {standing && CANCELLABLE.has(standing) && <p className="text-muted">{th.report.doneCancel}</p>}
           <Go to="/app/list?find=test" className={PRIMARY_LINK}>
             <Emoji name="pin" />
             {th.report.findCare}

@@ -2,7 +2,7 @@ import { env, getDb, json, vapidJwk } from '../../server/env.js'
 import { sendWeekly } from '../../server/push.js'
 
 /**
- * Vercel Cron calls this every Monday 12:00 in Bangkok, nine hours after the 03:00 publication, so no
+ * Vercel Cron calls this every Monday 12:00 in Bangkok, nine hours after the daily job's 03:00 run, so no
  * notification wakes anyone at night (redesign spec 5.11). It sends the same empty push to every follower.
  */
 export async function GET(request: Request): Promise<Response> {

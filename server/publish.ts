@@ -65,11 +65,16 @@ async function fileFrom(db: Db, counts: CountRow[], week: string, now: Date, q: 
 export async function liveFile(db: Db, now: Date, q: number): Promise<PublishedFile> {
   const week = serverWeek(now)
   const counts = await db.query<CountRow>('select zone, kind, week, n from counts')
-  const held = await db.query<{ zone: string; kind: ReportKind; week: string }>("select zone, kind, week from held where status <> 'released'")
-  const kept = counts.filter((c) => !held.some((h) => h.zone === c.zone && h.kind === c.kind && h.week === c.week))
-  // This week and last: a jump on last week's final evening waits for the next daily run to be held.
-  const jumps = [week, shiftWeek(week, -1)].flatMap((w) => heldCells(kept, w).map((j) => ({ ...j, week: w })))
-  const shown = kept.filter((c) => !jumps.some((j) => j.week === c.week && j.zone === c.zone && j.kind === c.kind))
+  const held = await db.query<{ zone: string; kind: ReportKind; week: string; status: string }>('select zone, kind, week, status from held')
+  const rowOf = (zone: string, kind: string, w: string) => held.find((h) => h.zone === zone && h.kind === kind && h.week === w)
+  let shown = counts.filter((c) => (rowOf(c.zone, c.kind, c.week)?.status ?? 'released') === 'released')
+  // Last week, then this week, as the daily job does: a jump on last week's final evening waits for the
+  // next run to be held, and is taken out before it can serve as this week's baseline. A cell reviewers
+  // already decided is never judged again: released shows, pending and discarded stay out above.
+  for (const w of [shiftWeek(week, -1), week]) {
+    const jumps = heldCells(shown, w).filter((j) => !rowOf(j.zone, j.kind, w))
+    shown = shown.filter((c) => !(c.week === w && jumps.some((j) => j.zone === c.zone && j.kind === c.kind)))
+  }
   return fileFrom(db, shown, week, now, q)
 }
 

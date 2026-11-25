@@ -137,3 +137,15 @@ it('checks last week again on the first run of a new week, so a jump on its last
   await publishWeek(db, WEEK, NOW, Q)
   expect(await db.query('select zone, week, status from held')).toEqual([{ zone: 'chatuchak', week: last, status: 'pending' }])
 })
+// Final review of the live map (25 Nov 2026).
+it('shows a jump on the live map once two reviewers released it', async () => {
+  await put('chatuchak', 'syphilis', shiftWeek(WEEK, -1), 2)
+  await put('chatuchak', 'syphilis', WEEK, 40)
+  await db.query("insert into held (zone, kind, week, n, status) values ('chatuchak', 'syphilis', $1, 40, 'released')", [WEEK])
+  expect(area(await liveFile(db, NOW, Q), 'chatuchak')).toMatchObject({ state: 'shown', density: 'dense' })
+})
+it('does not take last week’s unheld jump as the baseline for this week', async () => {
+  await put('chatuchak', 'syphilis', shiftWeek(WEEK, -1), 25)
+  await put('chatuchak', 'syphilis', WEEK, 30)
+  expect(area(await liveFile(db, NOW, Q), 'chatuchak').state).toBe('below_threshold')
+})

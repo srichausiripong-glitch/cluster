@@ -1,7 +1,7 @@
 import { clientIp, getDb, powBits, privateJwk } from '../server/env.js'
 import { intake } from '../server/intake.js'
 
-/** Takes one weekly envelope. Answers 202 for every envelope it accepts, counted or not. */
+/** Takes one envelope (a phone sends at most one a day). Answers 202 for every envelope it accepts, counted or not. */
 export async function POST(request: Request): Promise<Response> {
   let body: unknown
   try {

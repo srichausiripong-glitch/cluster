@@ -46,28 +46,39 @@ it('sends a lab-confirmed syphilis result to the map for the chosen district, wi
   await choose(user, th.report.toMap)
   expect(phone.get().pending).toMatchObject({ kind: 'syphilis', zone: 'bang_rak' })
   expect(phone.get().myDistrict).toBe('bang_rak')
-  expect(screen.getByRole('heading', { name: th.report.doneSending })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: th.report.doneWaiting })).toBeInTheDocument()
 })
 
 // The live map (owner, 25 Nov 2026), and deferred minors M1 and M4: the line says what really happens.
-const server = (answer: { day: string; intakeOpen?: boolean }) =>
+const server = async (answer: { day: string; intakeOpen?: boolean }) => {
+  const pair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits'])
+  const jwk = await crypto.subtle.exportKey('jwk', pair.publicKey)
   vi.stubGlobal(
     'fetch',
-    vi.fn(async (url: string) => (String(url).endsWith('/api/key') ? new Response(JSON.stringify({ week: currentWeek(), bits: 8, jwk: { kty: 'EC', crv: 'P-256', x: 'x', y: 'y' }, ...answer })) : Promise.reject(new Error('offline')))),
+    vi.fn(async (url: string) => (String(url).endsWith('/api/key') ? new Response(JSON.stringify({ week: currentWeek(), bits: 4, jwk, ...answer })) : Promise.reject(new Error('offline')))),
   )
+}
 async function sendSyphilis(user: UserEvent) {
   await toDistrict(user)
   await pick(user, 'บางรัก')
   await choose(user, th.report.toMap)
 }
 it('says the report is on its way as it goes at once', async () => {
+  await server({ day: '2026-11-25' })
   const user = userEvent.setup()
   open()
   await sendSyphilis(user)
-  expect(screen.getByRole('heading', { name: th.report.doneSending })).toHaveTextContent('กำลังส่ง')
+  expect(await screen.findByRole('heading', { name: th.report.doneSending })).toHaveTextContent('กำลังส่ง')
+})
+it('says the report waits, and can be cancelled, while the server cannot be reached', async () => {
+  const user = userEvent.setup()
+  open()
+  await sendSyphilis(user)
+  expect(await screen.findByRole('heading', { name: th.report.doneWaiting })).toHaveTextContent('รอส่ง')
+  expect(screen.getByText(th.report.doneCancel)).toBeInTheDocument()
 })
 it('says a report made after today\'s envelope went goes with tomorrow\'s', async () => {
-  server({ day: '2026-11-25' })
+  await server({ day: '2026-11-25' })
   phone.update((s) => ({ ...s, sentDay: '2026-11-25' }))
   const user = userEvent.setup()
   open()
@@ -76,7 +87,7 @@ it('says a report made after today\'s envelope went goes with tomorrow\'s', asyn
   expect(screen.getByText(th.report.doneCancel)).toBeInTheDocument()
 })
 it('says the report stays on the phone while intake is closed, not that it is going', async () => {
-  server({ day: '2026-11-25', intakeOpen: false })
+  await server({ day: '2026-11-25', intakeOpen: false })
   const user = userEvent.setup()
   open()
   await sendSyphilis(user)
